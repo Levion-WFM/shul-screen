@@ -14,31 +14,46 @@ export default function OrnateFrame({
   className = "",
 }: OrnateFrameProps) {
   const isGrand = variant === "grand";
-  const frameClass = isGrand ? "panel-grand" : "panel";
-  const sz = isGrand ? 60 : 48;
+  const sz = isGrand ? 64 : 52;
+
+  // Nested divs create the thick beveled frame:
+  // [outer gold border] → [dark groove] → [inner gold border] → [dark edge] → [content]
+  const outerClass = isGrand ? "frame-outer-grand" : "frame-outer";
+  const innerClass = isGrand ? "frame-inner-grand" : "frame-inner";
+  const contentClass = isGrand ? "frame-content-grand" : "frame-content";
 
   return (
-    <div className={`${frameClass} relative ${className}`}>
-      {/* Heavy solid gold corner brackets */}
+    <div className={`${outerClass} ${className}`}>
+      {/* Corner ornaments sit on the outermost frame */}
       <Corner pos="tl" size={sz} />
       <Corner pos="tr" size={sz} />
       <Corner pos="bl" size={sz} />
       <Corner pos="br" size={sz} />
 
-      {/* Ribbon title */}
-      {ribbonText && (
-        <div className="flex justify-center" style={{ marginTop: -2, position: "relative", zIndex: 5 }}>
-          <div className="ribbon">{ribbonText}</div>
-        </div>
-      )}
+      <div className={innerClass}>
+        <div className={contentClass}>
+          {/* Ribbon title overlaps the frame top */}
+          {ribbonText && (
+            <div style={{
+              display: "flex",
+              justifyContent: "center",
+              marginTop: -2,
+              position: "relative",
+              zIndex: 5,
+            }}>
+              <div className="ribbon">{ribbonText}</div>
+            </div>
+          )}
 
-      {/* Content */}
-      <div style={{
-        position: "relative",
-        zIndex: 2,
-        padding: ribbonText ? "10px 18px 16px" : "18px",
-      }}>
-        {children}
+          {/* Content with generous padding */}
+          <div style={{
+            position: "relative",
+            zIndex: 2,
+            padding: ribbonText ? "8px 14px 12px" : "14px",
+          }}>
+            {children}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -46,10 +61,10 @@ export default function OrnateFrame({
 
 function Corner({ pos, size }: { pos: "tl" | "tr" | "bl" | "br"; size: number }) {
   const placement: Record<string, React.CSSProperties> = {
-    tl: { top: -4, left: -4 },
-    tr: { top: -4, right: -4 },
-    bl: { bottom: -4, left: -4 },
-    br: { bottom: -4, right: -4 },
+    tl: { top: -5, left: -5 },
+    tr: { top: -5, right: -5 },
+    bl: { bottom: -5, left: -5 },
+    br: { bottom: -5, right: -5 },
   };
   const flip: Record<string, string> = {
     tl: "scale(1,1)",
@@ -62,73 +77,62 @@ function Corner({ pos, size }: { pos: "tl" | "tr" | "bl" | "br"; size: number })
     <svg
       width={size}
       height={size}
-      viewBox="0 0 60 60"
+      viewBox="0 0 70 70"
       className="corner"
       style={{ ...placement[pos], transform: flip[pos] }}
     >
       <defs>
         <linearGradient id={`cg-${pos}`} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#e8d48a" />
-          <stop offset="30%" stopColor="#c9a84c" />
-          <stop offset="65%" stopColor="#a08530" />
+          <stop offset="0%" stopColor="#d4a843" />
+          <stop offset="25%" stopColor="#c9a84c" />
+          <stop offset="55%" stopColor="#9a8030" />
           <stop offset="100%" stopColor="#6b5a20" />
         </linearGradient>
-        <linearGradient id={`ch-${pos}`} x1="0%" y1="0%" x2="50%" y2="50%">
-          <stop offset="0%" stopColor="#f0dfa0" />
-          <stop offset="100%" stopColor="#c9a84c" />
+        <linearGradient id={`ch-${pos}`} x1="0%" y1="0%" x2="60%" y2="60%">
+          <stop offset="0%" stopColor="#e0ca70" />
+          <stop offset="100%" stopColor="#b89838" />
         </linearGradient>
       </defs>
 
-      {/* MAIN SCROLL BODY — thick, solid, heavy */}
+      {/* MAIN SCROLL ARMS — thick, solid, heavy cast gold */}
       {/* Horizontal arm */}
       <path
-        d="M0,0 L28,0 C24,1.5 18,5 14,10 C10,16 8,23 10,30
-           C7,24 5,17 5,11 C5.5,5 8,2 14,0.5 Z"
+        d="M0,0 L34,0 C28,2 22,6 17,12 C12,18 9,26 11,34
+           C8,28 5,20 5.5,13 C6,6 10,2 16,0.5 Z"
         fill={`url(#cg-${pos})`}
       />
       {/* Vertical arm */}
       <path
-        d="M0,0 L0,28 C1.5,24 5,18 10,14 C16,10 23,8 30,10
-           C24,7 17,5 11,5 C5,5.5 2,8 0.5,14 Z"
+        d="M0,0 L0,34 C2,28 6,22 12,17 C18,12 26,9 34,11
+           C28,8 20,5 13,5.5 C6,6 2,10 0.5,16 Z"
         fill={`url(#cg-${pos})`}
       />
 
-      {/* Highlight on top surface of scroll (3D lighting) */}
-      <path
-        d="M1,0.5 L24,0.5 C20,2 15,5 12,9"
-        fill="none" stroke="#e8d48a" strokeWidth="1" opacity="0.5"
-      />
-      <path
-        d="M0.5,1 L0.5,24 C2,20 5,15 9,12"
-        fill="none" stroke="#e8d48a" strokeWidth="1" opacity="0.5"
-      />
+      {/* Highlight edge — light catching the top surface */}
+      <path d="M1,1 L30,1 C25,3 19,7 15,12" fill="none"
+        stroke="#d4a843" strokeWidth="1.2" opacity="0.6" />
+      <path d="M1,1 L1,30 C3,25 7,19 12,15" fill="none"
+        stroke="#d4a843" strokeWidth="1.2" opacity="0.6" />
 
-      {/* Curl center — solid, chunky */}
-      <circle cx="12" cy="12" r="7" fill="#8b7225" />
-      <circle cx="12" cy="12" r="5" fill="#a08530" />
-      <circle cx="12" cy="12" r="3" fill={`url(#ch-${pos})`} />
-      {/* Light catch on curl */}
-      <circle cx="10.5" cy="10.5" r="1.5" fill="#e8d48a" opacity="0.6" />
+      {/* Curl center — chunky solid gold disc */}
+      <circle cx="14" cy="14" r="8" fill="#7a6520" />
+      <circle cx="14" cy="14" r="6" fill="#9a8030" />
+      <circle cx="14" cy="14" r="4" fill={`url(#ch-${pos})`} />
+      <circle cx="12.5" cy="12.5" r="2" fill="#d4a843" opacity="0.5" />
 
-      {/* Secondary scroll curves extending along frame */}
-      <path
-        d="M28,1.5 Q35,2 40,5 Q44,8 45,13"
-        fill="none" stroke="#a08530" strokeWidth="2" opacity="0.35" strokeLinecap="round"
-      />
-      <path
-        d="M1.5,28 Q2,35 5,40 Q8,44 13,45"
-        fill="none" stroke="#a08530" strokeWidth="2" opacity="0.35" strokeLinecap="round"
-      />
+      {/* Scroll tendrils extending along frame edges */}
+      <path d="M34,2 Q42,3 48,7 Q53,11 55,17"
+        fill="none" stroke="#9a8030" strokeWidth="2.5" opacity="0.35" strokeLinecap="round" />
+      <path d="M2,34 Q3,42 7,48 Q11,53 17,55"
+        fill="none" stroke="#9a8030" strokeWidth="2.5" opacity="0.35" strokeLinecap="round" />
 
-      {/* Leaf accents at curl */}
-      <path
-        d="M18,6 Q22,4 24,7 Q22,10 18,8 Z"
-        fill="#9a8030" opacity="0.4"
-      />
-      <path
-        d="M6,18 Q4,22 7,24 Q10,22 8,18 Z"
-        fill="#9a8030" opacity="0.4"
-      />
+      {/* Acanthus leaf accents */}
+      <path d="M22,7 Q27,4 30,8 Q27,12 22,9 Z" fill="#8a7028" opacity="0.5" />
+      <path d="M7,22 Q4,27 8,30 Q12,27 9,22 Z" fill="#8a7028" opacity="0.5" />
+
+      {/* Secondary inner curl */}
+      <path d="M20,14 Q24,10 26,14 Q24,18 20,16 Z" fill="#8a7028" opacity="0.3" />
+      <path d="M14,20 Q10,24 14,26 Q18,24 16,20 Z" fill="#8a7028" opacity="0.3" />
     </svg>
   );
 }
