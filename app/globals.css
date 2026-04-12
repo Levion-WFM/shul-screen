@@ -8,220 +8,190 @@
 
 body {
   font-family: var(--font-hebrew);
-  background: #050505;
+  background: #040404;
   color: #e8d48a;
   overflow: hidden;
 }
 
 /* ============================================
-   LAYER 1: OUTER GOLD FRAME
-   Thick metallic gilded molding around entire display
+   LAYER 1: OUTER GOLD FRAME — 10px thick molding
    ============================================ */
 .board-frame {
   background: linear-gradient(
     160deg,
-    #5a4818 0%,
-    #9a8030 5%,
-    #c9a84c 12%,
-    #e8d48a 20%,
-    #c9a84c 30%,
-    #a08530 45%,
-    #c9a84c 50%,
-    #e8d48a 55%,
-    #c9a84c 65%,
-    #a08530 75%,
-    #c9a84c 85%,
-    #e8d48a 90%,
-    #9a8030 96%,
-    #5a4818 100%
+    #5a4818 0%, #9a8030 4%, #c9a84c 10%,
+    #e8d48a 18%, #c9a84c 28%, #a08530 40%,
+    #c9a84c 50%, #e8d48a 60%, #c9a84c 72%,
+    #a08530 85%, #9a8030 96%, #5a4818 100%
   );
-  padding: 6px;
+  padding: 10px;
   box-shadow:
-    /* outer shadow — frame sits on wall */
-    0 4px 24px rgba(0,0,0,0.9),
-    0 1px 4px rgba(0,0,0,0.7),
-    /* inner bevel — frame has thickness */
-    inset 0 1px 0 rgba(232,212,138,0.4),
-    inset 0 -1px 0 rgba(90,72,24,0.6),
-    inset 1px 0 0 rgba(232,212,138,0.2),
-    inset -1px 0 0 rgba(90,72,24,0.4);
+    0 6px 30px rgba(0,0,0,0.9),
+    0 2px 8px rgba(0,0,0,0.7),
+    inset 0 2px 0 rgba(232,212,138,0.5),
+    inset 0 -2px 0 rgba(60,48,16,0.8),
+    inset 2px 0 0 rgba(232,212,138,0.3),
+    inset -2px 0 0 rgba(60,48,16,0.6);
 }
 
 /* ============================================
-   LAYER 2: BLACK GRANITE SURFACE
-   Polished stone with marble veining
+   LAYER 2: BLACK GRANITE SURFACE — visible texture
    ============================================ */
 .board-inner {
-  background: #080808;
+  background: #070707;
   height: 100%;
   display: flex;
   flex-direction: column;
   position: relative;
   overflow: hidden;
+  /* Inner shadow where frame meets granite */
+  box-shadow:
+    inset 0 3px 8px rgba(0,0,0,0.7),
+    inset 0 -2px 6px rgba(0,0,0,0.5),
+    inset 3px 0 8px rgba(0,0,0,0.5),
+    inset -3px 0 8px rgba(0,0,0,0.5);
 }
 
-/* Marble vein streaks */
+/* Marble veins — doubled opacity for visibility */
 .granite::before {
   content: "";
   position: absolute;
   inset: 0;
   background:
-    /* Primary veins — thin diagonal white streaks */
     repeating-linear-gradient(
       132deg,
-      transparent 0px, transparent 120px,
-      rgba(180,175,165,0.035) 120px,
-      rgba(200,195,185,0.05) 122px,
-      rgba(180,175,165,0.03) 124px,
-      transparent 126px, transparent 320px
+      transparent 0px, transparent 90px,
+      rgba(190,185,175,0.06) 90px,
+      rgba(210,205,195,0.08) 92px,
+      rgba(190,185,175,0.05) 95px,
+      transparent 97px, transparent 280px
     ),
-    /* Secondary veins — wider, softer */
     repeating-linear-gradient(
       148deg,
-      transparent 0px, transparent 200px,
-      rgba(160,155,145,0.025) 200px,
-      rgba(180,175,165,0.04) 203px,
-      rgba(160,155,145,0.02) 206px,
-      transparent 208px, transparent 500px
+      transparent 0px, transparent 160px,
+      rgba(170,165,155,0.04) 160px,
+      rgba(190,185,175,0.07) 163px,
+      rgba(170,165,155,0.04) 167px,
+      transparent 170px, transparent 420px
     ),
-    /* Tertiary fine veins */
     repeating-linear-gradient(
       118deg,
-      transparent 0px, transparent 300px,
-      rgba(140,135,125,0.02) 300px,
-      rgba(160,155,145,0.035) 301.5px,
-      transparent 303px, transparent 600px
+      transparent 0px, transparent 250px,
+      rgba(150,145,135,0.035) 250px,
+      rgba(175,170,160,0.06) 252px,
+      transparent 255px, transparent 500px
     ),
-    /* Micro crystal grain */
     repeating-linear-gradient(
       45deg,
       transparent 0px, transparent 2px,
-      rgba(120,115,105,0.012) 2px,
+      rgba(130,125,115,0.02) 2px,
       transparent 3px
     );
   pointer-events: none;
   z-index: 0;
 }
 
-/* Organic noise overlay for stone grain */
+/* Organic stone grain */
 .granite::after {
   content: "";
   position: absolute;
   inset: 0;
-  opacity: 0.08;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
-  background-size: 300px 300px;
+  opacity: 0.14;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  background-size: 250px 250px;
   mix-blend-mode: overlay;
   pointer-events: none;
   z-index: 0;
 }
 
 /* ============================================
-   LAYERS 3-4: PANEL FRAME
-   Gold-bordered panel floating above granite
+   LAYERS 3-4: PANEL — multi-layer molding frame
+
+   Cross-section of the frame molding:
+   [bright gold edge] [dark groove] [gold ridge] [dark inner edge] [content]
    ============================================ */
 .panel {
   position: relative;
-  background: #0a0a10;
-  /* Gold frame border with top-lit bevel */
-  border: 2.5px solid;
-  border-image: linear-gradient(
-    180deg,
-    #e8d48a 0%,
-    #c9a84c 30%,
-    #a08530 70%,
-    #7a6520 100%
-  ) 1;
-  /* LAYER 3: drop shadow — panel floats above granite */
+  /* Panel interior: subtle radial gradient — lighter center, darker edges */
+  background: radial-gradient(ellipse at 50% 40%, #0e0e18 0%, #090910 60%, #07070c 100%);
+  border: 1.5px solid #c9a84c;
   box-shadow:
-    0 3px 10px rgba(0,0,0,0.5),
-    0 1px 3px rgba(0,0,0,0.4),
-    /* inner depth — panel has recessed interior */
-    inset 0 0 20px rgba(0,0,0,0.4),
-    inset 0 1px 0 rgba(201,168,76,0.08);
-}
-
-/* Inner bevel line */
-.panel::after {
-  content: "";
-  position: absolute;
-  inset: 4px;
-  border: 1px solid rgba(160,133,48,0.15);
-  pointer-events: none;
-}
-
-/* Grand panel — center hero */
-.panel-grand {
-  position: relative;
-  background: linear-gradient(180deg, #0c0c14 0%, #0a0a10 50%, #08080c 100%);
-  border: 3px solid;
-  border-image: linear-gradient(
-    180deg,
-    #e8d48a 0%,
-    #d4af37 20%,
-    #c9a84c 50%,
-    #a08530 80%,
-    #7a6520 100%
-  ) 1;
-  box-shadow:
-    0 4px 16px rgba(0,0,0,0.6),
-    0 1px 4px rgba(0,0,0,0.5),
-    0 0 1px rgba(201,168,76,0.2),
-    inset 0 0 30px rgba(0,0,0,0.5),
-    inset 0 1px 0 rgba(232,212,138,0.06);
-}
-
-.panel-grand::after {
-  content: "";
-  position: absolute;
-  inset: 5px;
-  border: 1px solid rgba(201,168,76,0.12);
-  pointer-events: none;
+    /* Float shadow — panel hovers above granite */
+    0 4px 16px rgba(0,0,0,0.55),
+    0 2px 5px rgba(0,0,0,0.45),
+    /* Top edge highlight — light catching raised panel */
+    0 -1px 0 rgba(201,168,76,0.15),
+    /* MOLDING LAYERS (inset): */
+    /* 1. Outer bright gold edge */
+    inset 0 0 0 1px #a08530,
+    /* 2. Dark groove channel — THE KEY DEPTH TRICK */
+    inset 0 0 0 4px #12100a,
+    /* 3. Inner bright gold ridge */
+    inset 0 0 0 5.5px #8b7225,
+    /* 4. Innermost dark edge */
+    inset 0 0 0 6.5px rgba(20,18,10,0.8),
+    /* 5. Interior recess shadow */
+    inset 0 0 24px rgba(0,0,0,0.5);
 }
 
 /* ============================================
-   LAYER 6: RIBBON TITLE
-   Brass nameplate mounted on frame top
+   GRAND PANEL — center hero, heavier molding
+   ============================================ */
+.panel-grand {
+  position: relative;
+  /* Slightly lighter interior — feels like a framed poster */
+  background: radial-gradient(ellipse at 50% 35%, #121218 0%, #0c0c14 50%, #08080e 100%);
+  border: 2px solid #d4af37;
+  box-shadow:
+    0 6px 22px rgba(0,0,0,0.6),
+    0 2px 6px rgba(0,0,0,0.5),
+    0 -1px 0 rgba(212,175,55,0.2),
+    /* Heavier molding layers */
+    inset 0 0 0 1.5px #b8952e,
+    inset 0 0 0 5px #14120a,
+    inset 0 0 0 7px #9a8030,
+    inset 0 0 0 8px rgba(20,18,10,0.8),
+    inset 0 0 30px rgba(0,0,0,0.5);
+}
+
+/* ============================================
+   RIBBON TITLE — brass nameplate
    ============================================ */
 .ribbon {
   display: inline-block;
   background: linear-gradient(
-    180deg,
-    #e8d48a 0%,
-    #c9a84c 40%,
-    #a08530 100%
+    180deg, #e8d48a 0%, #d4af37 30%, #a08530 100%
   );
   color: #1a1508;
-  padding: 4px 28px;
+  padding: 4px 30px;
   font-weight: 700;
   font-size: 15px;
   letter-spacing: 0.5px;
   clip-path: polygon(8% 0%, 92% 0%, 100% 50%, 92% 100%, 8% 100%, 0% 50%);
   line-height: 1.3;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-  text-shadow: 0 1px 0 rgba(232,212,138,0.3);
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.4));
 }
 
 /* ============================================
-   CORNER ORNAMENTS
+   CORNER ORNAMENTS — heavy, solid gold brackets
    ============================================ */
 .corner {
   position: absolute;
-  z-index: 2;
+  z-index: 4;
   pointer-events: none;
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4));
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));
 }
 
 /* ============================================
-   TIME ROWS — generous spacing
+   TIME ROWS — generous, readable from across room
    ============================================ */
 .trow {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  padding: 5px 14px;
-  border-bottom: 1px solid rgba(160,133,48,0.08);
-  line-height: 1.6;
+  padding: 5px 6px;
+  border-bottom: 1px solid rgba(160,133,48,0.07);
+  line-height: 1.65;
 }
 .trow:last-child { border-bottom: none; }
 
@@ -238,18 +208,17 @@ body {
 }
 
 /* ============================================
-   LAYER 7: AMBIENT VIGNETTE
-   Subtle darkening at screen edges
+   AMBIENT VIGNETTE — subtle edge darkening
    ============================================ */
-.vignette::before {
+.vignette::after {
   content: "";
   position: absolute;
   inset: 0;
   background: radial-gradient(
-    ellipse at center,
-    transparent 50%,
-    rgba(0,0,0,0.15) 100%
+    ellipse at 50% 45%,
+    transparent 40%,
+    rgba(0,0,0,0.2) 100%
   );
   pointer-events: none;
-  z-index: 3;
+  z-index: 1;
 }
