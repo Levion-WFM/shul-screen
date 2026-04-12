@@ -1,208 +1,102 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-hebrew: var(--font-frank-ruhl), "David", "Frank Ruehl", serif;
+  --color-primary: #e9c349;
+  --color-on-primary: #3c2f00;
+  --color-secondary: #e7bdb1;
+  --color-background: #0a0706;
+  --color-surface: #120d0b;
+  --color-surface-container-high: #281f1d;
+  --color-outline: #9c8d8a;
+
+  --font-headline: var(--font-noto-serif), "Noto Serif", serif;
+  --font-body: var(--font-work-sans), "Work Sans", sans-serif;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  font-family: var(--font-hebrew);
-  background: #040404;
-  color: #d4a843;
-  overflow: hidden;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-/* ============================================
-   LAYER 1: OUTER GOLD FRAME — heavy gilded molding
-   ============================================ */
-.board-frame {
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+.wood-grain {
+  background-color: #0d0908;
+  background-image:
+    radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.4) 100%),
+    linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+    repeating-linear-gradient(
+      45deg,
+      rgba(20, 15, 10, 0.3) 0,
+      rgba(20, 15, 10, 0.3) 1px,
+      transparent 1px,
+      transparent 10px
+    );
+  box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.8);
+}
+
+.parchment-muted {
+  background-color: #1e1816;
+  background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuC1uasx9CuAa5S2J7CaSxBCqHTOamhYCyGm9nO31hYf2U4kmRkwfBu4AdYZfgOwHPuzPSsMErJFl14E6NqTuJTqnSLI_iFs7yUXaIeAqFobCOes2r3gYMJlEf10fTVHZhnxZVeBC-9DpfyEczp8ywDnprVStFoKJsuzIyc3NevzL6IkqzdUrFs7dyFlefbGj3i4DiWxwr-yjpX1sOUP08lEA-Ksid0rysv4Fkys51X0RSI9By_AU6w_p4XPG5726skOcUL5Vf5gSRCO);
+  background-blend-mode: multiply;
+}
+
+.gold-inlay {
   background: linear-gradient(
-    165deg,
-    #5a4818 0%, #8a7028 4%, #c9a84c 10%,
-    #d4a843 20%, #c9a84c 30%, #a08530 42%,
-    #c9a84c 50%, #d4a843 58%, #c9a84c 70%,
-    #a08530 85%, #8a7028 96%, #5a4818 100%
+    135deg,
+    #8b6b00 0%,
+    #ffe088 45%,
+    #e9c349 55%,
+    #8b6b00 100%
   );
-  padding: 10px;
-  box-shadow:
-    0 6px 30px rgba(0,0,0,0.9),
-    0 2px 8px rgba(0,0,0,0.7),
-    inset 0 2px 0 rgba(212,168,67,0.5),
-    inset 0 -2px 0 rgba(50,40,14,0.9),
-    inset 2px 0 0 rgba(212,168,67,0.3),
-    inset -2px 0 0 rgba(50,40,14,0.7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.4));
 }
 
-/* ============================================
-   LAYER 2: BLACK GRANITE SURFACE
-   ============================================ */
-.board-inner {
-  background: #070707;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow: hidden;
-  box-shadow:
-    inset 0 3px 10px rgba(0,0,0,0.8),
-    inset 0 -2px 8px rgba(0,0,0,0.6),
-    inset 3px 0 10px rgba(0,0,0,0.6),
-    inset -3px 0 10px rgba(0,0,0,0.6);
-}
-
-/* Marble veins */
-.granite::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    repeating-linear-gradient(132deg,
-      transparent 0px, transparent 90px,
-      rgba(190,185,175,0.05) 90px, rgba(210,205,195,0.07) 92px,
-      rgba(190,185,175,0.04) 95px, transparent 97px, transparent 280px),
-    repeating-linear-gradient(148deg,
-      transparent 0px, transparent 160px,
-      rgba(170,165,155,0.04) 160px, rgba(190,185,175,0.06) 163px,
-      transparent 167px, transparent 420px),
-    repeating-linear-gradient(118deg,
-      transparent 0px, transparent 250px,
-      rgba(150,145,135,0.03) 250px, rgba(175,170,160,0.05) 252px,
-      transparent 255px, transparent 500px);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.granite::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  opacity: 0.1;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
-  background-size: 250px 250px;
-  mix-blend-mode: overlay;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* ============================================
-   THICK BEVELED FRAME — built with nested divs
-   Cross-section: [gold 2px][dark groove 3px][gold 4px][dark 2px][content]
-   Total: ~11px of visible frame on each side
-   ============================================ */
-
-/* Outer frame wrapper — the outermost gold band */
-.frame-outer {
-  border: 2px solid #c9a84c;
-  padding: 3px; /* dark groove */
-  background: #14120a; /* groove color */
-  box-shadow:
-    0 4px 18px rgba(0,0,0,0.55),
-    0 2px 5px rgba(0,0,0,0.45);
-  position: relative;
-}
-
-/* Inner frame — the second gold band */
-.frame-inner {
-  border: 3px solid;
-  border-color: #b89838 #8a7028 #7a6020 #a08530; /* directional lighting */
-  padding: 1px;
-  background: #100e08;
-  height: 100%;
-}
-
-/* Content area */
-.frame-content {
-  background: radial-gradient(ellipse at 50% 40%, #0d0d14 0%, #09090e 60%, #070709 100%);
-  height: 100%;
-  position: relative;
-}
-
-/* Grand frame — heavier for center panel */
-.frame-outer-grand {
-  border: 3px solid #d4a843;
-  padding: 3px;
-  background: #14120a;
-  box-shadow:
-    0 6px 24px rgba(0,0,0,0.6),
-    0 2px 6px rgba(0,0,0,0.5),
-    0 0 2px rgba(201,168,76,0.15);
-  position: relative;
-}
-
-.frame-inner-grand {
+.gold-border-3d {
   border: 4px solid;
-  border-color: #c9a84c #9a8030 #8a7028 #b89838;
-  padding: 2px;
-  background: #100e08;
-  height: 100%;
+  border-image: linear-gradient(135deg, #c4a129, #ffe088, #8b6b00) 1;
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-.frame-content-grand {
-  background: radial-gradient(ellipse at 50% 35%, #101018 0%, #0b0b12 50%, #08080c 100%);
-  height: 100%;
-  position: relative;
+.elevated-3d {
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.8),
+    0 0 15px rgba(0, 0, 0, 0.4),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-/* ============================================
-   RIBBON TITLE
-   ============================================ */
-.ribbon {
-  display: inline-block;
-  background: linear-gradient(180deg, #d4a843 0%, #c9a84c 30%, #9a8030 100%);
-  color: #14120a;
-  padding: 4px 30px;
-  font-weight: 700;
-  font-size: 15px;
-  letter-spacing: 0.5px;
-  clip-path: polygon(8% 0%, 92% 0%, 100% 50%, 92% 100%, 8% 100%, 0% 50%);
-  line-height: 1.3;
-  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));
+.text-3d {
+  text-shadow:
+    2px 2px 0px #000,
+    3px 3px 5px rgba(0, 0, 0, 0.6);
 }
 
-/* ============================================
-   CORNER ORNAMENTS
-   ============================================ */
-.corner {
-  position: absolute;
-  z-index: 4;
-  pointer-events: none;
-  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.6));
+.brass-plaque {
+  background: linear-gradient(
+    135deg,
+    #a67c00 0%,
+    #bf9b30 40%,
+    #ffcf40 50%,
+    #bf9b30 60%,
+    #a67c00 100%
+  );
+  box-shadow:
+    2px 2px 4px rgba(0, 0, 0, 0.5),
+    inset 1px 1px 1px rgba(255, 255, 255, 0.2),
+    inset -1px -1px 1px rgba(0, 0, 0, 0.2);
+  border: 1px solid #7a5c00;
 }
 
-/* ============================================
-   TIME ROWS
-   ============================================ */
-.trow {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  padding: 5px 6px;
-  border-bottom: 1px solid rgba(160,133,48,0.06);
-  line-height: 1.65;
-}
-.trow:last-child { border-bottom: none; }
-
-/* ============================================
-   TICKER
-   ============================================ */
-@keyframes scroll-rtl {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-.ticker-move {
-  animation: scroll-rtl 40s linear infinite;
-  white-space: nowrap;
-}
-
-/* ============================================
-   VIGNETTE
-   ============================================ */
-.vignette::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at 50% 45%, transparent 40%, rgba(0,0,0,0.2) 100%);
-  pointer-events: none;
-  z-index: 1;
+.glow-text-hebrew {
+  text-shadow:
+    0 0 10px rgba(233, 195, 73, 0.4),
+    2px 2px 0px #000;
 }

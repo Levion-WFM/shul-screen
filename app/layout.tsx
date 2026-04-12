@@ -1,16 +1,22 @@
 import type { Metadata } from "next";
-import { Frank_Ruhl_Libre } from "next/font/google";
+import { Noto_Serif, Work_Sans } from "next/font/google";
 import "./globals.css";
 
-const frankRuhl = Frank_Ruhl_Libre({
-  variable: "--font-frank-ruhl",
-  subsets: ["latin", "hebrew"],
-  weight: ["300", "400", "500", "700", "900"],
+const notoSerif = Noto_Serif({
+  variable: "--font-noto-serif",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const workSans = Work_Sans({
+  variable: "--font-work-sans",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "Shul Display Board",
-  description: "Digital synagogue display board — zmanim, shiurim, announcements",
+  title: "Beis Medrash D Jackson 21",
+  description: "Digital synagogue display board",
 };
 
 export default function RootLayout({
@@ -19,8 +25,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="he" dir="rtl" className={`${frankRuhl.variable} h-full`}>
-      <body className="min-h-full flex flex-col bg-[#0a0a1a]">{children}</body>
+    <html
+      lang="en"
+      className={`dark ${notoSerif.variable} ${workSans.variable}`}
+    >
+      <head>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className="bg-background text-white font-body min-h-screen flex flex-col overflow-hidden">
+        {children}
+      </body>
     </html>
   );
 }
