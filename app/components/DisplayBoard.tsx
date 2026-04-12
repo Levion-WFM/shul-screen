@@ -17,7 +17,7 @@ export default function DisplayBoard({ data }: DisplayBoardProps) {
   return (
     <div className="w-screen h-screen bg-black">
       <div className="board-frame w-full h-full">
-        <div className="board-inner">
+        <div className="board-inner marble-bg">
           {/* TOP BAR — compact: parsha | shul name + clock | hebrew date */}
           <div
             dir="rtl"
@@ -28,6 +28,8 @@ export default function DisplayBoard({ data }: DisplayBoardProps) {
               padding: "4px 10px",
               borderBottom: "1px solid rgba(160,133,48,0.2)",
               flexShrink: 0,
+              position: "relative",
+              zIndex: 1,
             }}
           >
             {/* Right: Parsha */}
@@ -52,6 +54,8 @@ export default function DisplayBoard({ data }: DisplayBoardProps) {
               flex: 1,
               display: "grid",
               direction: "ltr",
+              position: "relative",
+              zIndex: 1,
               gridTemplateColumns: "27% 1fr 27%",
               gridTemplateRows: "1fr 1fr",
               gap: 5,
@@ -87,7 +91,7 @@ export default function DisplayBoard({ data }: DisplayBoardProps) {
           </div>
 
           {/* BOTTOM TICKER */}
-          <div dir="rtl" style={{ flexShrink: 0 }}>
+          <div dir="rtl" style={{ flexShrink: 0, position: "relative", zIndex: 1 }}>
             <BottomTicker
               announcements={data.announcements.map((a) => a.text)}
               moladInfo={data.moladInfo}

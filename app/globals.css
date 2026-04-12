@@ -6,8 +6,8 @@
   --color-gold-dark: #8b7225;
   --color-bronze: #c9a84c;
   --color-cream: #f0e6c8;
-  --color-board-bg: #080818;
-  --color-panel-bg: #0c0c22;
+  --color-board-bg: #060608;
+  --color-panel-bg: #0a0a0e;
   --font-hebrew: var(--font-frank-ruhl), "David", "Frank Ruehl", serif;
 }
 
@@ -15,14 +15,94 @@
 
 body {
   font-family: var(--font-hebrew);
-  background: #080818;
+  background: #060608;
   color: #e8d5a3;
   overflow: hidden;
 }
 
 /* ============================================
+   BLACK GRANITE / MARBLE TEXTURE
+   SVG noise filter for subtle stone veining
+   ============================================ */
+.marble-bg {
+  position: relative;
+  background: #080809;
+}
+
+/* Base layer: near-black */
+.marble-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    /* Diagonal white/grey streaks — simulates marble veining */
+    repeating-linear-gradient(
+      135deg,
+      transparent 0px,
+      transparent 80px,
+      rgba(180,180,180,0.03) 80px,
+      rgba(200,200,200,0.04) 82px,
+      transparent 84px,
+      transparent 200px
+    ),
+    repeating-linear-gradient(
+      125deg,
+      transparent 0px,
+      transparent 140px,
+      rgba(160,160,170,0.025) 140px,
+      rgba(180,180,190,0.035) 141px,
+      transparent 143px,
+      transparent 300px
+    ),
+    repeating-linear-gradient(
+      145deg,
+      transparent 0px,
+      transparent 220px,
+      rgba(150,150,160,0.02) 220px,
+      rgba(170,170,180,0.04) 222px,
+      rgba(150,150,160,0.02) 224px,
+      transparent 226px,
+      transparent 400px
+    ),
+    /* Wider softer veins */
+    repeating-linear-gradient(
+      130deg,
+      transparent 0px,
+      transparent 300px,
+      rgba(140,140,150,0.02) 300px,
+      rgba(160,160,170,0.03) 304px,
+      rgba(140,140,150,0.02) 308px,
+      transparent 310px,
+      transparent 500px
+    ),
+    /* Micro grain texture */
+    repeating-linear-gradient(
+      42deg,
+      transparent 0px,
+      transparent 3px,
+      rgba(100,100,110,0.015) 3px,
+      transparent 4px
+    );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* SVG turbulence noise for organic stone grain */
+.marble-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.12;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  background-size: 400px 400px;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ============================================
    OUTER BOARD FRAME
-   The gold "picture frame" around the entire TV
+   Metallic gold picture frame
    ============================================ */
 .board-frame {
   background: linear-gradient(
@@ -39,22 +119,23 @@ body {
 }
 
 .board-inner {
-  background: #080818;
+  background: #080809;
   height: 100%;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 /* ============================================
    PANEL FRAME
-   Gold-bordered panel with tight inner border
+   Gold-bordered, black granite background
    ============================================ */
 .panel {
   position: relative;
-  background: #0c0c22;
+  background: #0a0a0e;
   border: 2px solid #a08530;
   box-shadow:
-    inset 0 0 12px rgba(8,8,24,0.9),
+    inset 0 0 12px rgba(6,6,8,0.95),
     0 1px 4px rgba(0,0,0,0.5);
 }
 
@@ -62,36 +143,35 @@ body {
   content: "";
   position: absolute;
   inset: 3px;
-  border: 1px solid rgba(160,133,48,0.25);
+  border: 1px solid rgba(160,133,48,0.2);
   pointer-events: none;
 }
 
 /* Grand panel — center piece */
 .panel-grand {
   position: relative;
-  background: #0c0c22;
+  background: #0a0a0e;
   border: 2px solid #c9a84c;
   box-shadow:
-    inset 0 0 18px rgba(8,8,24,0.9),
-    0 0 6px rgba(201,168,76,0.15);
+    inset 0 0 18px rgba(6,6,8,0.95),
+    0 0 6px rgba(201,168,76,0.12);
 }
 
 .panel-grand::after {
   content: "";
   position: absolute;
   inset: 4px;
-  border: 1px solid rgba(201,168,76,0.2);
+  border: 1px solid rgba(201,168,76,0.18);
   pointer-events: none;
 }
 
 /* ============================================
    RIBBON TITLE
-   Compact gold hexagonal ribbon for panel headers
    ============================================ */
 .ribbon {
   display: inline-block;
   background: linear-gradient(180deg, #dbb94a 0%, #a08530 100%);
-  color: #0a0a1a;
+  color: #0a0a0a;
   padding: 3px 24px;
   font-weight: 700;
   font-size: 14px;
@@ -102,7 +182,6 @@ body {
 
 /* ============================================
    CORNER ORNAMENTS
-   Solid gold filled scrollwork — not wispy lines
    ============================================ */
 .corner {
   position: absolute;
@@ -112,7 +191,6 @@ body {
 
 /* ============================================
    TIME ROWS
-   Tight, dense time listing
    ============================================ */
 .trow {
   display: flex;
