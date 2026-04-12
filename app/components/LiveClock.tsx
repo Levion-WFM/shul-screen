@@ -28,38 +28,34 @@ export default function LiveClock({ hebrewDate, dayType }: LiveClockProps) {
   }, []);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "2px 0" }}>
-      <div style={{ color: "#9a8a5a", fontSize: 13, fontWeight: 500 }}>
-        {hebrewDate}
-      </div>
+    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <span style={{ color: "#7a6a3a", fontSize: 11 }}>{hebrewDate}</span>
 
-      <div
+      <span
         dir="ltr"
         style={{
           color: "#f0dfa0",
-          fontSize: "clamp(30px, 3.6vw, 52px)",
+          fontSize: 28,
           fontWeight: 900,
-          letterSpacing: "1px",
           fontVariantNumeric: "tabular-nums",
-          textShadow: "0 0 10px rgba(240,223,160,0.35)",
-          lineHeight: 1.1,
-          margin: "2px 0",
-          minHeight: "1.1em",
+          textShadow: "0 0 8px rgba(240,223,160,0.3)",
+          lineHeight: 1,
+          minWidth: "6ch",
         }}
       >
         {mounted ? time : "\u00A0"}
-      </div>
+      </span>
 
-      <div style={{
+      <span style={{
         background: "linear-gradient(180deg, #c9a84c 0%, #7a6520 100%)",
         color: "#080818",
-        fontSize: 12,
+        fontSize: 10,
         fontWeight: 700,
-        padding: "2px 16px",
+        padding: "1px 10px",
         borderRadius: 1,
       }}>
         {dayType}
-      </div>
+      </span>
     </div>
   );
 }

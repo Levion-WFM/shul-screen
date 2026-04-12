@@ -5,9 +5,9 @@ interface ShulHeaderProps {
 
 export default function ShulHeader({ shulName, shulSubtitle }: ShulHeaderProps) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "4px 0 0" }}>
-      {/* Shul building icon — compact */}
-      <svg width="40" height="34" viewBox="0 0 40 34">
+    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      {/* Small shul icon */}
+      <svg width="28" height="24" viewBox="0 0 40 34" style={{ flexShrink: 0 }}>
         <defs>
           <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" stopColor="#f0dfa0" />
@@ -23,27 +23,20 @@ export default function ShulHeader({ shulName, shulSubtitle }: ShulHeaderProps) 
         <path d="M18,24 Q18,18 20,17 Q22,18 22,24" fill="none" stroke="#c9a84c" strokeWidth="1" />
       </svg>
 
-      <div style={{ color: "#9a8a5a", fontSize: 13, fontWeight: 500, marginTop: 1 }}>
-        {shulSubtitle}
+      <div style={{ textAlign: "center" }}>
+        <div style={{ color: "#8a7a4a", fontSize: 11, fontWeight: 500, lineHeight: 1 }}>
+          {shulSubtitle}
+        </div>
+        <div style={{
+          color: "#f0dfa0",
+          fontSize: 22,
+          fontWeight: 900,
+          lineHeight: 1.1,
+          textShadow: "0 1px 4px rgba(240,223,160,0.25)",
+        }}>
+          {shulName}
+        </div>
       </div>
-      <div style={{
-        color: "#f0dfa0",
-        fontSize: 28,
-        fontWeight: 900,
-        lineHeight: 1.15,
-        textShadow: "0 1px 6px rgba(240,223,160,0.3)",
-      }}>
-        {shulName}
-      </div>
-
-      {/* Thin gold divider */}
-      <svg width="90" height="5" viewBox="0 0 90 5" style={{ marginTop: 2 }}>
-        <line x1="0" y1="2.5" x2="35" y2="2.5" stroke="#6b5a20" strokeWidth="0.8" />
-        <circle cx="40" cy="2.5" r="1.5" fill="#a08530" />
-        <circle cx="45" cy="2.5" r="2" fill="#d4af37" />
-        <circle cx="50" cy="2.5" r="1.5" fill="#a08530" />
-        <line x1="55" y1="2.5" x2="90" y2="2.5" stroke="#6b5a20" strokeWidth="0.8" />
-      </svg>
     </div>
   );
 }
