@@ -15,22 +15,29 @@ export default function OrnateFrame({
 }: OrnateFrameProps) {
   const isGrand = variant === "grand";
   const frameClass = isGrand ? "panel-grand" : "panel";
-  const cornerSize = isGrand ? 40 : 30;
+  const sz = isGrand ? 38 : 30;
 
   return (
     <div className={`${frameClass} relative ${className}`}>
-      <Corner pos="tl" size={cornerSize} />
-      <Corner pos="tr" size={cornerSize} />
-      <Corner pos="bl" size={cornerSize} />
-      <Corner pos="br" size={cornerSize} />
+      {/* LAYER 6: Corner ornaments — solid gold, sitting on frame */}
+      <Corner pos="tl" size={sz} />
+      <Corner pos="tr" size={sz} />
+      <Corner pos="bl" size={sz} />
+      <Corner pos="br" size={sz} />
 
+      {/* Ribbon title — brass nameplate */}
       {ribbonText && (
-        <div className="flex justify-center" style={{ marginTop: -1 }}>
+        <div className="flex justify-center" style={{ marginTop: -2, position: "relative", zIndex: 3 }}>
           <div className="ribbon">{ribbonText}</div>
         </div>
       )}
 
-      <div className={`relative z-[1] ${ribbonText ? "pt-2 px-4 pb-3" : "p-4"}`}>
+      {/* LAYER 5: Content with generous padding */}
+      <div style={{
+        position: "relative",
+        zIndex: 1,
+        padding: ribbonText ? "8px 16px 14px" : "16px",
+      }}>
         {children}
       </div>
     </div>
@@ -39,10 +46,10 @@ export default function OrnateFrame({
 
 function Corner({ pos, size }: { pos: "tl" | "tr" | "bl" | "br"; size: number }) {
   const placement: Record<string, React.CSSProperties> = {
-    tl: { top: -1, left: -1 },
-    tr: { top: -1, right: -1 },
-    bl: { bottom: -1, left: -1 },
-    br: { bottom: -1, right: -1 },
+    tl: { top: -3, left: -3 },
+    tr: { top: -3, right: -3 },
+    bl: { bottom: -3, left: -3 },
+    br: { bottom: -3, right: -3 },
   };
   const flip: Record<string, string> = {
     tl: "scale(1,1)",
@@ -61,34 +68,28 @@ function Corner({ pos, size }: { pos: "tl" | "tr" | "bl" | "br"; size: number })
     >
       <defs>
         <linearGradient id={`cg-${pos}`} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#f5e6a3" />
-          <stop offset="40%" stopColor="#d4af37" />
-          <stop offset="100%" stopColor="#8b7225" />
+          <stop offset="0%" stopColor="#e8d48a" />
+          <stop offset="35%" stopColor="#c9a84c" />
+          <stop offset="70%" stopColor="#a08530" />
+          <stop offset="100%" stopColor="#7a6520" />
         </linearGradient>
       </defs>
-      {/* Main scroll body — solid filled shape */}
+      {/* Solid filled scroll arms — heavy, gilded feel */}
       <path
-        d="M0,0 L18,0 C14,2 10,6 8,12 C6,18 7,24 10,28 C6,24 4,18 4,12 C4,6 6,2 10,0 L0,0 Z"
+        d="M2,0 L22,0 C18,1 13,4 10,9 C7,14 6,20 8,26 C5,20 3,14 4,9 C5,5 8,2 12,0 Z"
         fill={`url(#cg-${pos})`}
-        opacity="0.9"
       />
       <path
-        d="M0,0 L0,18 C2,14 6,10 12,8 C18,6 24,7 28,10 C24,6 18,4 12,4 C6,4 2,6 0,10 L0,0 Z"
+        d="M0,2 L0,22 C1,18 4,13 9,10 C14,7 20,6 26,8 C20,5 14,3 9,4 C5,5 2,8 0,12 Z"
         fill={`url(#cg-${pos})`}
-        opacity="0.9"
       />
-      {/* Curl tip */}
-      <circle cx="12" cy="12" r="4" fill="none" stroke="#d4af37" strokeWidth="1.5" opacity="0.7" />
-      <circle cx="12" cy="12" r="1.5" fill="#f5e6a3" opacity="0.8" />
-      {/* Outer flick */}
-      <path
-        d="M18,2 C22,2 26,4 28,8"
-        fill="none" stroke="#d4af37" strokeWidth="1.2" opacity="0.5"
-      />
-      <path
-        d="M2,18 C2,22 4,26 8,28"
-        fill="none" stroke="#d4af37" strokeWidth="1.2" opacity="0.5"
-      />
+      {/* Curl center — solid dot */}
+      <circle cx="10" cy="10" r="4.5" fill="#a08530" />
+      <circle cx="10" cy="10" r="2.5" fill="#c9a84c" />
+      <circle cx="9" cy="9" r="1" fill="#e8d48a" opacity="0.7" />
+      {/* Decorative flicks extending along frame */}
+      <path d="M22,1 C26,1.5 30,4 32,8" fill="none" stroke="#a08530" strokeWidth="1.5" opacity="0.4" />
+      <path d="M1,22 C1.5,26 4,30 8,32" fill="none" stroke="#a08530" strokeWidth="1.5" opacity="0.4" />
     </svg>
   );
 }
