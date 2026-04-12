@@ -2,53 +2,38 @@
 
 import OrnateFrame from "./OrnateFrame";
 
-export default function CalendarGrid() {
-  const now = new Date();
-  const month = now.getMonth();
-  const date = now.getDate();
-  const year = now.getFullYear();
+// This shows the weekday schedule / zmanei chol times in a compact grid
+// matching the reference image's top-right panel
 
-  const days = ["א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ש׳"];
-  const months = ["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"];
+interface ZmaneiCholProps {
+  times?: { label: string; time: string }[];
+}
 
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const firstDay = new Date(year, month, 1).getDay();
-
-  const cells: (number | null)[] = [];
-  for (let i = 0; i < firstDay; i++) cells.push(null);
-  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+export default function ZmaneiChol({ times }: ZmaneiCholProps) {
+  // Placeholder weekday times matching reference display
+  const cholTimes = times || [
+    { label: "עלות השחר", time: "5:12" },
+    { label: "נץ החמה", time: "6:28" },
+    { label: "סוף זמן ק״ש", time: "9:18" },
+    { label: "חצות", time: "12:48" },
+    { label: "מנחה גדולה", time: "1:18" },
+    { label: "שקיעה", time: "7:16" },
+    { label: "צאת הכוכבים", time: "7:52" },
+  ];
 
   return (
-    <OrnateFrame ribbonText={months[month] + " " + year} className="h-full">
-      <div style={{ direction: "ltr" }}>
-        {/* Day headers */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", marginBottom: 2 }}>
-          {days.map((d, i) => (
-            <div key={i} style={{ textAlign: "center", color: "#a08530", fontSize: 11, fontWeight: 700 }}>
-              {d}
-            </div>
-          ))}
-        </div>
-
-        {/* Days grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 1 }}>
-          {cells.map((day, i) => {
-            const isCurrent = day === date;
-            return (
-              <div key={i} style={{
-                textAlign: "center",
-                fontSize: 11,
-                padding: "1px 0",
-                color: isCurrent ? "#080818" : day ? "#8a7a4a" : "transparent",
-                background: isCurrent ? "linear-gradient(180deg,#c9a84c,#7a6520)" : "transparent",
-                borderRadius: isCurrent ? 2 : 0,
-                fontWeight: isCurrent ? 700 : 400,
-              }}>
-                {day ?? ""}
-              </div>
-            );
-          })}
-        </div>
+    <OrnateFrame ribbonText="זמני חול" className="h-full">
+      <div>
+        {cholTimes.map((e, i) => (
+          <div key={i} className="trow" style={{ padding: "2px 8px" }}>
+            <span style={{ color: "#d8c88a", fontSize: 12, fontWeight: 500 }}>
+              {e.label}
+            </span>
+            <span dir="ltr" style={{ color: "#f0dfa0", fontSize: 13, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
+              {e.time}
+            </span>
+          </div>
+        ))}
       </div>
     </OrnateFrame>
   );

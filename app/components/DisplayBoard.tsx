@@ -5,7 +5,7 @@ import LiveClock from "./LiveClock";
 import ShabbatTimes from "./ShabbatTimes";
 import DailyZmanim from "./DailyZmanim";
 import WeeklyDaf from "./WeeklyDaf";
-import CalendarGrid from "./CalendarGrid";
+import ZmaneiChol from "./CalendarGrid";
 import ShiurimPanel from "./ShiurimPanel";
 import BottomTicker from "./BottomTicker";
 
@@ -18,73 +18,68 @@ export default function DisplayBoard({ data }: DisplayBoardProps) {
     <div className="w-screen h-screen bg-black">
       <div className="board-frame w-full h-full">
         <div className="board-inner marble-bg">
-          {/* TOP BAR — compact: parsha | shul name + clock | hebrew date */}
+          {/* TOP BAR — parsha | shul name + clock | spacer */}
           <div
             dir="rtl"
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              padding: "4px 10px",
-              borderBottom: "1px solid rgba(160,133,48,0.2)",
+              padding: "3px 8px",
+              borderBottom: "1px solid rgba(160,133,48,0.15)",
               flexShrink: 0,
               position: "relative",
               zIndex: 1,
             }}
           >
-            {/* Right: Parsha */}
             <ParshaBanner
               parshaName={data.parshaName}
               parshaSubtitle={data.parshaSubtitle}
             />
-
-            {/* Center: Shul name + clock */}
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1 }}>
               <ShulHeader shulName={data.shulName} shulSubtitle={data.shulSubtitle} />
               <LiveClock hebrewDate={data.hebrewDate} dayType={data.dayType} />
             </div>
-
-            {/* Left: spacer for balance */}
-            <div style={{ width: 180 }} />
+            <div style={{ width: 160 }} />
           </div>
 
-          {/* MAIN PANELS — 3 columns, fill remaining height */}
+          {/* MAIN 3-COLUMN PANEL GRID */}
           <div
             style={{
               flex: 1,
               display: "grid",
               direction: "ltr",
-              position: "relative",
-              zIndex: 1,
-              gridTemplateColumns: "27% 1fr 27%",
+              gridTemplateColumns: "26% 1fr 26%",
               gridTemplateRows: "1fr 1fr",
-              gap: 5,
-              padding: "5px",
+              gap: 4,
+              padding: 4,
               minHeight: 0,
               overflow: "hidden",
+              position: "relative",
+              zIndex: 1,
             }}
           >
-            {/* LEFT top: Shabbat Times */}
+            {/* R1 LEFT: Shabbat Times */}
             <div dir="rtl" style={{ minHeight: 0, overflow: "hidden" }}>
               <ShabbatTimes times={data.shabbatTimes} />
             </div>
 
-            {/* CENTER: Weekly Daf — spans both rows */}
+            {/* R1+R2 CENTER: Weekly Daf (spans both rows) */}
             <div dir="rtl" style={{ gridRow: "span 2", minHeight: 0 }}>
               <WeeklyDaf title={data.weeklyDafTitle} content={data.weeklyDafContent} />
             </div>
 
-            {/* RIGHT top: Calendar */}
+            {/* R1 RIGHT: Zmanei Chol */}
             <div dir="rtl" style={{ minHeight: 0, overflow: "hidden" }}>
-              <CalendarGrid />
+              <ZmaneiChol />
             </div>
 
-            {/* LEFT bottom: Daily Zmanim */}
+            {/* R2 LEFT: Daily Zmanim */}
             <div dir="rtl" style={{ minHeight: 0, overflow: "hidden" }}>
               <DailyZmanim times={data.dailyZmanim} pirkeiAvot={data.pirkeiAvotChapter} />
             </div>
 
-            {/* RIGHT bottom: Shiurim */}
+            {/* R2 RIGHT: Shiurim */}
             <div dir="rtl" style={{ minHeight: 0, overflow: "hidden" }}>
               <ShiurimPanel shiurim={data.shiurim} />
             </div>
