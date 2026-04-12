@@ -8,57 +8,56 @@ interface LiveClockProps {
 }
 
 export default function LiveClock({ hebrewDate, dayType }: LiveClockProps) {
-  const [time, setTime] = useState<string>("");
+  const [time, setTime] = useState("");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const update = () => {
-      const now = new Date();
-      const hours = now.getHours();
-      const minutes = now.getMinutes().toString().padStart(2, "0");
-      const seconds = now.getSeconds().toString().padStart(2, "0");
-      const period = hours >= 12 ? "pm" : "am";
-      const display = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
-      setTime(`${display}:${minutes}:${seconds} ${period}`);
+    const tick = () => {
+      const n = new Date();
+      const h = n.getHours();
+      const m = n.getMinutes().toString().padStart(2, "0");
+      const s = n.getSeconds().toString().padStart(2, "0");
+      const p = h >= 12 ? "pm" : "am";
+      const d = h > 12 ? h - 12 : h === 0 ? 12 : h;
+      setTime(`${d}:${m}:${s} ${p}`);
     };
-    update();
-    const interval = setInterval(update, 1000);
-    return () => clearInterval(interval);
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
   }, []);
 
   return (
-    <div className="flex flex-col items-center text-center py-1">
-      {/* Hebrew date + holiday info */}
-      <div className="text-sm font-medium" style={{ color: "#c9a84c" }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "2px 0" }}>
+      <div style={{ color: "#9a8a5a", fontSize: 13, fontWeight: 500 }}>
         {hebrewDate}
       </div>
 
-      {/* Large clock display — force LTR so pm doesn't flip */}
       <div
         dir="ltr"
-        className="font-black tracking-wider my-1"
         style={{
-          fontSize: "clamp(32px, 4vw, 56px)",
-          color: "#f5e6a3",
-          textShadow:
-            "0 0 12px rgba(245, 230, 163, 0.5), 0 0 24px rgba(212, 175, 55, 0.3), 0 2px 4px rgba(0,0,0,0.6)",
+          color: "#f0dfa0",
+          fontSize: "clamp(30px, 3.6vw, 52px)",
+          fontWeight: 900,
+          letterSpacing: "1px",
           fontVariantNumeric: "tabular-nums",
-          minHeight: "1.2em",
+          textShadow: "0 0 10px rgba(240,223,160,0.35)",
+          lineHeight: 1.1,
+          margin: "2px 0",
+          minHeight: "1.1em",
         }}
       >
         {mounted ? time : "\u00A0"}
       </div>
 
-      {/* Day type label */}
-      <div
-        className="text-sm font-bold px-4 py-0.5 rounded-sm"
-        style={{
-          color: "#0a0a1a",
-          background: "linear-gradient(180deg, #d4af37 0%, #8b7225 100%)",
-          boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
-        }}
-      >
+      <div style={{
+        background: "linear-gradient(180deg, #c9a84c 0%, #7a6520 100%)",
+        color: "#080818",
+        fontSize: 12,
+        fontWeight: 700,
+        padding: "2px 16px",
+        borderRadius: 1,
+      }}>
         {dayType}
       </div>
     </div>

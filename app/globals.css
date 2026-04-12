@@ -6,206 +6,132 @@
   --color-gold-dark: #8b7225;
   --color-bronze: #c9a84c;
   --color-cream: #f0e6c8;
-  --color-board-bg: #0a0a1a;
-  --color-panel-bg: #111128;
-  --color-frame-bg: #0d0d24;
+  --color-board-bg: #080818;
+  --color-panel-bg: #0c0c22;
   --font-hebrew: var(--font-frank-ruhl), "David", "Frank Ruehl", serif;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
   font-family: var(--font-hebrew);
-  background: var(--color-board-bg);
-  color: var(--color-cream);
-  margin: 0;
-  padding: 0;
+  background: #080818;
+  color: #e8d5a3;
   overflow: hidden;
 }
 
-/* Gold text glow effect */
-.gold-text {
-  color: #d4af37;
-  text-shadow: 0 0 4px rgba(212, 175, 55, 0.3);
-}
-
-.gold-text-bright {
-  color: #f5e6a3;
-  text-shadow: 0 0 6px rgba(245, 230, 163, 0.4);
-}
-
-/* Ornate frame styles */
-.ornate-frame {
-  position: relative;
-  background: linear-gradient(145deg, #111128 0%, #0d0d24 50%, #111128 100%);
-  border: 2px solid #8b7225;
-  border-radius: 8px;
+/* ============================================
+   OUTER BOARD FRAME
+   The gold "picture frame" around the entire TV
+   ============================================ */
+.board-frame {
+  background: linear-gradient(
+    145deg,
+    #785e1a 0%, #c9a84c 8%, #f5e6a3 16%, #d4af37 24%,
+    #a08530 40%, #d4af37 50%,
+    #a08530 60%, #d4af37 76%, #f5e6a3 84%, #c9a84c 92%, #785e1a 100%
+  );
+  padding: 5px;
   box-shadow:
-    inset 0 0 20px rgba(10, 10, 26, 0.8),
-    0 0 8px rgba(212, 175, 55, 0.2);
-}
-
-.ornate-frame::before {
-  content: "";
-  position: absolute;
-  inset: -4px;
-  border: 3px solid transparent;
-  border-image: linear-gradient(
-    135deg,
-    #c9a84c 0%,
-    #f5e6a3 25%,
-    #d4af37 50%,
-    #f5e6a3 75%,
-    #c9a84c 100%
-  ) 1;
-  border-radius: 10px;
-  pointer-events: none;
-}
-
-.ornate-frame::after {
-  content: "";
-  position: absolute;
-  inset: 2px;
-  border: 1px solid rgba(212, 175, 55, 0.3);
-  border-radius: 6px;
-  pointer-events: none;
-}
-
-/* Grand frame for centerpiece */
-.ornate-frame-grand {
-  position: relative;
-  background: linear-gradient(145deg, #111128 0%, #0d0d24 50%, #111128 100%);
-  border: 3px solid #d4af37;
-  border-radius: 10px;
-  box-shadow:
-    inset 0 0 30px rgba(10, 10, 26, 0.8),
-    0 0 12px rgba(212, 175, 55, 0.3),
-    0 0 24px rgba(212, 175, 55, 0.1);
-}
-
-.ornate-frame-grand::before {
-  content: "";
-  position: absolute;
-  inset: -6px;
-  border: 4px solid transparent;
-  border-image: linear-gradient(
-    135deg,
-    #8b7225 0%,
-    #f5e6a3 15%,
-    #d4af37 30%,
-    #f5e6a3 50%,
-    #d4af37 70%,
-    #f5e6a3 85%,
-    #8b7225 100%
-  ) 1;
-  border-radius: 12px;
-  pointer-events: none;
-}
-
-.ornate-frame-grand::after {
-  content: "";
-  position: absolute;
-  inset: 3px;
-  border: 1px solid rgba(245, 230, 163, 0.4);
-  border-radius: 8px;
-  pointer-events: none;
-}
-
-/* Ribbon title banner */
-.ribbon-title {
-  position: relative;
-  display: inline-block;
-  background: linear-gradient(180deg, #d4af37 0%, #8b7225 100%);
-  color: #0a0a1a;
-  padding: 4px 28px;
-  font-weight: 700;
-  font-size: 15px;
-  letter-spacing: 1px;
-  clip-path: polygon(8% 0%, 92% 0%, 100% 50%, 92% 100%, 8% 100%, 0% 50%);
-}
-
-/* Corner ornament decorations */
-.corner-ornament {
-  position: absolute;
-  width: 36px;
-  height: 36px;
-  pointer-events: none;
-}
-
-.corner-ornament::before,
-.corner-ornament::after {
-  content: "";
-  position: absolute;
-  background: radial-gradient(ellipse at center, #f5e6a3, #d4af37, #8b7225);
-  border-radius: 50%;
-}
-
-.corner-tl { top: -4px; left: -4px; }
-.corner-tr { top: -4px; right: -4px; transform: scaleX(-1); }
-.corner-bl { bottom: -4px; left: -4px; transform: scaleY(-1); }
-.corner-br { bottom: -4px; right: -4px; transform: scale(-1); }
-
-.corner-ornament.corner-tl::before {
-  width: 20px; height: 20px; top: 0; left: 0;
-  clip-path: path("M0,20 Q0,0 20,0 L16,4 Q4,4 4,16 Z");
-}
-.corner-ornament.corner-tl::after {
-  width: 12px; height: 12px; top: 4px; left: 4px;
-  clip-path: path("M0,12 Q0,0 12,0 L9,3 Q3,3 3,9 Z");
-  opacity: 0.6;
-}
-
-/* Scrollwork decorative borders */
-.scrollwork-border {
-  border-image: repeating-linear-gradient(
-    90deg,
-    #8b7225 0px,
-    #d4af37 4px,
-    #f5e6a3 8px,
-    #d4af37 12px,
-    #8b7225 16px
-  ) 4;
-}
-
-/* Time table rows */
-.time-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 3px 12px;
-  border-bottom: 1px solid rgba(212, 175, 55, 0.15);
-}
-
-.time-row:last-child {
-  border-bottom: none;
-}
-
-/* Ticker animation */
-@keyframes ticker-scroll {
-  0% { transform: translateX(100%); }
-  100% { transform: translateX(-100%); }
-}
-
-.ticker-scroll {
-  animation: ticker-scroll 30s linear infinite;
-}
-
-/* Outer board frame */
-.board-outer-frame {
-  border: 4px solid #8b7225;
-  box-shadow:
-    inset 0 0 0 2px #d4af37,
-    inset 0 0 0 4px #8b7225,
-    0 4px 20px rgba(0, 0, 0, 0.8);
-  background: linear-gradient(135deg, #c9a84c 0%, #d4af37 50%, #c9a84c 100%);
-  padding: 6px;
+    inset 0 0 2px rgba(0,0,0,0.6),
+    0 0 20px rgba(0,0,0,0.9),
+    inset 0 0 8px rgba(245,230,163,0.15);
 }
 
 .board-inner {
-  background: #0a0a1a;
-  width: 100%;
+  background: #080818;
   height: 100%;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================
+   PANEL FRAME
+   Gold-bordered panel with tight inner border
+   ============================================ */
+.panel {
+  position: relative;
+  background: #0c0c22;
+  border: 2px solid #a08530;
+  box-shadow:
+    inset 0 0 12px rgba(8,8,24,0.9),
+    0 1px 4px rgba(0,0,0,0.5);
+}
+
+.panel::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid rgba(160,133,48,0.25);
+  pointer-events: none;
+}
+
+/* Grand panel — center piece */
+.panel-grand {
+  position: relative;
+  background: #0c0c22;
+  border: 2px solid #c9a84c;
+  box-shadow:
+    inset 0 0 18px rgba(8,8,24,0.9),
+    0 0 6px rgba(201,168,76,0.15);
+}
+
+.panel-grand::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid rgba(201,168,76,0.2);
+  pointer-events: none;
+}
+
+/* ============================================
+   RIBBON TITLE
+   Compact gold hexagonal ribbon for panel headers
+   ============================================ */
+.ribbon {
+  display: inline-block;
+  background: linear-gradient(180deg, #dbb94a 0%, #a08530 100%);
+  color: #0a0a1a;
+  padding: 3px 24px;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  clip-path: polygon(10% 0%, 90% 0%, 100% 50%, 90% 100%, 10% 100%, 0% 50%);
+  line-height: 1.3;
+}
+
+/* ============================================
+   CORNER ORNAMENTS
+   Solid gold filled scrollwork — not wispy lines
+   ============================================ */
+.corner {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* ============================================
+   TIME ROWS
+   Tight, dense time listing
+   ============================================ */
+.trow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 2px 10px;
+  border-bottom: 1px solid rgba(160,133,48,0.12);
+  line-height: 1.5;
+}
+.trow:last-child { border-bottom: none; }
+
+/* ============================================
+   TICKER
+   ============================================ */
+@keyframes scroll-rtl {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.ticker-move {
+  animation: scroll-rtl 40s linear infinite;
+  white-space: nowrap;
 }

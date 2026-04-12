@@ -9,38 +9,33 @@ interface DailyZmanimProps {
 export default function DailyZmanim({ times, pirkeiAvot }: DailyZmanimProps) {
   return (
     <OrnateFrame ribbonText="זמני היום" className="h-full">
-      <div className="flex flex-col gap-0">
-        {times.map((entry, i) => (
-          <div key={i} className="time-row">
-            <span
-              className="text-sm font-medium"
-              style={{ color: "#f0e6c8" }}
-            >
-              {entry.label}
+      <div>
+        {times.map((e, i) => (
+          <div key={i} className="trow">
+            <span style={{ color: "#d8c88a", fontSize: 13, fontWeight: 500 }}>
+              {e.label}
             </span>
-            <span
-              className="text-sm font-bold tabular-nums mr-3"
-              style={{ color: "#f5e6a3" }}
-            >
-              {entry.time}
+            <span dir="ltr" style={{ color: "#f0dfa0", fontSize: 14, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
+              {e.time}
             </span>
           </div>
         ))}
       </div>
 
-      {/* Bottom: Pirkei Avot + small icon */}
-      <div className="flex items-center justify-between mt-2 pt-2"
-        style={{ borderTop: "1px solid rgba(212, 175, 55, 0.2)" }}>
-        {/* Small aron kodesh icon */}
-        <svg width="24" height="24" viewBox="0 0 24 24">
-          <rect x="4" y="8" width="16" height="14" fill="none" stroke="#8b7225" strokeWidth="1.2" rx="1" />
-          <line x1="12" y1="8" x2="12" y2="22" stroke="#8b7225" strokeWidth="0.8" />
-          <path d="M6,8 L12,3 L18,8" fill="none" stroke="#d4af37" strokeWidth="1.2" />
-          <circle cx="12" cy="5" r="1.5" fill="#d4af37" opacity="0.6" />
+      <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginTop: 4,
+        paddingTop: 4,
+        borderTop: "1px solid rgba(160,133,48,0.15)",
+      }}>
+        <span style={{ color: "#7a6a3a", fontSize: 11 }}>{pirkeiAvot}</span>
+        <svg width="18" height="18" viewBox="0 0 18 18">
+          <rect x="3" y="6" width="12" height="10" fill="none" stroke="#6b5a20" strokeWidth="1" rx="0.5" />
+          <line x1="9" y1="6" x2="9" y2="16" stroke="#6b5a20" strokeWidth="0.6" />
+          <path d="M5,6 L9,2 L13,6" fill="none" stroke="#8b7225" strokeWidth="1" />
         </svg>
-        <span className="text-xs font-medium" style={{ color: "#c9a84c" }}>
-          {pirkeiAvot}
-        </span>
       </div>
     </OrnateFrame>
   );

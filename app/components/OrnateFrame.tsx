@@ -2,7 +2,7 @@ import React from "react";
 
 interface OrnateFrameProps {
   children: React.ReactNode;
-  variant?: "standard" | "grand" | "small";
+  variant?: "standard" | "grand";
   ribbonText?: string;
   className?: string;
 }
@@ -13,134 +13,82 @@ export default function OrnateFrame({
   ribbonText,
   className = "",
 }: OrnateFrameProps) {
-  const frameClass =
-    variant === "grand" ? "ornate-frame-grand" : "ornate-frame";
+  const isGrand = variant === "grand";
+  const frameClass = isGrand ? "panel-grand" : "panel";
+  const cornerSize = isGrand ? 40 : 30;
 
   return (
     <div className={`${frameClass} relative ${className}`}>
-      {/* Corner ornaments */}
-      <CornerPiece position="top-right" size={variant === "grand" ? 44 : 32} />
-      <CornerPiece position="top-left" size={variant === "grand" ? 44 : 32} />
-      <CornerPiece position="bottom-right" size={variant === "grand" ? 44 : 32} />
-      <CornerPiece position="bottom-left" size={variant === "grand" ? 44 : 32} />
+      <Corner pos="tl" size={cornerSize} />
+      <Corner pos="tr" size={cornerSize} />
+      <Corner pos="bl" size={cornerSize} />
+      <Corner pos="br" size={cornerSize} />
 
-      {/* Side ornaments for grand variant */}
-      {variant === "grand" && (
-        <>
-          <SideOrnament position="top" />
-          <SideOrnament position="bottom" />
-        </>
-      )}
-
-      {/* Ribbon title */}
       {ribbonText && (
-        <div className="flex justify-center -mt-[1px] relative z-10">
-          <div className="ribbon-title">{ribbonText}</div>
+        <div className="flex justify-center" style={{ marginTop: -1 }}>
+          <div className="ribbon">{ribbonText}</div>
         </div>
       )}
 
-      {/* Content */}
-      <div className={`relative z-[1] ${ribbonText ? "pt-1" : "p-3"} px-3 pb-3`}>
+      <div className={`relative z-[1] ${ribbonText ? "pt-1 px-2 pb-2" : "p-2"}`}>
         {children}
       </div>
     </div>
   );
 }
 
-function CornerPiece({
-  position,
-  size = 32,
-}: {
-  position: "top-right" | "top-left" | "bottom-right" | "bottom-left";
-  size?: number;
-}) {
-  const posStyles: Record<string, React.CSSProperties> = {
-    "top-right": { top: -2, right: -2 },
-    "top-left": { top: -2, left: -2 },
-    "bottom-right": { bottom: -2, right: -2 },
-    "bottom-left": { bottom: -2, left: -2 },
+function Corner({ pos, size }: { pos: "tl" | "tr" | "bl" | "br"; size: number }) {
+  const placement: Record<string, React.CSSProperties> = {
+    tl: { top: -1, left: -1 },
+    tr: { top: -1, right: -1 },
+    bl: { bottom: -1, left: -1 },
+    br: { bottom: -1, right: -1 },
   };
-
-  const rotations: Record<string, string> = {
-    "top-right": "rotate(0deg)",
-    "top-left": "rotate(90deg)",
-    "bottom-right": "rotate(-90deg)",
-    "bottom-left": "rotate(180deg)",
+  const flip: Record<string, string> = {
+    tl: "scale(1,1)",
+    tr: "scale(-1,1)",
+    bl: "scale(1,-1)",
+    br: "scale(-1,-1)",
   };
 
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 60 60"
-      style={{
-        position: "absolute",
-        ...posStyles[position],
-        transform: rotations[position],
-        zIndex: 5,
-      }}
+      viewBox="0 0 50 50"
+      className="corner"
+      style={{ ...placement[pos], transform: flip[pos] }}
     >
-      {/* Ornate corner scrollwork */}
       <defs>
-        <linearGradient id={`gold-grad-${position}`} x1="0%" y1="0%" x2="100%" y2="100%">
+        <linearGradient id={`cg-${pos}`} x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#f5e6a3" />
-          <stop offset="30%" stopColor="#d4af37" />
-          <stop offset="60%" stopColor="#f5e6a3" />
+          <stop offset="40%" stopColor="#d4af37" />
           <stop offset="100%" stopColor="#8b7225" />
         </linearGradient>
       </defs>
-      {/* Main scroll curve */}
+      {/* Main scroll body — solid filled shape */}
       <path
-        d="M2,2 Q2,20 12,28 Q6,22 6,12 Q6,6 12,4 L28,2 Q20,2 12,6 Q6,12 8,22 Q12,30 20,32 Q14,28 12,22 Q10,16 14,10 Q18,6 24,6 L30,4"
-        fill="none"
-        stroke={`url(#gold-grad-${position})`}
-        strokeWidth="2.5"
-        strokeLinecap="round"
+        d="M0,0 L18,0 C14,2 10,6 8,12 C6,18 7,24 10,28 C6,24 4,18 4,12 C4,6 6,2 10,0 L0,0 Z"
+        fill={`url(#cg-${pos})`}
+        opacity="0.9"
       />
-      {/* Inner spiral */}
       <path
-        d="M4,4 Q4,14 10,20 Q8,14 10,10 Q12,6 18,5"
-        fill="none"
-        stroke="#d4af37"
-        strokeWidth="1.5"
-        opacity="0.7"
+        d="M0,0 L0,18 C2,14 6,10 12,8 C18,6 24,7 28,10 C24,6 18,4 12,4 C6,4 2,6 0,10 L0,0 Z"
+        fill={`url(#cg-${pos})`}
+        opacity="0.9"
       />
-      {/* Leaf accent */}
-      <ellipse cx="8" cy="8" rx="4" ry="6" transform="rotate(-45, 8, 8)"
-        fill="none" stroke="#d4af37" strokeWidth="1.2" opacity="0.5" />
-      {/* Dot accent */}
-      <circle cx="5" cy="5" r="2" fill="#f5e6a3" opacity="0.6" />
-    </svg>
-  );
-}
-
-function SideOrnament({ position }: { position: "top" | "bottom" }) {
-  const style: React.CSSProperties =
-    position === "top"
-      ? { top: -3, left: "50%", transform: "translateX(-50%)" }
-      : { bottom: -3, left: "50%", transform: "translateX(-50%) rotate(180deg)" };
-
-  return (
-    <svg
-      width="80"
-      height="16"
-      viewBox="0 0 80 16"
-      style={{ position: "absolute", ...style, zIndex: 5 }}
-    >
-      <defs>
-        <linearGradient id="side-gold" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#8b7225" />
-          <stop offset="50%" stopColor="#f5e6a3" />
-          <stop offset="100%" stopColor="#8b7225" />
-        </linearGradient>
-      </defs>
+      {/* Curl tip */}
+      <circle cx="12" cy="12" r="4" fill="none" stroke="#d4af37" strokeWidth="1.5" opacity="0.7" />
+      <circle cx="12" cy="12" r="1.5" fill="#f5e6a3" opacity="0.8" />
+      {/* Outer flick */}
       <path
-        d="M0,8 Q10,0 20,4 Q30,8 40,2 Q50,8 60,4 Q70,0 80,8"
-        fill="none"
-        stroke="url(#side-gold)"
-        strokeWidth="2"
+        d="M18,2 C22,2 26,4 28,8"
+        fill="none" stroke="#d4af37" strokeWidth="1.2" opacity="0.5"
       />
-      <circle cx="40" cy="4" r="3" fill="#d4af37" />
+      <path
+        d="M2,18 C2,22 4,26 8,28"
+        fill="none" stroke="#d4af37" strokeWidth="1.2" opacity="0.5"
+      />
     </svg>
   );
 }

@@ -4,85 +4,50 @@ import OrnateFrame from "./OrnateFrame";
 
 export default function CalendarGrid() {
   const now = new Date();
-  const currentMonth = now.getMonth();
-  const currentDate = now.getDate();
-  const currentYear = now.getFullYear();
+  const month = now.getMonth();
+  const date = now.getDate();
+  const year = now.getFullYear();
 
-  // Hebrew day names (short)
-  const dayNames = ["א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ש׳"];
+  const days = ["א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ש׳"];
+  const months = ["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"];
 
-  // Generate days for current month
-  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-  const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-
-  // Hebrew month names
-  const hebrewMonths = [
-    "ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני",
-    "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"
-  ];
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDay = new Date(year, month, 1).getDay();
 
   const cells: (number | null)[] = [];
   for (let i = 0; i < firstDay; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
 
   return (
-    <OrnateFrame ribbonText={hebrewMonths[currentMonth] + " " + currentYear} className="h-full">
-      <div className="px-1 pt-1">
-        {/* Day name headers */}
-        <div className="grid grid-cols-7 gap-0 mb-1">
-          {dayNames.map((d, i) => (
-            <div key={i} className="text-center text-xs font-bold py-0.5"
-              style={{ color: "#d4af37" }}>
+    <OrnateFrame ribbonText={months[month] + " " + year} className="h-full">
+      <div style={{ direction: "ltr" }}>
+        {/* Day headers */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", marginBottom: 2 }}>
+          {days.map((d, i) => (
+            <div key={i} style={{ textAlign: "center", color: "#a08530", fontSize: 11, fontWeight: 700 }}>
               {d}
             </div>
           ))}
         </div>
 
-        {/* Calendar grid */}
-        <div className="grid grid-cols-7 gap-0">
-          {cells.map((day, i) => (
-            <div
-              key={i}
-              className="text-center py-0.5"
-              style={{
-                fontSize: "10px",
-                color: day === currentDate ? "#0a0a1a" : day ? "#c9a84c" : "transparent",
-                background:
-                  day === currentDate
-                    ? "linear-gradient(180deg, #d4af37 0%, #8b7225 100%)"
-                    : "transparent",
-                borderRadius: day === currentDate ? "3px" : "0",
-                fontWeight: day === currentDate ? 700 : 400,
-              }}
-            >
-              {day ?? ""}
-            </div>
-          ))}
-        </div>
-
-        {/* Mini yearly calendar below - compact 4x3 grid of months */}
-        <div className="mt-2 pt-1" style={{ borderTop: "1px solid rgba(212, 175, 55, 0.15)" }}>
-          <div className="grid grid-cols-4 gap-1">
-            {Array.from({ length: 12 }, (_, m) => {
-              const isCurrentMonth = m === currentMonth;
-              return (
-                <div
-                  key={m}
-                  className="text-center rounded-sm px-0.5 py-0.5"
-                  style={{
-                    fontSize: "8px",
-                    color: isCurrentMonth ? "#0a0a1a" : "#8b7225",
-                    background: isCurrentMonth
-                      ? "linear-gradient(180deg, #d4af37, #8b7225)"
-                      : "transparent",
-                    fontWeight: isCurrentMonth ? 700 : 400,
-                  }}
-                >
-                  {(m + 1).toString()}
-                </div>
-              );
-            })}
-          </div>
+        {/* Days grid */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 1 }}>
+          {cells.map((day, i) => {
+            const isCurrent = day === date;
+            return (
+              <div key={i} style={{
+                textAlign: "center",
+                fontSize: 11,
+                padding: "1px 0",
+                color: isCurrent ? "#080818" : day ? "#8a7a4a" : "transparent",
+                background: isCurrent ? "linear-gradient(180deg,#c9a84c,#7a6520)" : "transparent",
+                borderRadius: isCurrent ? 2 : 0,
+                fontWeight: isCurrent ? 700 : 400,
+              }}>
+                {day ?? ""}
+              </div>
+            );
+          })}
         </div>
       </div>
     </OrnateFrame>

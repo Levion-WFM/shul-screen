@@ -6,33 +6,18 @@ interface BottomTickerProps {
   liturgicalNotes: string;
 }
 
-export default function BottomTicker({
-  announcements,
-  moladInfo,
-  liturgicalNotes,
-}: BottomTickerProps) {
-  const allText = [liturgicalNotes, moladInfo, ...announcements]
-    .filter(Boolean)
-    .join("  ◆  ");
+export default function BottomTicker({ announcements, moladInfo, liturgicalNotes }: BottomTickerProps) {
+  const text = [liturgicalNotes, moladInfo, ...announcements].filter(Boolean).join("  ◆  ");
 
   return (
-    <div
-      className="w-full overflow-hidden py-1.5 px-4"
-      style={{
-        background: "linear-gradient(180deg, rgba(17,17,40,0.9) 0%, rgba(10,10,26,1) 100%)",
-        borderTop: "1px solid rgba(212, 175, 55, 0.3)",
-      }}
-    >
-      <div className="flex items-center justify-between">
-        {/* Scrolling text */}
-        <div className="flex-1 overflow-hidden">
-          <div
-            className="whitespace-nowrap ticker-scroll text-xs font-medium"
-            style={{ color: "#c9a84c" }}
-          >
-            {allText}
-          </div>
-        </div>
+    <div style={{
+      borderTop: "2px solid #a08530",
+      background: "#080818",
+      padding: "4px 0",
+      overflow: "hidden",
+    }}>
+      <div className="ticker-move" style={{ color: "#8a7a4a", fontSize: 12, fontWeight: 500 }}>
+        {text}
       </div>
     </div>
   );

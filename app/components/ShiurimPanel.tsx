@@ -8,44 +8,28 @@ interface ShiurimPanelProps {
 export default function ShiurimPanel({ shiurim }: ShiurimPanelProps) {
   return (
     <OrnateFrame ribbonText="שיעורים" className="h-full">
-      <div className="flex flex-col gap-1 pt-1">
-        {shiurim.map((shiur, i) => (
+      <div>
+        {shiurim.map((s, i) => (
           <div
             key={i}
-            className="flex items-start gap-2 py-1.5 px-2"
             style={{
-              borderBottom:
-                i < shiurim.length - 1
-                  ? "1px solid rgba(212, 175, 55, 0.15)"
-                  : "none",
+              display: "flex",
+              alignItems: "baseline",
+              gap: 8,
+              padding: "4px 6px",
+              borderBottom: i < shiurim.length - 1 ? "1px solid rgba(160,133,48,0.12)" : "none",
             }}
           >
-            {/* Book icon */}
-            <svg width="16" height="16" viewBox="0 0 16 16" className="mt-0.5 shrink-0">
-              <rect x="2" y="1" width="12" height="14" rx="1"
-                fill="none" stroke="#d4af37" strokeWidth="1" />
-              <line x1="5" y1="1" x2="5" y2="15" stroke="#8b7225" strokeWidth="0.8" />
-              <line x1="7" y1="4" x2="12" y2="4" stroke="#c9a84c" strokeWidth="0.5" />
-              <line x1="7" y1="6" x2="11" y2="6" stroke="#c9a84c" strokeWidth="0.5" />
-              <line x1="7" y1="8" x2="12" y2="8" stroke="#c9a84c" strokeWidth="0.5" />
+            <svg width="12" height="14" viewBox="0 0 12 14" style={{ flexShrink: 0, marginTop: 2 }}>
+              <rect x="1" y="0" width="10" height="13" rx="0.5" fill="none" stroke="#6b5a20" strokeWidth="0.8" />
+              <line x1="3.5" y1="0" x2="3.5" y2="13" stroke="#4a3e1a" strokeWidth="0.5" />
             </svg>
-
-            {/* Time */}
-            <span
-              className="text-sm font-bold tabular-nums shrink-0"
-              style={{ color: "#f5e6a3", minWidth: "36px" }}
-            >
-              {shiur.time}
+            <span dir="ltr" style={{ color: "#f0dfa0", fontSize: 14, fontWeight: 700, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>
+              {s.time}
             </span>
-
-            {/* Name + topic */}
-            <div className="flex flex-col">
-              <span className="text-sm font-bold" style={{ color: "#f0e6c8" }}>
-                {shiur.name}
-              </span>
-              <span className="text-xs" style={{ color: "#c9a84c" }}>
-                {shiur.topic}
-              </span>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ color: "#d8c88a", fontSize: 13, fontWeight: 600 }}>{s.name}</div>
+              <div style={{ color: "#7a6a3a", fontSize: 11 }}>{s.topic}</div>
             </div>
           </div>
         ))}

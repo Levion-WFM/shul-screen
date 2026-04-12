@@ -15,82 +15,70 @@ interface DisplayBoardProps {
 
 export default function DisplayBoard({ data }: DisplayBoardProps) {
   return (
-    <div className="w-screen h-screen flex items-center justify-center bg-[#050510]">
-      {/* Outer gold frame border */}
-      <div className="board-outer-frame w-full h-full max-w-[1920px] max-h-[1080px]">
-        <div className="board-inner flex flex-col h-full">
+    <div className="w-screen h-screen bg-black">
+      <div className="board-frame w-full h-full">
+        <div className="board-inner">
           {/*
-            Main 3-column layout — force LTR on grid so columns don't flip,
-            but each cell's content stays RTL via dir="rtl"
+            Tight 3-column grid. direction:ltr so columns don't RTL-flip.
+            Each cell sets dir="rtl" for Hebrew content.
           */}
           <div
-            className="flex-1 grid gap-2 p-3 overflow-hidden"
             style={{
+              flex: 1,
+              display: "grid",
               direction: "ltr",
-              gridTemplateColumns: "27% 1fr 27%",
+              gridTemplateColumns: "26fr 48fr 26fr",
               gridTemplateRows: "auto 1fr 1fr",
+              gap: "6px",
+              padding: "6px",
               minHeight: 0,
+              overflow: "hidden",
             }}
           >
-            {/* ===== LEFT COLUMN ===== */}
-            {/* Top-left: Parsha Banner */}
-            <div dir="rtl" className="self-start">
+            {/* R1C1 — Parsha (top-left) */}
+            <div dir="rtl">
               <ParshaBanner
                 parshaName={data.parshaName}
                 parshaSubtitle={data.parshaSubtitle}
               />
             </div>
 
-            {/* ===== CENTER COLUMN ===== */}
-            {/* Top-center: Shul Header + Clock */}
-            <div dir="rtl" className="flex flex-col items-center">
-              <ShulHeader
-                shulName={data.shulName}
-                shulSubtitle={data.shulSubtitle}
-              />
-              <LiveClock
-                hebrewDate={data.hebrewDate}
-                dayType={data.dayType}
-              />
+            {/* R1C2 — Shul header + clock (top-center) */}
+            <div dir="rtl" style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <ShulHeader shulName={data.shulName} shulSubtitle={data.shulSubtitle} />
+              <LiveClock hebrewDate={data.hebrewDate} dayType={data.dayType} />
             </div>
 
-            {/* ===== RIGHT COLUMN ===== */}
-            {/* Top-right: Calendar */}
-            <div dir="rtl" className="row-span-1">
-              <CalendarGrid />
-            </div>
+            {/* R1C3 — empty spacer or date info (top-right) */}
+            <div />
 
-            {/* Left row 2: Shabbat Times */}
-            <div dir="rtl">
+            {/* R2C1 — Shabbat Times */}
+            <div dir="rtl" style={{ minHeight: 0 }}>
               <ShabbatTimes times={data.shabbatTimes} />
             </div>
 
-            {/* Center row 2: Weekly Daf (centerpiece) — spans 2 rows */}
-            <div dir="rtl" className="row-span-2">
-              <WeeklyDaf
-                title={data.weeklyDafTitle}
-                content={data.weeklyDafContent}
-              />
+            {/* R2C2 — Weekly Daf centerpiece (spans 2 rows) */}
+            <div dir="rtl" style={{ gridRow: "span 2", minHeight: 0 }}>
+              <WeeklyDaf title={data.weeklyDafTitle} content={data.weeklyDafContent} />
             </div>
 
-            {/* Right row 2: Shiurim */}
-            <div dir="rtl">
+            {/* R2C3 — Calendar */}
+            <div dir="rtl" style={{ minHeight: 0 }}>
+              <CalendarGrid />
+            </div>
+
+            {/* R3C1 — Daily Zmanim */}
+            <div dir="rtl" style={{ minHeight: 0 }}>
+              <DailyZmanim times={data.dailyZmanim} pirkeiAvot={data.pirkeiAvotChapter} />
+            </div>
+
+            {/* R3C3 — Shiurim */}
+            <div dir="rtl" style={{ minHeight: 0 }}>
               <ShiurimPanel shiurim={data.shiurim} />
             </div>
-
-            {/* Left row 3: Daily Zmanim */}
-            <div dir="rtl">
-              <DailyZmanim
-                times={data.dailyZmanim}
-                pirkeiAvot={data.pirkeiAvotChapter}
-              />
-            </div>
-
-            {/* Right row 3: empty or additional content */}
-            <div />
           </div>
 
-          {/* Bottom ticker bar */}
+          {/* Bottom ticker */}
           <div dir="rtl">
             <BottomTicker
               announcements={data.announcements.map((a) => a.text)}

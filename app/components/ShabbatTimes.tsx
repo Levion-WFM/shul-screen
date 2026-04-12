@@ -8,20 +8,14 @@ interface ShabbatTimesProps {
 export default function ShabbatTimes({ times }: ShabbatTimesProps) {
   return (
     <OrnateFrame ribbonText="זמני שבת" className="h-full">
-      <div className="flex flex-col gap-0">
-        {times.map((entry, i) => (
-          <div key={i} className="time-row">
-            <span
-              className="text-sm font-medium"
-              style={{ color: "#f0e6c8" }}
-            >
-              {entry.label}
+      <div>
+        {times.map((e, i) => (
+          <div key={i} className="trow">
+            <span style={{ color: "#d8c88a", fontSize: 13, fontWeight: 500 }}>
+              {e.label}
             </span>
-            <span
-              className="text-sm font-bold tabular-nums mr-3"
-              style={{ color: "#f5e6a3" }}
-            >
-              {entry.time}
+            <span dir="ltr" style={{ color: "#f0dfa0", fontSize: 14, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
+              {e.time}
             </span>
           </div>
         ))}
