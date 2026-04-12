@@ -30,7 +30,7 @@ export default function OrnateFrame({
         </div>
       )}
 
-      <div className={`relative z-[1] ${ribbonText ? "pt-1 px-2 pb-2" : "p-2"}`}>
+      <div className={`relative z-[1] ${ribbonText ? "pt-2 px-4 pb-3" : "p-4"}`}>
         {children}
       </div>
     </div>

@@ -196,9 +196,9 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  padding: 1.5px 8px;
+  padding: 4px 12px;
   border-bottom: 1px solid rgba(160,133,48,0.10);
-  line-height: 1.4;
+  line-height: 1.6;
 }
 .trow:last-child { border-bottom: none; }
 

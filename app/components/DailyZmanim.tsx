@@ -11,7 +11,7 @@ export default function DailyZmanim({ times, pirkeiAvot }: DailyZmanimProps) {
     <OrnateFrame ribbonText="זמני היום" className="h-full">
       <div>
         {times.map((e, i) => (
-          <div key={i} className="trow" style={{ padding: "1px 8px" }}>
+          <div key={i} className="trow">
             <span style={{ color: "#d8c88a", fontSize: 12, fontWeight: 500 }}>
               {e.label}
             </span>

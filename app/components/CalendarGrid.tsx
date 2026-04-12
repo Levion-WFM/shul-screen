@@ -2,38 +2,78 @@
 
 import OrnateFrame from "./OrnateFrame";
 
-// This shows the weekday schedule / zmanei chol times in a compact grid
-// matching the reference image's top-right panel
-
-interface ZmaneiCholProps {
-  times?: { label: string; time: string }[];
+interface DaveningTime {
+  label: string;
+  times: string;
 }
 
-export default function ZmaneiChol({ times }: ZmaneiCholProps) {
-  // Placeholder weekday times matching reference display
-  const cholTimes = times || [
-    { label: "עלות השחר", time: "5:12" },
-    { label: "נץ החמה", time: "6:28" },
-    { label: "סוף זמן ק״ש", time: "9:18" },
-    { label: "חצות", time: "12:48" },
-    { label: "מנחה גדולה", time: "1:18" },
-    { label: "שקיעה", time: "7:16" },
-    { label: "צאת הכוכבים", time: "7:52" },
-  ];
+interface DaveningScheduleProps {
+  schedule?: {
+    shacharit: DaveningTime[];
+    mincha: string;
+    maariv: string;
+    extras?: DaveningTime[];
+  };
+}
+
+export default function DaveningSchedule({ schedule }: DaveningScheduleProps) {
+  const s = schedule || {
+    shacharit: [
+      { label: "ימי חול", times: "7:00  8:00  9:30  10:00" },
+    ],
+    mincha: "8:10",
+    maariv: "8:25",
+    extras: [
+      { label: "שבת", times: "10:00 - 9:15 - 8:15" },
+    ],
+  };
 
   return (
-    <OrnateFrame ribbonText="זמני חול" className="h-full">
+    <OrnateFrame ribbonText="זמני תפילות" className="h-full">
       <div>
-        {cholTimes.map((e, i) => (
-          <div key={i} className="trow" style={{ padding: "2px 8px" }}>
-            <span style={{ color: "#d8c88a", fontSize: 12, fontWeight: 500 }}>
-              {e.label}
-            </span>
-            <span dir="ltr" style={{ color: "#f0dfa0", fontSize: 13, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
-              {e.time}
-            </span>
+        {/* Shacharit */}
+        <div style={{ paddingBottom: 8, borderBottom: "1px dashed rgba(160,133,48,0.2)" }}>
+          <div style={{ color: "#a08530", fontSize: 11, fontWeight: 700, marginBottom: 4 }}>--- שחרית ---</div>
+          {s.shacharit.map((item, i) => (
+            <div key={i} className="trow">
+              <span style={{ color: "#d8c88a", fontSize: 12 }}>{item.label}</span>
+              <span dir="ltr" style={{ color: "#f0dfa0", fontSize: 13, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+                {item.times}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Mincha */}
+        <div className="trow" style={{ padding: "6px 12px" }}>
+          <span style={{ color: "#d8c88a", fontSize: 13, fontWeight: 600 }}>מנחה</span>
+          <span dir="ltr" style={{ color: "#f0dfa0", fontSize: 14, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
+            {s.mincha}
+          </span>
+        </div>
+
+        {/* Maariv */}
+        <div className="trow" style={{ padding: "6px 12px" }}>
+          <span style={{ color: "#d8c88a", fontSize: 13, fontWeight: 600 }}>ערבית</span>
+          <span dir="ltr" style={{ color: "#f0dfa0", fontSize: 14, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
+            {s.maariv}
+          </span>
+        </div>
+
+        {/* Shabbat extras */}
+        {s.extras && s.extras.length > 0 && (
+          <div style={{ paddingTop: 8, borderTop: "1px dashed rgba(160,133,48,0.2)" }}>
+            <div style={{ color: "#a08530", fontSize: 11, fontWeight: 700, marginBottom: 4 }}>--- שבת ---</div>
+            {s.extras.map((item, i) => (
+              <div key={i} className="trow">
+                <span style={{ color: "#d8c88a", fontSize: 12 }}>{item.label}</span>
+                <span dir="ltr" style={{ color: "#f0dfa0", fontSize: 13, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+                  {item.times}
+                </span>
+              </div>
+            ))}
           </div>
-        ))}
+        )}
       </div>
     </OrnateFrame>
   );

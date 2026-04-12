@@ -10,7 +10,7 @@ export default function ShabbatTimes({ times }: ShabbatTimesProps) {
     <OrnateFrame ribbonText="זמני שבת" className="h-full">
       <div>
         {times.map((e, i) => (
-          <div key={i} className="trow" style={{ padding: "2px 8px" }}>
+          <div key={i} className="trow">
             <span style={{ color: "#d8c88a", fontSize: 13, fontWeight: 500 }}>
               {e.label}
             </span>
