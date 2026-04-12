@@ -19,72 +19,85 @@ export default function DisplayBoard({ data }: DisplayBoardProps) {
       {/* Outer gold frame border */}
       <div className="board-outer-frame w-full h-full max-w-[1920px] max-h-[1080px]">
         <div className="board-inner flex flex-col h-full">
-          {/* Main grid */}
+          {/*
+            Main 3-column layout — force LTR on grid so columns don't flip,
+            but each cell's content stays RTL via dir="rtl"
+          */}
           <div
-            className="flex-1 grid gap-2 p-3"
+            className="flex-1 grid gap-2 p-3 overflow-hidden"
             style={{
-              gridTemplateColumns: "28% 1fr 28%",
-              gridTemplateRows: "auto auto 1fr auto",
+              direction: "ltr",
+              gridTemplateColumns: "27% 1fr 27%",
+              gridTemplateRows: "auto 1fr 1fr",
               minHeight: 0,
             }}
           >
-            {/* Row 1: Parsha (left) | Shul Header (center) | Calendar top area (right) */}
-            <div className="flex flex-col">
+            {/* ===== LEFT COLUMN ===== */}
+            {/* Top-left: Parsha Banner */}
+            <div dir="rtl" className="self-start">
               <ParshaBanner
                 parshaName={data.parshaName}
                 parshaSubtitle={data.parshaSubtitle}
               />
             </div>
 
-            <div className="flex flex-col items-center row-span-1">
+            {/* ===== CENTER COLUMN ===== */}
+            {/* Top-center: Shul Header + Clock */}
+            <div dir="rtl" className="flex flex-col items-center">
               <ShulHeader
                 shulName={data.shulName}
                 shulSubtitle={data.shulSubtitle}
               />
-            </div>
-
-            <div className="row-span-2">
-              <CalendarGrid />
-            </div>
-
-            {/* Row 2: Shabbat Times (left) | Clock (center) */}
-            <div className="row-span-2">
-              <ShabbatTimes times={data.shabbatTimes} />
-            </div>
-
-            <div className="flex flex-col">
               <LiveClock
                 hebrewDate={data.hebrewDate}
                 dayType={data.dayType}
               />
             </div>
 
-            {/* Row 3: Daily Zmanim (left) | Weekly Daf (center) | Shiurim (right) */}
-            <div>
-              <DailyZmanim
-                times={data.dailyZmanim}
-                pirkeiAvot={data.pirkeiAvotChapter}
-              />
+            {/* ===== RIGHT COLUMN ===== */}
+            {/* Top-right: Calendar */}
+            <div dir="rtl" className="row-span-1">
+              <CalendarGrid />
             </div>
 
-            <div>
+            {/* Left row 2: Shabbat Times */}
+            <div dir="rtl">
+              <ShabbatTimes times={data.shabbatTimes} />
+            </div>
+
+            {/* Center row 2: Weekly Daf (centerpiece) — spans 2 rows */}
+            <div dir="rtl" className="row-span-2">
               <WeeklyDaf
                 title={data.weeklyDafTitle}
                 content={data.weeklyDafContent}
               />
             </div>
 
-            <div>
+            {/* Right row 2: Shiurim */}
+            <div dir="rtl">
               <ShiurimPanel shiurim={data.shiurim} />
             </div>
+
+            {/* Left row 3: Daily Zmanim */}
+            <div dir="rtl">
+              <DailyZmanim
+                times={data.dailyZmanim}
+                pirkeiAvot={data.pirkeiAvotChapter}
+              />
+            </div>
+
+            {/* Right row 3: empty or additional content */}
+            <div />
           </div>
 
           {/* Bottom ticker bar */}
-          <BottomTicker
-            announcements={data.announcements.map((a) => a.text)}
-            moladInfo={data.moladInfo}
-            liturgicalNotes={data.liturgicalNotes}
-          />
+          <div dir="rtl">
+            <BottomTicker
+              announcements={data.announcements.map((a) => a.text)}
+              moladInfo={data.moladInfo}
+              liturgicalNotes={data.liturgicalNotes}
+            />
+          </div>
         </div>
       </div>
     </div>

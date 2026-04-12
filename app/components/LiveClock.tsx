@@ -34,8 +34,9 @@ export default function LiveClock({ hebrewDate, dayType }: LiveClockProps) {
         {hebrewDate}
       </div>
 
-      {/* Large clock display */}
+      {/* Large clock display — force LTR so pm doesn't flip */}
       <div
+        dir="ltr"
         className="font-black tracking-wider my-1"
         style={{
           fontSize: "clamp(32px, 4vw, 56px)",

@@ -1,4 +1,6 @@
 import DisplayBoard from "./components/DisplayBoard";
+import DisplayGuardWrapper from "./components/DisplayGuardWrapper";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { DisplayData } from "./lib/types";
 
 // Placeholder data mimicking the reference display board
@@ -55,5 +57,11 @@ const placeholderData: DisplayData = {
 };
 
 export default function Home() {
-  return <DisplayBoard data={placeholderData} />;
+  return (
+    <ErrorBoundary>
+      <DisplayGuardWrapper>
+        <DisplayBoard data={placeholderData} />
+      </DisplayGuardWrapper>
+    </ErrorBoundary>
+  );
 }
