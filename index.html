@@ -268,6 +268,8 @@
 // ========================================
 // DATA LAYER — reads from API, falls back to localStorage
 // ========================================
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
 async function fetchScreenData() {
     try {
         var res = await fetch('/api/get-data');
@@ -288,8 +290,8 @@ async function loadScreenData() {
         sponsorContainer.innerHTML = '';
         data.sponsors.forEach(function(s, i) {
             var html = '<div class="text-center">';
-            html += '<p class="text-[8px] text-on-primary uppercase tracking-[0.3em] font-bold opacity-80">' + s.label + '</p>';
-            html += '<h3 class="font-headline text-lg text-on-primary font-bold tracking-[0.05em] whitespace-nowrap drop-shadow-sm">' + s.name + '</h3>';
+            html += '<p class="text-[8px] text-on-primary uppercase tracking-[0.3em] font-bold opacity-80">' + esc(s.label) + '</p>';
+            html += '<h3 class="font-headline text-lg text-on-primary font-bold tracking-[0.05em] whitespace-nowrap drop-shadow-sm">' + esc(s.name) + '</h3>';
             html += '</div>';
             if (i < data.sponsors.length - 1) html += '<div class="h-px bg-on-primary/20 w-3/4 mx-auto"></div>';
             sponsorContainer.innerHTML += html;
@@ -297,20 +299,20 @@ async function loadScreenData() {
     }
 
     // Announcements (dynamic array)
+    var defaultImg = 'https://lh3.googleusercontent.com/aida-public/AB6AXuD1chIswQ7KY6RZQA5tAZ5JLyZyjZ40Sxj_FXOXfyHHY_hb3OaNusAw0zR56InT__nLUpK0HLS-QwLWSqJZSMJpG7p08XyvKGuVl4lpW2PynOIdOrd-iVEfs5h80HsQprt5paokA10Ys8WLFs9Ke_009KcWIHzpLE2YjlIIMg03fVGFMKdObCgybbmbC5f70WHEENa0lJIZhPtj2wI-5vl35JdVTfQsgZgkw2ynf87Ye716T6uo4MxVSyYxMoPk47XTyowlFlabe2w_';
     if (data.announcements && data.announcements.length) {
         var annContainer = document.getElementById('announcementSlots');
         annContainer.innerHTML = '';
         data.announcements.forEach(function(a) {
-            var imgSrc = a.imageData && (a.imageData.startsWith('data:') || a.imageData.startsWith('http'))
-                ? a.imageData
-                : 'https://lh3.googleusercontent.com/aida-public/AB6AXuD1chIswQ7KY6RZQA5tAZ5JLyZyjZ40Sxj_FXOXfyHHY_hb3OaNusAw0zR56InT__nLUpK0HLS-QwLWSqJZSMJpG7p08XyvKGuVl4lpW2PynOIdOrd-iVEfs5h80HsQprt5paokA10Ys8WLFs9Ke_009KcWIHzpLE2YjlIIMg03fVGFMKdObCgybbmbC5f70WHEENa0lJIZhPtj2wI-5vl35JdVTfQsgZgkw2ynf87Ye716T6uo4MxVSyYxMoPk47XTyowlFlabe2w_';
+            var imgSrc = (a.imageData && a.imageData.length > 10 && (a.imageData.startsWith('data:') || a.imageData.startsWith('http')))
+                ? a.imageData : defaultImg;
             var html = '<div class="p-6 flex-1 flex gap-8 items-center justify-center border-b border-white/5">';
             html += '<div class="relative w-48 aspect-[4/5] elevated-3d border-4 border-primary/30 rounded-sm overflow-hidden flex-shrink-0">';
-            html += '<img class="w-full h-full object-cover" src="' + imgSrc + '"/>';
+            html += '<img class="w-full h-full object-cover" src="' + esc(imgSrc) + '"/>';
             html += '<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div></div>';
             html += '<div class="text-left flex-1 max-w-sm">';
-            html += '<h3 class="font-headline text-3xl font-bold text-primary mb-2 text-3d">' + a.title + '</h3>';
-            html += '<p class="text-lg italic text-secondary leading-relaxed">' + a.description + '</p>';
+            html += '<h3 class="font-headline text-3xl font-bold text-primary mb-2 text-3d">' + esc(a.title) + '</h3>';
+            html += '<p class="text-lg italic text-secondary leading-relaxed">' + esc(a.description) + '</p>';
             html += '</div></div>';
             annContainer.innerHTML += html;
         });
@@ -321,15 +323,15 @@ async function loadScreenData() {
         var commContainer = document.getElementById('communitySlots');
         commContainer.innerHTML = '';
         data.community.forEach(function(c, i) {
-            var lines = c.names.split('\n').filter(function(l){ return l.trim(); });
+            var lines = (c.names || '').split('\n').filter(function(l){ return l.trim(); });
             var html = '<div class="flex-1 space-y-2">';
-            html += '<p class="text-[10px] uppercase tracking-[0.4em] font-bold text-primary/80">' + c.label + '</p>';
+            html += '<p class="text-[10px] uppercase tracking-[0.4em] font-bold text-primary/80">' + esc(c.label) + '</p>';
             html += '<div class="flex flex-col gap-1">';
             lines.forEach(function(name) {
-                html += '<p class="font-headline text-2xl italic font-bold text-primary text-3d">' + name + '</p>';
+                html += '<p class="font-headline text-2xl italic font-bold text-primary text-3d">' + esc(name) + '</p>';
             });
             html += '</div>';
-            if (c.sub) html += '<p class="text-[10px] uppercase tracking-widest font-semibold text-secondary">' + c.sub + '</p>';
+            if (c.sub) html += '<p class="text-[10px] uppercase tracking-widest font-semibold text-secondary">' + esc(c.sub) + '</p>';
             html += '</div>';
             if (i < data.community.length - 1) html += '<div class="w-px h-24 bg-white/10 mx-4"></div>';
             commContainer.innerHTML += html;
