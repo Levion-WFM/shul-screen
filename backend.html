@@ -157,15 +157,14 @@ async function fetchScreenData() {
 
 async function saveScreenData(data) {
     localStorage.setItem('shulScreenData', JSON.stringify(data));
-    try {
-        const res = await fetch('/api/save-data', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        if (!res.ok) throw new Error('API save failed');
-    } catch (e) {
-        console.warn('API save unavailable, saved to localStorage only', e);
+    const res = await fetch('/api/save-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+        var err = await res.text();
+        throw new Error('Save failed: ' + err);
     }
 }
 
@@ -195,7 +194,7 @@ function addSponsor(label, name) {
 function addAnnouncement(title, desc, imageData) {
     const container = document.getElementById('announcementsContainer');
     const div = document.createElement('div');
-    div.className = 'bg-gray-800/50 rounded-lg p-3 sm:p-4';
+    div.className = 'ann-card bg-gray-800/50 rounded-lg p-3 sm:p-4';
     div.innerHTML = `
         <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <div class="flex-1 space-y-2">
@@ -207,14 +206,14 @@ function addAnnouncement(title, desc, imageData) {
             <div class="flex sm:flex-col gap-3 items-start">
                 <div class="w-24 sm:w-28 shrink-0">
                     <label class="block text-xs text-gray-500 mb-1">Image</label>
-                    <img class="ann-img-preview w-full aspect-[4/5] object-cover rounded border border-gray-700 bg-gray-800 ${imageData ? '' : 'hidden'}" src="${imageData || ''}"/>
+                    <img class="ann-img-preview w-full aspect-[4/5] object-cover rounded border border-gray-700 bg-gray-800 ${imageData ? '' : 'hidden'}" src="${imageData || ''}" data-has-image="${imageData ? 'true' : 'false'}"/>
                     <div class="ann-img-placeholder w-full aspect-[4/5] rounded border-2 border-dashed border-gray-600 flex flex-col items-center justify-center bg-gray-800 cursor-pointer hover:border-gold/50 active:border-gold/50 transition ${imageData ? 'hidden' : ''}" onclick="this.parentElement.querySelector('.ann-img-input').click()">
                         <span class="material-symbols-outlined text-xl text-gray-500">add_photo_alternate</span>
                         <p class="text-[9px] text-gray-500 mt-0.5">Upload</p>
                     </div>
                     <input type="file" accept="image/*" class="ann-img-input hidden" onchange="handleImg(event, this.parentElement)"/>
                 </div>
-                <button onclick="this.closest('.bg-gray-800\\/50').remove()" class="text-gray-500 hover:text-red-400 active:text-red-400 transition p-1 mt-4 sm:mt-0">
+                <button onclick="this.closest('.ann-card').remove()" class="text-gray-500 hover:text-red-400 active:text-red-400 transition p-1 mt-4 sm:mt-0">
                     <span class="material-symbols-outlined">delete</span>
                 </button>
             </div>
@@ -229,6 +228,7 @@ function handleImg(event, parent) {
     reader.onload = function(e) {
         const img = parent.querySelector('.ann-img-preview');
         img.src = e.target.result;
+        img.dataset.hasImage = 'true';
         img.classList.remove('hidden');
         parent.querySelector('.ann-img-placeholder').classList.add('hidden');
     };
@@ -308,7 +308,9 @@ async function saveAll() {
     });
     const announcements = [];
     document.querySelectorAll('#announcementsContainer > div').forEach(function(el) {
-        announcements.push({ title: el.querySelector('.ann-title').value, description: el.querySelector('.ann-desc').value, imageData: el.querySelector('.ann-img-preview').src || '' });
+        var imgEl = el.querySelector('.ann-img-preview');
+        var imgData = (imgEl.dataset.hasImage === 'true') ? imgEl.src : '';
+        announcements.push({ title: el.querySelector('.ann-title').value, description: el.querySelector('.ann-desc').value, imageData: imgData });
     });
     const community = [];
     document.querySelectorAll('#communityContainer > div').forEach(function(el) {
