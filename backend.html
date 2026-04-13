@@ -8,17 +8,7 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
 tailwind.config = {
-    theme: {
-        extend: {
-            colors: {
-                gold: "#e9c349",
-                dark: "#1a1a1a"
-            },
-            fontFamily: {
-                body: ["Work Sans", "sans-serif"]
-            }
-        }
-    }
+    theme: { extend: { colors: { gold: "#e9c349", dark: "#1a1a1a" }, fontFamily: { body: ["Work Sans", "sans-serif"] } } }
 }
 </script>
 </head>
@@ -44,6 +34,9 @@ tailwind.config = {
 
 <div id="toast" class="fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded shadow-lg font-bold text-sm hidden z-50 flex items-center gap-2">
     <span class="material-symbols-outlined text-lg">check_circle</span> Saved successfully
+</div>
+<div id="toastError" class="fixed top-4 right-4 bg-red-600 text-white px-6 py-3 rounded shadow-lg font-bold text-sm hidden z-50 flex items-center gap-2">
+    <span class="material-symbols-outlined text-lg">error</span> <span id="toastErrorMsg">Save failed</span>
 </div>
 
 <main class="max-w-5xl mx-auto py-8 px-6 space-y-8">
@@ -73,62 +66,25 @@ tailwind.config = {
             <span class="material-symbols-outlined text-gold">volunteer_activism</span>
             <h2 class="text-lg font-bold text-gold">Sponsors</h2>
         </div>
-        <div class="p-6 grid grid-cols-2 gap-6">
-            <div class="space-y-3">
-                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Sponsor 1</h3>
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">Label</label>
-                    <input id="sponsor1Label" type="text" value="Kiddush Sponsored By" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">Name</label>
-                    <input id="sponsor1Name" type="text" value="THE COHEN FAMILY" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
-                </div>
-            </div>
-            <div class="space-y-3">
-                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Sponsor 2</h3>
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">Label</label>
-                    <input id="sponsor2Label" type="text" value="Ner LaMoar Sponsored By" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">Name</label>
-                    <input id="sponsor2Name" type="text" value="ANONYMOUS" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
-                </div>
-            </div>
+        <div id="sponsorsContainer" class="p-6 space-y-4"></div>
+        <div class="px-6 pb-6">
+            <button onclick="addSponsor()" class="text-sm text-gold hover:text-yellow-300 flex items-center gap-1 transition">
+                <span class="material-symbols-outlined text-lg">add_circle</span> Add Sponsor
+            </button>
         </div>
     </section>
 
-    <!-- Shul Announcement -->
+    <!-- Shul Announcements -->
     <section class="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
         <div class="bg-gray-800/50 px-6 py-3 flex items-center gap-2 border-b border-gray-800">
             <span class="material-symbols-outlined text-gold">campaign</span>
-            <h2 class="text-lg font-bold text-gold">Shul Announcement</h2>
+            <h2 class="text-lg font-bold text-gold">Shul Announcements</h2>
         </div>
-        <div class="p-6 space-y-4">
-            <div class="flex gap-6">
-                <div class="space-y-3 flex-1">
-                    <div>
-                        <label class="block text-xs text-gray-500 mb-1">Title</label>
-                        <input id="announcementTitle" type="text" value="Winter Clothing Drive" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
-                    </div>
-                    <div>
-                        <label class="block text-xs text-gray-500 mb-1">Description</label>
-                        <textarea id="announcementDesc" rows="3" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none resize-none">Ongoing collection for local families in the main lobby bins. Please ensure items are gently used and clean.</textarea>
-                    </div>
-                </div>
-                <div class="w-48 space-y-2">
-                    <label class="block text-xs text-gray-500 mb-1">Image</label>
-                    <div class="relative">
-                        <img id="announcementImagePreview" src="" class="w-full aspect-[4/5] object-cover rounded border border-gray-700 bg-gray-800 hidden"/>
-                        <div id="announcementImagePlaceholder" class="w-full aspect-[4/5] rounded border-2 border-dashed border-gray-600 flex flex-col items-center justify-center bg-gray-800 cursor-pointer hover:border-gold/50 transition" onclick="document.getElementById('announcementImageInput').click()">
-                            <span class="material-symbols-outlined text-3xl text-gray-500">add_photo_alternate</span>
-                            <p class="text-xs text-gray-500 mt-1">Upload Image</p>
-                        </div>
-                        <input id="announcementImageInput" type="file" accept="image/*" class="hidden" onchange="handleImageUpload(event)"/>
-                    </div>
-                </div>
-            </div>
+        <div id="announcementsContainer" class="p-6 space-y-6"></div>
+        <div class="px-6 pb-6">
+            <button onclick="addAnnouncement()" class="text-sm text-gold hover:text-yellow-300 flex items-center gap-1 transition">
+                <span class="material-symbols-outlined text-lg">add_circle</span> Add Announcement
+            </button>
         </div>
     </section>
 
@@ -138,54 +94,11 @@ tailwind.config = {
             <span class="material-symbols-outlined text-gold">groups</span>
             <h2 class="text-lg font-bold text-gold">Community Announcements</h2>
         </div>
-        <div class="p-6 grid grid-cols-3 gap-6">
-            <div class="space-y-3">
-                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Section 1</h3>
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">Category Label</label>
-                    <input id="comm1Label" type="text" value="Mazel Tov Birthdays" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">Names (one per line)</label>
-                    <textarea id="comm1Names" rows="3" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none resize-none">Sarah Goldberg
-Avi Steinmetz
-Meir Cohen</textarea>
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">Subtitle (optional)</label>
-                    <input id="comm1Sub" type="text" value="" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
-                </div>
-            </div>
-            <div class="space-y-3">
-                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Section 2</h3>
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">Category Label</label>
-                    <input id="comm2Label" type="text" value="Anniversaries" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">Names (one per line)</label>
-                    <textarea id="comm2Names" rows="3" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none resize-none">Mr. &amp; Mrs. Kaplan</textarea>
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">Subtitle (optional)</label>
-                    <input id="comm2Sub" type="text" value="25 Golden Years" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
-                </div>
-            </div>
-            <div class="space-y-3">
-                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Section 3</h3>
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">Category Label</label>
-                    <input id="comm3Label" type="text" value="New Addition" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">Names (one per line)</label>
-                    <textarea id="comm3Names" rows="3" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none resize-none">The Levi Family</textarea>
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">Subtitle (optional)</label>
-                    <input id="comm3Sub" type="text" value="Birth of a Baby Girl" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
-                </div>
-            </div>
+        <div id="communityContainer" class="p-6 space-y-4"></div>
+        <div class="px-6 pb-6">
+            <button onclick="addCommunity()" class="text-sm text-gold hover:text-yellow-300 flex items-center gap-1 transition">
+                <span class="material-symbols-outlined text-lg">add_circle</span> Add Section
+            </button>
         </div>
     </section>
 
@@ -198,15 +111,15 @@ Meir Cohen</textarea>
         <div class="p-6 space-y-4">
             <div>
                 <label class="block text-xs text-gray-500 mb-1">Hebrew Text (left)</label>
-                <input id="infoHebrew" type="text" dir="rtl" value="משיב הרוח ומוריד הגשם" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
+                <input id="infoHebrew" type="text" dir="rtl" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
             </div>
             <div>
                 <label class="block text-xs text-gray-500 mb-1">Welcome Message (center)</label>
-                <input id="infoWelcome" type="text" value="Young Israel of Oceanside • Welcome to all our guests!" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
+                <input id="infoWelcome" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
             </div>
             <div>
                 <label class="block text-xs text-gray-500 mb-1">Reminder / Note (right)</label>
-                <input id="infoReminder" type="text" value="Remember to set your clocks back this weekend." class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
+                <input id="infoReminder" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
             </div>
         </div>
     </section>
@@ -220,53 +133,160 @@ Meir Cohen</textarea>
 
 <script>
 // ========================================
-// DATA LAYER — swap these two functions for DB/API later
+// DATA LAYER
 // ========================================
 async function fetchScreenData() {
-    // TODO: Replace with real API call, e.g.:
-    // const res = await fetch('/api/screen-data');
-    // return await res.json();
-    return JSON.parse(localStorage.getItem('shulScreenData') || 'null');
+    try {
+        const res = await fetch('/api/get-data');
+        if (!res.ok) throw new Error('API error');
+        return await res.json();
+    } catch (e) {
+        console.warn('API unavailable, falling back to localStorage', e);
+        return JSON.parse(localStorage.getItem('shulScreenData') || 'null');
+    }
 }
 
 async function saveScreenData(data) {
-    // TODO: Replace with real API call, e.g.:
-    // await fetch('/api/screen-data', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
+    // Always save to localStorage as fallback
     localStorage.setItem('shulScreenData', JSON.stringify(data));
+    try {
+        const res = await fetch('/api/save-data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        if (!res.ok) throw new Error('API save failed');
+    } catch (e) {
+        console.warn('API save unavailable, saved to localStorage only', e);
+    }
 }
 
-// Load saved data on page load
+// ========================================
+// DYNAMIC SPONSORS
+// ========================================
+function addSponsor(label, name) {
+    const container = document.getElementById('sponsorsContainer');
+    const idx = container.children.length;
+    const div = document.createElement('div');
+    div.className = 'flex gap-4 items-start bg-gray-800/50 rounded-lg p-4';
+    div.innerHTML = `
+        <div class="flex-1 space-y-2">
+            <div><label class="block text-xs text-gray-500 mb-1">Label</label>
+            <input type="text" value="${esc(label || '')}" class="sponsor-label w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/></div>
+            <div><label class="block text-xs text-gray-500 mb-1">Name</label>
+            <input type="text" value="${esc(name || '')}" class="sponsor-name w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/></div>
+        </div>
+        <button onclick="this.parentElement.remove()" class="text-gray-500 hover:text-red-400 mt-6 transition">
+            <span class="material-symbols-outlined">delete</span>
+        </button>`;
+    container.appendChild(div);
+}
+
+// ========================================
+// DYNAMIC ANNOUNCEMENTS
+// ========================================
+function addAnnouncement(title, desc, imageData) {
+    const container = document.getElementById('announcementsContainer');
+    const id = 'ann-' + Date.now();
+    const div = document.createElement('div');
+    div.className = 'bg-gray-800/50 rounded-lg p-4';
+    div.innerHTML = `
+        <div class="flex gap-4">
+            <div class="flex-1 space-y-2">
+                <div><label class="block text-xs text-gray-500 mb-1">Title</label>
+                <input type="text" value="${esc(title || '')}" class="ann-title w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/></div>
+                <div><label class="block text-xs text-gray-500 mb-1">Description</label>
+                <textarea rows="3" class="ann-desc w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none resize-none">${esc(desc || '')}</textarea></div>
+            </div>
+            <div class="w-36 space-y-1">
+                <label class="block text-xs text-gray-500 mb-1">Image</label>
+                <img class="ann-img-preview w-full aspect-[4/5] object-cover rounded border border-gray-700 bg-gray-800 ${imageData ? '' : 'hidden'}" src="${imageData || ''}"/>
+                <div class="ann-img-placeholder w-full aspect-[4/5] rounded border-2 border-dashed border-gray-600 flex flex-col items-center justify-center bg-gray-800 cursor-pointer hover:border-gold/50 transition ${imageData ? 'hidden' : ''}" onclick="this.parentElement.querySelector('.ann-img-input').click()">
+                    <span class="material-symbols-outlined text-2xl text-gray-500">add_photo_alternate</span>
+                    <p class="text-[10px] text-gray-500 mt-1">Upload</p>
+                </div>
+                <input type="file" accept="image/*" class="ann-img-input hidden" onchange="handleImg(event, this.parentElement)"/>
+            </div>
+            <button onclick="this.closest('.bg-gray-800\\/50').remove()" class="text-gray-500 hover:text-red-400 transition self-start mt-6">
+                <span class="material-symbols-outlined">delete</span>
+            </button>
+        </div>`;
+    container.appendChild(div);
+}
+
+function handleImg(event, parent) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = parent.querySelector('.ann-img-preview');
+        img.src = e.target.result;
+        img.classList.remove('hidden');
+        parent.querySelector('.ann-img-placeholder').classList.add('hidden');
+    };
+    reader.readAsDataURL(file);
+}
+
+// ========================================
+// DYNAMIC COMMUNITY SECTIONS
+// ========================================
+function addCommunity(label, names, sub) {
+    const container = document.getElementById('communityContainer');
+    const div = document.createElement('div');
+    div.className = 'flex gap-4 items-start bg-gray-800/50 rounded-lg p-4';
+    div.innerHTML = `
+        <div class="flex-1 grid grid-cols-3 gap-4">
+            <div><label class="block text-xs text-gray-500 mb-1">Category Label</label>
+            <input type="text" value="${esc(label || '')}" class="comm-label w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/></div>
+            <div><label class="block text-xs text-gray-500 mb-1">Names (one per line)</label>
+            <textarea rows="2" class="comm-names w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none resize-none">${esc(names || '')}</textarea></div>
+            <div><label class="block text-xs text-gray-500 mb-1">Subtitle (optional)</label>
+            <input type="text" value="${esc(sub || '')}" class="comm-sub w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/></div>
+        </div>
+        <button onclick="this.parentElement.remove()" class="text-gray-500 hover:text-red-400 mt-6 transition">
+            <span class="material-symbols-outlined">delete</span>
+        </button>`;
+    container.appendChild(div);
+}
+
+// ========================================
+// HELPERS
+// ========================================
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+function showToast(success, msg) {
+    if (success) {
+        const t = document.getElementById('toast');
+        t.classList.remove('hidden'); setTimeout(() => t.classList.add('hidden'), 2000);
+    } else {
+        const t = document.getElementById('toastError');
+        document.getElementById('toastErrorMsg').textContent = msg || 'Save failed';
+        t.classList.remove('hidden'); setTimeout(() => t.classList.add('hidden'), 3000);
+    }
+}
+
+// ========================================
+// LOAD / SAVE
+// ========================================
 async function loadData() {
     const data = await fetchScreenData();
-    if (!data) return;
+    if (!data) {
+        // Defaults
+        addSponsor('Kiddush Sponsored By', 'THE COHEN FAMILY');
+        addSponsor('Ner LaMoar Sponsored By', 'ANONYMOUS');
+        addAnnouncement('Winter Clothing Drive', 'Ongoing collection for local families in the main lobby bins. Please ensure items are gently used and clean.', '');
+        addCommunity('Mazel Tov Birthdays', 'Sarah Goldberg\nAvi Steinmetz\nMeir Cohen', '');
+        addCommunity('Anniversaries', 'Mr. & Mrs. Kaplan', '25 Golden Years');
+        addCommunity('New Addition', 'The Levi Family', 'Birth of a Baby Girl');
+        document.getElementById('infoHebrew').value = 'משיב הרוח ומוריד הגשם';
+        document.getElementById('infoWelcome').value = 'Young Israel of Oceanside • Welcome to all our guests!';
+        document.getElementById('infoReminder').value = 'Remember to set your clocks back this weekend.';
+        return;
+    }
 
-    if (data.sponsors) {
-        document.getElementById('sponsor1Label').value = data.sponsors.sponsor1Label || '';
-        document.getElementById('sponsor1Name').value = data.sponsors.sponsor1Name || '';
-        document.getElementById('sponsor2Label').value = data.sponsors.sponsor2Label || '';
-        document.getElementById('sponsor2Name').value = data.sponsors.sponsor2Name || '';
-    }
-    if (data.announcement) {
-        document.getElementById('announcementTitle').value = data.announcement.title || '';
-        document.getElementById('announcementDesc').value = data.announcement.description || '';
-        if (data.announcement.imageData) {
-            const img = document.getElementById('announcementImagePreview');
-            img.src = data.announcement.imageData;
-            img.classList.remove('hidden');
-            document.getElementById('announcementImagePlaceholder').classList.add('hidden');
-        }
-    }
-    if (data.community) {
-        document.getElementById('comm1Label').value = data.community.section1Label || '';
-        document.getElementById('comm1Names').value = data.community.section1Names || '';
-        document.getElementById('comm1Sub').value = data.community.section1Sub || '';
-        document.getElementById('comm2Label').value = data.community.section2Label || '';
-        document.getElementById('comm2Names').value = data.community.section2Names || '';
-        document.getElementById('comm2Sub').value = data.community.section2Sub || '';
-        document.getElementById('comm3Label').value = data.community.section3Label || '';
-        document.getElementById('comm3Names').value = data.community.section3Names || '';
-        document.getElementById('comm3Sub').value = data.community.section3Sub || '';
-    }
+    if (data.sponsors) data.sponsors.forEach(function(s) { addSponsor(s.label, s.name); });
+    if (data.announcements) data.announcements.forEach(function(a) { addAnnouncement(a.title, a.description, a.imageData); });
+    if (data.community) data.community.forEach(function(c) { addCommunity(c.label, c.names, c.sub); });
     if (data.infoBar) {
         document.getElementById('infoHebrew').value = data.infoBar.hebrew || '';
         document.getElementById('infoWelcome').value = data.infoBar.welcome || '';
@@ -274,43 +294,37 @@ async function loadData() {
     }
 }
 
-function handleImageUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const img = document.getElementById('announcementImagePreview');
-        img.src = e.target.result;
-        img.classList.remove('hidden');
-        document.getElementById('announcementImagePlaceholder').classList.add('hidden');
-    };
-    reader.readAsDataURL(file);
-}
-
 async function saveAll() {
+    const sponsors = [];
+    document.querySelectorAll('#sponsorsContainer > div').forEach(function(el) {
+        sponsors.push({
+            label: el.querySelector('.sponsor-label').value,
+            name: el.querySelector('.sponsor-name').value
+        });
+    });
+
+    const announcements = [];
+    document.querySelectorAll('#announcementsContainer > div').forEach(function(el) {
+        announcements.push({
+            title: el.querySelector('.ann-title').value,
+            description: el.querySelector('.ann-desc').value,
+            imageData: el.querySelector('.ann-img-preview').src || ''
+        });
+    });
+
+    const community = [];
+    document.querySelectorAll('#communityContainer > div').forEach(function(el) {
+        community.push({
+            label: el.querySelector('.comm-label').value,
+            names: el.querySelector('.comm-names').value,
+            sub: el.querySelector('.comm-sub').value
+        });
+    });
+
     const data = {
-        sponsors: {
-            sponsor1Label: document.getElementById('sponsor1Label').value,
-            sponsor1Name: document.getElementById('sponsor1Name').value,
-            sponsor2Label: document.getElementById('sponsor2Label').value,
-            sponsor2Name: document.getElementById('sponsor2Name').value
-        },
-        announcement: {
-            title: document.getElementById('announcementTitle').value,
-            description: document.getElementById('announcementDesc').value,
-            imageData: document.getElementById('announcementImagePreview').src || ''
-        },
-        community: {
-            section1Label: document.getElementById('comm1Label').value,
-            section1Names: document.getElementById('comm1Names').value,
-            section1Sub: document.getElementById('comm1Sub').value,
-            section2Label: document.getElementById('comm2Label').value,
-            section2Names: document.getElementById('comm2Names').value,
-            section2Sub: document.getElementById('comm2Sub').value,
-            section3Label: document.getElementById('comm3Label').value,
-            section3Names: document.getElementById('comm3Names').value,
-            section3Sub: document.getElementById('comm3Sub').value
-        },
+        sponsors: sponsors,
+        announcements: announcements,
+        community: community,
         infoBar: {
             hebrew: document.getElementById('infoHebrew').value,
             welcome: document.getElementById('infoWelcome').value,
@@ -319,11 +333,12 @@ async function saveAll() {
         updatedAt: new Date().toISOString()
     };
 
-    await saveScreenData(data);
-
-    const toast = document.getElementById('toast');
-    toast.classList.remove('hidden');
-    setTimeout(() => toast.classList.add('hidden'), 2000);
+    try {
+        await saveScreenData(data);
+        showToast(true);
+    } catch (e) {
+        showToast(false, e.message);
+    }
 }
 
 loadData();

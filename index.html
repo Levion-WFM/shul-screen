@@ -158,43 +158,44 @@
 <!-- Combined Announcements -->
 <div class="bg-[#060504] elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 rounded-sm overflow-hidden">
 <h2 class="text-center font-headline text-2xl py-4 border-b border-white/10 tracking-[0.3em] font-bold uppercase bg-black/40 text-primary">Announcements</h2>
-<!-- Shul Announcement -->
+<!-- Dynamic Announcements -->
+<div id="announcementSlots">
 <div class="p-6 flex-1 flex gap-8 items-center justify-center border-b border-white/5">
 <div class="relative w-48 aspect-[4/5] elevated-3d border-4 border-primary/30 rounded-sm overflow-hidden flex-shrink-0">
-<img id="announcementImage" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1chIswQ7KY6RZQA5tAZ5JLyZyjZ40Sxj_FXOXfyHHY_hb3OaNusAw0zR56InT__nLUpK0HLS-QwLWSqJZSMJpG7p08XyvKGuVl4lpW2PynOIdOrd-iVEfs5h80HsQprt5paokA10Ys8WLFs9Ke_009KcWIHzpLE2YjlIIMg03fVGFMKdObCgybbmbC5f70WHEENa0lJIZhPtj2wI-5vl35JdVTfQsgZgkw2ynf87Ye716T6uo4MxVSyYxMoPk47XTyowlFlabe2w_"/>
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1chIswQ7KY6RZQA5tAZ5JLyZyjZ40Sxj_FXOXfyHHY_hb3OaNusAw0zR56InT__nLUpK0HLS-QwLWSqJZSMJpG7p08XyvKGuVl4lpW2PynOIdOrd-iVEfs5h80HsQprt5paokA10Ys8WLFs9Ke_009KcWIHzpLE2YjlIIMg03fVGFMKdObCgybbmbC5f70WHEENa0lJIZhPtj2wI-5vl35JdVTfQsgZgkw2ynf87Ye716T6uo4MxVSyYxMoPk47XTyowlFlabe2w_"/>
 <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
 </div>
 <div class="text-left flex-1 max-w-sm">
-<h3 id="announcementTitle" class="font-headline text-3xl font-bold text-primary mb-2 text-3d">Winter Clothing Drive</h3>
-<p id="announcementDesc" class="text-lg italic text-secondary leading-relaxed">Ongoing collection for local families in the main lobby bins. Please ensure items are gently used and clean.</p>
+<h3 class="font-headline text-3xl font-bold text-primary mb-2 text-3d">Winter Clothing Drive</h3>
+<p class="text-lg italic text-secondary leading-relaxed">Ongoing collection for local families in the main lobby bins. Please ensure items are gently used and clean.</p>
 </div>
 </div>
-<!-- Community Announcements -->
-<div class="p-6 flex-1 flex justify-around items-center text-center">
+</div>
+<!-- Dynamic Community -->
+<div id="communitySlots" class="p-6 flex-1 flex justify-around items-center text-center">
 <div class="flex-1 space-y-2">
-<p id="comm1Label" class="text-[10px] uppercase tracking-[0.4em] font-bold text-primary/80">Mazel Tov Birthdays</p>
-<div id="comm1Names" class="flex flex-col gap-1">
+<p class="text-[10px] uppercase tracking-[0.4em] font-bold text-primary/80">Mazel Tov Birthdays</p>
+<div class="flex flex-col gap-1">
 <p class="font-headline text-2xl italic font-bold text-primary text-3d">Sarah Goldberg</p>
 <p class="font-headline text-2xl italic font-bold text-primary text-3d">Avi Steinmetz</p>
 <p class="font-headline text-2xl italic font-bold text-primary text-3d">Meir Cohen</p>
 </div>
-<p id="comm1Sub" class="text-[10px] uppercase tracking-widest font-semibold text-secondary" style="display:none"></p>
 </div>
 <div class="w-px h-24 bg-white/10 mx-4"></div>
 <div class="flex-1 space-y-2">
-<p id="comm2Label" class="text-[10px] uppercase tracking-[0.4em] font-bold text-primary/80">Anniversaries</p>
-<div id="comm2Names" class="flex flex-col gap-1">
+<p class="text-[10px] uppercase tracking-[0.4em] font-bold text-primary/80">Anniversaries</p>
+<div class="flex flex-col gap-1">
 <p class="font-headline text-2xl italic font-bold text-primary text-3d">Mr. &amp; Mrs. Kaplan</p>
 </div>
-<p id="comm2Sub" class="text-[10px] uppercase tracking-widest font-semibold text-secondary">25 Golden Years</p>
+<p class="text-[10px] uppercase tracking-widest font-semibold text-secondary">25 Golden Years</p>
 </div>
 <div class="w-px h-24 bg-white/10 mx-4"></div>
 <div class="flex-1 space-y-2">
-<p id="comm3Label" class="text-[10px] uppercase tracking-[0.4em] font-bold text-primary/80">New Addition</p>
-<div id="comm3Names" class="flex flex-col gap-1">
+<p class="text-[10px] uppercase tracking-[0.4em] font-bold text-primary/80">New Addition</p>
+<div class="flex flex-col gap-1">
 <p class="font-headline text-2xl italic font-bold text-primary text-3d">The Levi Family</p>
 </div>
-<p id="comm3Sub" class="text-[10px] uppercase tracking-widest font-semibold text-secondary">Birth of a Baby Girl</p>
+<p class="text-[10px] uppercase tracking-widest font-semibold text-secondary">Birth of a Baby Girl</p>
 </div>
 </div>
 </div>
@@ -242,15 +243,15 @@
 <div class="absolute bottom-2 left-2 w-1 h-1 rounded-full bg-black/20 shadow-inner"></div>
 <div class="absolute bottom-2 right-2 w-1 h-1 rounded-full bg-black/20 shadow-inner"></div>
 <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none"></div>
-<div class="flex flex-col w-full relative z-10 gap-3 px-2">
+<div id="sponsorSlots" class="flex flex-col w-full relative z-10 gap-3 px-2">
 <div class="text-center">
-<p id="sponsor1Label" class="text-[8px] text-on-primary uppercase tracking-[0.3em] font-bold opacity-80">Kiddush Sponsored By</p>
-<h3 id="sponsor1Name" class="font-headline text-lg text-on-primary font-bold tracking-[0.05em] whitespace-nowrap drop-shadow-sm">THE COHEN FAMILY</h3>
+<p class="text-[8px] text-on-primary uppercase tracking-[0.3em] font-bold opacity-80">Kiddush Sponsored By</p>
+<h3 class="font-headline text-lg text-on-primary font-bold tracking-[0.05em] whitespace-nowrap drop-shadow-sm">THE COHEN FAMILY</h3>
 </div>
 <div class="h-px bg-on-primary/20 w-3/4 mx-auto"></div>
 <div class="text-center">
-<p id="sponsor2Label" class="text-[8px] text-on-primary uppercase tracking-[0.3em] font-bold opacity-80">Ner LaMoar Sponsored By</p>
-<h3 id="sponsor2Name" class="font-headline text-lg text-on-primary font-bold tracking-[0.05em] whitespace-nowrap drop-shadow-sm">ANONYMOUS</h3>
+<p class="text-[8px] text-on-primary uppercase tracking-[0.3em] font-bold opacity-80">Ner LaMoar Sponsored By</p>
+<h3 class="font-headline text-lg text-on-primary font-bold tracking-[0.05em] whitespace-nowrap drop-shadow-sm">ANONYMOUS</h3>
 </div>
 </div></div>
 </div>
@@ -265,70 +266,85 @@
 </div>
 <script>
 // ========================================
-// DATA LAYER — swap this one function for DB/API later
+// DATA LAYER — reads from API, falls back to localStorage
 // ========================================
 async function fetchScreenData() {
-    // TODO: Replace with real API call, e.g.:
-    // const res = await fetch('/api/screen-data');
-    // return await res.json();
-    return JSON.parse(localStorage.getItem('shulScreenData') || 'null');
+    try {
+        var res = await fetch('/api/get-data');
+        if (!res.ok) throw new Error('API error');
+        return await res.json();
+    } catch (e) {
+        return JSON.parse(localStorage.getItem('shulScreenData') || 'null');
+    }
 }
 
 async function loadScreenData() {
-    const data = await fetchScreenData();
+    var data = await fetchScreenData();
     if (!data) return;
 
-    // Sponsors
-    if (data.sponsors) {
-        const s = data.sponsors;
-        if (s.sponsor1Label) document.getElementById('sponsor1Label').textContent = s.sponsor1Label;
-        if (s.sponsor1Name) document.getElementById('sponsor1Name').textContent = s.sponsor1Name;
-        if (s.sponsor2Label) document.getElementById('sponsor2Label').textContent = s.sponsor2Label;
-        if (s.sponsor2Name) document.getElementById('sponsor2Name').textContent = s.sponsor2Name;
+    // Sponsors (dynamic array)
+    if (data.sponsors && data.sponsors.length) {
+        var sponsorContainer = document.getElementById('sponsorSlots');
+        sponsorContainer.innerHTML = '';
+        data.sponsors.forEach(function(s, i) {
+            var html = '<div class="text-center">';
+            html += '<p class="text-[8px] text-on-primary uppercase tracking-[0.3em] font-bold opacity-80">' + s.label + '</p>';
+            html += '<h3 class="font-headline text-lg text-on-primary font-bold tracking-[0.05em] whitespace-nowrap drop-shadow-sm">' + s.name + '</h3>';
+            html += '</div>';
+            if (i < data.sponsors.length - 1) html += '<div class="h-px bg-on-primary/20 w-3/4 mx-auto"></div>';
+            sponsorContainer.innerHTML += html;
+        });
     }
 
-    // Shul Announcement
-    if (data.announcement) {
-        const a = data.announcement;
-        if (a.title) document.getElementById('announcementTitle').textContent = a.title;
-        if (a.description) document.getElementById('announcementDesc').textContent = a.description;
-        if (a.imageData && a.imageData.startsWith('data:')) {
-            document.getElementById('announcementImage').src = a.imageData;
-        }
+    // Announcements (dynamic array)
+    if (data.announcements && data.announcements.length) {
+        var annContainer = document.getElementById('announcementSlots');
+        annContainer.innerHTML = '';
+        data.announcements.forEach(function(a) {
+            var imgSrc = a.imageData && (a.imageData.startsWith('data:') || a.imageData.startsWith('http'))
+                ? a.imageData
+                : 'https://lh3.googleusercontent.com/aida-public/AB6AXuD1chIswQ7KY6RZQA5tAZ5JLyZyjZ40Sxj_FXOXfyHHY_hb3OaNusAw0zR56InT__nLUpK0HLS-QwLWSqJZSMJpG7p08XyvKGuVl4lpW2PynOIdOrd-iVEfs5h80HsQprt5paokA10Ys8WLFs9Ke_009KcWIHzpLE2YjlIIMg03fVGFMKdObCgybbmbC5f70WHEENa0lJIZhPtj2wI-5vl35JdVTfQsgZgkw2ynf87Ye716T6uo4MxVSyYxMoPk47XTyowlFlabe2w_';
+            var html = '<div class="p-6 flex-1 flex gap-8 items-center justify-center border-b border-white/5">';
+            html += '<div class="relative w-48 aspect-[4/5] elevated-3d border-4 border-primary/30 rounded-sm overflow-hidden flex-shrink-0">';
+            html += '<img class="w-full h-full object-cover" src="' + imgSrc + '"/>';
+            html += '<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div></div>';
+            html += '<div class="text-left flex-1 max-w-sm">';
+            html += '<h3 class="font-headline text-3xl font-bold text-primary mb-2 text-3d">' + a.title + '</h3>';
+            html += '<p class="text-lg italic text-secondary leading-relaxed">' + a.description + '</p>';
+            html += '</div></div>';
+            annContainer.innerHTML += html;
+        });
     }
 
-    // Community Announcements
-    if (data.community) {
-        const c = data.community;
-        ['1','2','3'].forEach(function(n) {
-            var label = c['section'+n+'Label'];
-            var names = c['section'+n+'Names'];
-            var sub = c['section'+n+'Sub'];
-            if (label) document.getElementById('comm'+n+'Label').textContent = label;
-            if (names !== undefined) {
-                var container = document.getElementById('comm'+n+'Names');
-                var lines = names.split('\n').filter(function(l){ return l.trim(); });
-                container.innerHTML = lines.map(function(name){
-                    return '<p class="font-headline text-2xl italic font-bold text-primary text-3d">'+name+'</p>';
-                }).join('');
-            }
-            var subEl = document.getElementById('comm'+n+'Sub');
-            if (sub) { subEl.textContent = sub; subEl.style.display = ''; }
-            else { subEl.style.display = 'none'; }
+    // Community (dynamic array)
+    if (data.community && data.community.length) {
+        var commContainer = document.getElementById('communitySlots');
+        commContainer.innerHTML = '';
+        data.community.forEach(function(c, i) {
+            var lines = c.names.split('\n').filter(function(l){ return l.trim(); });
+            var html = '<div class="flex-1 space-y-2">';
+            html += '<p class="text-[10px] uppercase tracking-[0.4em] font-bold text-primary/80">' + c.label + '</p>';
+            html += '<div class="flex flex-col gap-1">';
+            lines.forEach(function(name) {
+                html += '<p class="font-headline text-2xl italic font-bold text-primary text-3d">' + name + '</p>';
+            });
+            html += '</div>';
+            if (c.sub) html += '<p class="text-[10px] uppercase tracking-widest font-semibold text-secondary">' + c.sub + '</p>';
+            html += '</div>';
+            if (i < data.community.length - 1) html += '<div class="w-px h-24 bg-white/10 mx-4"></div>';
+            commContainer.innerHTML += html;
         });
     }
 
     // Info Bar
     if (data.infoBar) {
-        const i = data.infoBar;
-        if (i.hebrew) document.getElementById('infoHebrew').textContent = i.hebrew;
-        if (i.welcome) document.getElementById('infoWelcome').textContent = i.welcome;
-        if (i.reminder) document.getElementById('infoReminder').textContent = i.reminder;
+        if (data.infoBar.hebrew) document.getElementById('infoHebrew').textContent = data.infoBar.hebrew;
+        if (data.infoBar.welcome) document.getElementById('infoWelcome').textContent = data.infoBar.welcome;
+        if (data.infoBar.reminder) document.getElementById('infoReminder').textContent = data.infoBar.reminder;
     }
 }
 
 loadScreenData();
-// Auto-refresh every 30 seconds to pick up admin changes
 setInterval(loadScreenData, 30000);
 </script>
 </body></html>
