@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;500;600;700&amp;family=Work_Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#e9c349",
+                        "on-primary": "#3c2f00",
+                        "secondary": "#e7bdb1",
+                        "background": "#0a0706",
+                        "surface": "#120d0b",
+                        "surface-container-high": "#281f1d",
+                        "outline": "#9c8d8a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "2px",
+                        "lg": "4px",
+                        "xl": "8px",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Noto Serif", "serif"],
+                        "body": ["Work Sans", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24
+        }
+        .wood-grain {
+            background-color: #0d0908;
+            background-image:
+                radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.4) 100%),
+                linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+                repeating-linear-gradient(45deg, rgba(20, 15, 10, 0.3) 0, rgba(20, 15, 10, 0.3) 1px, transparent 1px, transparent 10px);
+            box-shadow: inset 0 0 80px rgba(0,0,0,0.8);
+        }
+        .parchment-muted {
+            background-color: #1e1816;
+            background-image:
+                url(https://lh3.googleusercontent.com/aida-public/AB6AXuC1uasx9CuAa5S2J7CaSxBCqHTOamhYCyGm9nO31hYf2U4kmRkwfBu4AdYZfgOwHPuzPSsMErJFl14E6NqTuJTqnSLI_iFs7yUXaIeAqFobCOes2r3gYMJlEf10fTVHZhnxZVeBC-9DpfyEczp8ywDnprVStFoKJsuzIyc3NevzL6IkqzdUrFs7dyFlefbGj3i4DiWxwr-yjpX1sOUP08lEA-Ksid0rysv4Fkys51X0RSI9By_AU6w_p4XPG5726skOcUL5Vf5gSRCO);
+            background-blend-mode: multiply;
+        }
+        .gold-inlay {
+            background: linear-gradient(135deg, #8b6b00 0%, #ffe088 45%, #e9c349 55%, #8b6b00 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.4));
+        }
+        .gold-border-3d {
+            border: 4px solid;
+            border-image: linear-gradient(135deg, #c4a129, #ffe088, #8b6b00) 1;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+        .elevated-3d {
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 15px rgba(0,0,0,0.4), inset 1px 1px 0 rgba(255,255,255,0.05);
+        }
+        .text-3d {
+            text-shadow: 2px 2px 0px #000, 3px 3px 5px rgba(0,0,0,0.6);
+        }
+        .brass-plaque {
+            background: linear-gradient(135deg, #a67c00 0%, #bf9b30 40%, #ffcf40 50%, #bf9b30 60%, #a67c00 100%);
+            box-shadow:
+                2px 2px 4px rgba(0,0,0,0.5),
+                inset 1px 1px 1px rgba(255,255,255,0.2),
+                inset -1px -1px 1px rgba(0,0,0,0.2);
+            border: 1px solid #7a5c00;
+        }
+        .glow-text-hebrew {
+            text-shadow: 0 0 10px rgba(233, 195, 73, 0.4), 2px 2px 0px #000;
+        }
+    </style>
+</head>
+<body class="bg-[#0a0706] text-white font-body min-h-screen flex flex-col overflow-hidden">
+<!-- Header Optimized for Perfect Centering -->
+<nav class="bg-[#0a0706] border-b-4 gold-border-3d py-8 px-16 flex justify-between items-center relative z-50">
+<div class="w-1/4 flex justify-start">
+<span class="material-symbols-outlined text-5xl gold-inlay" style="font-variation-settings: 'FILL' 1;">temple_hindu</span>
+</div>
+<!-- Absolute Centering for Title -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<h1 class="text-6xl font-headline font-bold gold-inlay tracking-[0.1em] text-center leading-tight pointer-events-auto whitespace-nowrap">
+                BEIS MEDRASH D JACKSON 21
+            </h1>
+</div>
+<div class="w-1/4 flex flex-col items-end">
+<div class="flex items-center gap-4 mb-1">
+<span class="material-symbols-outlined text-2xl text-primary opacity-80">calendar_today</span>
+<span class="material-symbols-outlined text-2xl text-primary opacity-80">schedule</span>
+</div>
+<span class="text-xl font-headline font-bold text-primary tracking-widest uppercase">Friday, Oct 27, 2023</span>
+<span class="text-sm font-headline opacity-60 italic tracking-widest uppercase text-secondary">12 Cheshvan 5784</span>
+</div>
+</nav>
+<!-- Main Grid -->
+<main class="flex-1 wood-grain p-10 grid grid-cols-12 gap-8 overflow-hidden">
+<!-- Left Column: Zmanim -->
+<div class="col-span-3 flex flex-col gap-8">
+<!-- Shabbat Zmanim -->
+<div class="bg-surface-container-high elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 rounded-sm overflow-hidden">
+<h2 class="text-primary font-headline text-center py-4 text-xl tracking-[0.2em] font-bold border-b border-white/10 uppercase bg-black/40">Shabbat Zmanim</h2>
+<div class="flex-1 p-6 flex flex-col justify-around">
+<div class="text-center">
+<p class="text-[10px] uppercase tracking-[0.3em] font-bold text-secondary mb-1">Candle Lighting</p>
+<p class="text-primary font-headline font-bold text-4xl text-3d">5:42 PM</p>
+</div>
+<div class="text-center">
+<p class="text-[10px] uppercase tracking-[0.3em] font-bold text-secondary mb-1">Mincha &amp; Kabbalat</p>
+<p class="text-primary font-headline font-bold text-4xl text-3d">5:45 PM</p>
+</div>
+<div class="text-center">
+<p class="text-[10px] uppercase tracking-[0.3em] font-bold text-secondary mb-1">Shacharit</p>
+<p class="text-primary font-headline font-bold text-4xl text-3d">9:00 AM</p>
+</div>
+<div class="text-center">
+<p class="text-[10px] uppercase tracking-[0.3em] font-bold text-secondary mb-1">Mincha</p>
+<p class="text-primary font-headline font-bold text-4xl text-3d">5:30 PM</p>
+</div>
+<div class="text-center">
+<p class="text-[10px] uppercase tracking-[0.3em] font-bold text-secondary mb-1">Havdalah</p>
+<p class="text-primary font-headline font-bold text-4xl text-3d">6:41 PM</p>
+</div>
+</div>
+<div class="bg-black/50 py-2 text-center border-t border-white/5">
+<p class="text-xs tracking-[0.4em] font-bold text-primary/80 uppercase italic">Parshat Vayeira</p>
+</div>
+</div>
+<!-- Daily Zmanim -->
+<div class="bg-surface-container-high elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 rounded-sm overflow-hidden">
+<h2 class="text-primary font-headline text-center py-4 text-xl tracking-[0.2em] font-bold border-b border-white/10 uppercase bg-black/40">Daily Zmanim</h2>
+<div class="flex-1 p-6 flex flex-col justify-around">
+<div class="text-center">
+<p class="text-[10px] uppercase tracking-[0.3em] font-bold text-secondary mb-1">Alot HaShachar</p>
+<p class="text-primary font-headline font-bold text-3xl text-3d">5:58 AM</p>
+</div>
+<div class="text-center">
+<p class="text-[10px] uppercase tracking-[0.3em] font-bold text-secondary mb-1">Sunrise</p>
+<p class="text-primary font-headline font-bold text-3xl text-3d">7:14 AM</p>
+</div>
+<div class="text-center">
+<p class="text-[10px] uppercase tracking-[0.3em] font-bold text-secondary mb-1">Latest Shema</p>
+<p class="text-primary font-headline font-bold text-3xl text-3d">9:56 AM</p>
+</div>
+<div class="text-center">
+<p class="text-[10px] uppercase tracking-[0.3em] font-bold text-secondary mb-1">Sunset (Shkia)</p>
+<p class="text-primary font-headline font-bold text-3xl text-3d">5:52 PM</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Center Column: Announcements Stacked -->
+<div class="col-span-6 flex flex-col gap-8">
+<!-- Shul Announcements (Was Upcoming Events) -->
+<div class="parchment-muted elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 rounded-sm overflow-hidden">
+<h2 class="text-center font-headline text-2xl py-4 border-b border-white/10 tracking-[0.3em] font-bold uppercase bg-black/40 text-primary">Shul Announcements</h2>
+<div class="p-6 flex-1 flex gap-8 items-center justify-center">
+<div class="relative w-48 aspect-[4/5] elevated-3d border-4 border-primary/30 rounded-sm overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1chIswQ7KY6RZQA5tAZ5JLyZyjZ40Sxj_FXOXfyHHY_hb3OaNusAw0zR56InT__nLUpK0HLS-QwLWSqJZSMJpG7p08XyvKGuVl4lpW2PynOIdOrd-iVEfs5h80HsQprt5paokA10Ys8WLFs9Ke_009KcWIHzpLE2YjlIIMg03fVGFMKdObCgybbmbC5f70WHEENa0lJIZhPtj2wI-5vl35JdVTfQsgZgkw2ynf87Ye716T6uo4MxVSyYxMoPk47XTyowlFlabe2w_"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+</div>
+<div class="text-left flex-1 max-w-sm">
+<h3 class="font-headline text-3xl font-bold text-primary mb-2 text-3d">Winter Clothing Drive</h3>
+<p class="text-lg italic text-secondary leading-relaxed">Ongoing collection for local families in the main lobby bins. Please ensure items are gently used and clean.</p>
+</div>
+</div>
+</div>
+<!-- Community Announcements (Was Shul Simchas) -->
+<div class="bg-surface-container-high elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 rounded-sm overflow-hidden">
+<h2 class="text-center font-headline text-2xl py-4 border-b border-white/10 tracking-[0.3em] font-bold uppercase bg-black/40 text-primary">Community Announcements</h2>
+<div class="p-6 flex-1 flex justify-around items-center text-center">
+<div class="flex-1 space-y-2">
+<p class="text-[10px] uppercase tracking-[0.4em] font-bold text-primary/80">Mazel Tov Birthdays</p>
+<div class="flex flex-col gap-1">
+<p class="font-headline text-2xl italic font-bold text-primary text-3d">Sarah Goldberg</p>
+<p class="font-headline text-2xl italic font-bold text-primary text-3d">Avi Steinmetz</p>
+<p class="font-headline text-2xl italic font-bold text-primary text-3d">Meir Cohen</p>
+</div>
+</div>
+<div class="w-px h-24 bg-white/10 mx-4"></div>
+<div class="flex-1 space-y-2">
+<p class="text-[10px] uppercase tracking-[0.4em] font-bold text-primary/80">Anniversaries</p>
+<p class="font-headline text-2xl italic font-bold text-primary text-3d">Mr. &amp; Mrs. Kaplan</p>
+<p class="text-[10px] uppercase tracking-widest font-semibold text-secondary">25 Golden Years</p>
+</div>
+<div class="w-px h-24 bg-white/10 mx-4"></div>
+<div class="flex-1 space-y-2">
+<p class="text-[10px] uppercase tracking-[0.4em] font-bold text-primary/80">New Addition</p>
+<p class="font-headline text-2xl italic font-bold text-primary text-3d">The Levi Family</p>
+<p class="text-[10px] uppercase tracking-widest font-semibold text-secondary">Birth of a Baby Girl</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Weekly Schedule & Sponsor -->
+<div class="col-span-3 flex flex-col gap-8">
+<!-- Weekly Schedule -->
+<div class="bg-surface-container-high elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 rounded-sm overflow-hidden">
+<h2 class="text-primary font-headline text-center py-4 text-xl tracking-[0.2em] font-bold border-b border-white/10 uppercase bg-black/40 whitespace-nowrap">Weekly Schedule</h2>
+<div class="flex-1 p-6 flex flex-col justify-between py-6">
+<div class="text-center">
+<p class="text-[10px] uppercase tracking-[0.25em] font-bold text-secondary mb-1">Shachris (Sun)</p>
+<p class="text-primary font-headline font-bold text-2xl text-3d">7:30 / 8:30 AM</p>
+</div>
+<div class="text-center">
+<p class="text-[10px] uppercase tracking-[0.25em] font-bold text-secondary mb-1">Shachris (M-F)</p>
+<p class="text-primary font-headline font-bold text-2xl text-3d">6:30 / 7:30 AM</p>
+</div>
+<div class="text-center">
+<p class="text-[10px] uppercase tracking-[0.25em] font-bold text-secondary mb-1">Mincha / Maariv</p>
+<p class="text-primary font-headline font-bold text-2xl text-3d">5:40 PM</p>
+</div>
+<div class="text-center">
+<p class="text-[10px] uppercase tracking-[0.25em] font-bold text-secondary mb-1">Late Maariv</p>
+<p class="text-primary font-headline font-bold text-2xl text-3d">9:00 PM</p>
+</div>
+<div class="text-center">
+<p class="text-[10px] uppercase tracking-[0.25em] font-bold text-secondary mb-1">Morning Seder</p>
+<p class="text-primary font-headline font-bold text-2xl text-3d">8:15 AM</p>
+</div>
+<div class="text-center">
+<p class="text-[10px] uppercase tracking-[0.25em] font-bold text-secondary mb-1">Night Seder</p>
+<p class="text-primary font-headline font-bold text-2xl text-3d">8:30 PM</p>
+</div>
+<div class="text-center">
+<p class="text-[10px] uppercase tracking-[0.25em] font-bold text-secondary mb-1">Shiur from Rav</p>
+<p class="text-primary font-headline font-bold text-2xl text-3d">8:00 PM</p>
+</div>
+</div>
+</div>
+<!-- Sponsor Section -->
+<div class="brass-plaque p-6 flex items-center justify-center gap-5 rounded-sm flex-none relative overflow-hidden group"><!-- Decorative rivet heads -->
+<div class="absolute top-2 left-2 w-1 h-1 rounded-full bg-black/20 shadow-inner"></div>
+<div class="absolute top-2 right-2 w-1 h-1 rounded-full bg-black/20 shadow-inner"></div>
+<div class="absolute bottom-2 left-2 w-1 h-1 rounded-full bg-black/20 shadow-inner"></div>
+<div class="absolute bottom-2 right-2 w-1 h-1 rounded-full bg-black/20 shadow-inner"></div>
+<div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none"></div>
+<div class="flex flex-col w-full relative z-10 gap-3 px-2">
+<div class="text-center">
+<p class="text-[8px] text-on-primary uppercase tracking-[0.3em] font-bold opacity-80">Kiddush Sponsored By</p>
+<h3 class="font-headline text-lg text-on-primary font-bold tracking-[0.05em] whitespace-nowrap drop-shadow-sm">THE COHEN FAMILY</h3>
+</div>
+<div class="h-px bg-on-primary/20 w-3/4 mx-auto"></div>
+<div class="text-center">
+<p class="text-[8px] text-on-primary uppercase tracking-[0.3em] font-bold opacity-80">Ner LaMoar Sponsored By</p>
+<h3 class="font-headline text-lg text-on-primary font-bold tracking-[0.05em] whitespace-nowrap drop-shadow-sm">ANONYMOUS</h3>
+</div>
+</div></div>
+</div>
+</main>
+<!-- Static Info Bar (Replaces Marquee) -->
+<div class="bg-[#0a0706] border-y-4 gold-border-3d h-16 flex items-center shadow-xl relative z-40 overflow-hidden">
+<div class="px-10 text-primary font-headline text-2xl flex w-full justify-between items-center">
+<span class="flex items-center gap-6 font-bold text-3xl glow-text-hebrew pt-1">משיב הרוח ומוריד הגשם</span>
+<span class="tracking-[0.2em] uppercase font-bold text-xl">Young Israel of Oceanside • Welcome to all our guests!</span>
+<span class="italic font-semibold text-xl text-secondary">Remember to set your clocks back this weekend.</span>
+</div>
+</div>
+<!-- Footer -->
+<footer class="w-full py-6 px-16 flex justify-between items-center bg-[#0a0706] border-t border-primary/10 text-primary/60 font-body text-[10px] tracking-[0.4em] uppercase">
+<div class="w-1/3 flex gap-10 font-bold">
+<span class="hover:text-primary transition-colors cursor-pointer">Contact Us</span>
+<span class="hover:text-primary transition-colors cursor-pointer">Donate</span>
+<span class="hover:text-primary transition-colors cursor-pointer">Halacha Q&amp;A</span>
+</div>
+<div class="w-1/3 text-center opacity-50 font-bold whitespace-nowrap">
+            Young Israel of Oceanside | Sponsored by the Levi Family
+        </div>
+<div class="w-1/3 flex justify-end">
+<div class="flex items-center gap-3 bg-primary/5 px-6 py-2 border border-primary/20 rounded-sm">
+<span class="material-symbols-outlined text-xl gold-inlay" style="font-variation-settings: 'FILL' 1;">church</span>
+<span class="text-primary font-black tracking-widest whitespace-nowrap text-xs">Sanctuary Mode Active</span>
+</div>
+</div>
+</footer>
+</body></html>
