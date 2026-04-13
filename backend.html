@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <title>Shul Screen Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -11,49 +11,51 @@ tailwind.config = {
     theme: { extend: { colors: { gold: "#e9c349", dark: "#1a1a1a" }, fontFamily: { body: ["Work Sans", "sans-serif"] } } }
 }
 </script>
+<style>
+    input, textarea, select { font-size: 16px !important; } /* prevents iOS zoom on focus */
+</style>
 </head>
-<body class="bg-gray-950 text-gray-100 font-body min-h-screen">
+<body class="bg-gray-950 text-gray-100 font-body min-h-screen pb-20 sm:pb-8">
 
-<header class="bg-gray-900 border-b border-gold/30 py-4 px-8 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-        <span class="material-symbols-outlined text-gold text-3xl" style="font-variation-settings: 'FILL' 1;">temple_hindu</span>
-        <div>
-            <h1 class="text-xl font-bold text-gold tracking-wide">Shul Screen Admin</h1>
-            <p class="text-xs text-gray-500">Beis Medrash D Jackson 21</p>
+<!-- Header -->
+<header class="bg-gray-900 border-b border-gold/30 py-3 px-4 sm:px-8 sm:py-4">
+    <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2 sm:gap-3">
+            <span class="material-symbols-outlined text-gold text-2xl sm:text-3xl" style="font-variation-settings: 'FILL' 1;">temple_hindu</span>
+            <div>
+                <h1 class="text-base sm:text-xl font-bold text-gold tracking-wide">Shul Screen Admin</h1>
+                <p class="text-[10px] sm:text-xs text-gray-500">Beis Medrash D Jackson 21</p>
+            </div>
         </div>
-    </div>
-    <div class="flex gap-3">
-        <button onclick="saveAll()" class="bg-gold text-black font-bold px-6 py-2 rounded text-sm hover:bg-yellow-400 transition flex items-center gap-2">
-            <span class="material-symbols-outlined text-lg">save</span> Save All
-        </button>
-        <a href="index.html" target="_blank" class="bg-gray-800 text-gray-300 font-bold px-4 py-2 rounded text-sm hover:bg-gray-700 transition flex items-center gap-2">
-            <span class="material-symbols-outlined text-lg">visibility</span> View Screen
+        <a href="index.html" target="_blank" class="bg-gray-800 text-gray-300 font-bold px-3 py-2 rounded text-xs sm:text-sm hover:bg-gray-700 transition flex items-center gap-1">
+            <span class="material-symbols-outlined text-base sm:text-lg">visibility</span> <span class="hidden sm:inline">View Screen</span>
         </a>
     </div>
 </header>
 
-<div id="toast" class="fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded shadow-lg font-bold text-sm hidden z-50 flex items-center gap-2">
-    <span class="material-symbols-outlined text-lg">check_circle</span> Saved successfully
+<!-- Toasts -->
+<div id="toast" class="fixed top-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-auto bg-green-600 text-white px-4 py-3 rounded shadow-lg font-bold text-sm hidden z-50 flex items-center gap-2 justify-center">
+    <span class="material-symbols-outlined text-lg">check_circle</span> Saved!
 </div>
-<div id="toastError" class="fixed top-4 right-4 bg-red-600 text-white px-6 py-3 rounded shadow-lg font-bold text-sm hidden z-50 flex items-center gap-2">
+<div id="toastError" class="fixed top-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-auto bg-red-600 text-white px-4 py-3 rounded shadow-lg font-bold text-sm hidden z-50 flex items-center gap-2 justify-center">
     <span class="material-symbols-outlined text-lg">error</span> <span id="toastErrorMsg">Save failed</span>
 </div>
 
-<main class="max-w-5xl mx-auto py-8 px-6 space-y-8">
+<main class="max-w-5xl mx-auto py-4 sm:py-8 px-3 sm:px-6 space-y-4 sm:space-y-8">
 
     <!-- Zmanim -->
     <section class="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
-        <div class="bg-gray-800/50 px-6 py-3 flex items-center gap-2 border-b border-gray-800">
+        <div class="bg-gray-800/50 px-4 sm:px-6 py-3 flex items-center gap-2 border-b border-gray-800">
             <span class="material-symbols-outlined text-gold">schedule</span>
-            <h2 class="text-lg font-bold text-gold">Zmanim</h2>
+            <h2 class="text-base sm:text-lg font-bold text-gold">Zmanim</h2>
         </div>
-        <div class="p-6">
-            <p class="text-gray-400 text-sm mb-4">Upload a CSV to update all zmanim times. Format: label, time</p>
-            <label class="flex items-center gap-3 bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg p-6 cursor-pointer hover:border-gold/50 transition text-center justify-center">
-                <span class="material-symbols-outlined text-3xl text-gray-500">upload_file</span>
+        <div class="p-4 sm:p-6">
+            <p class="text-gray-400 text-xs sm:text-sm mb-3">Upload a CSV to update all zmanim times.</p>
+            <label class="flex items-center gap-3 bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg p-4 sm:p-6 cursor-pointer hover:border-gold/50 transition text-center justify-center">
+                <span class="material-symbols-outlined text-2xl sm:text-3xl text-gray-500">upload_file</span>
                 <div>
-                    <p class="font-semibold text-gray-300">Upload Zmanim CSV</p>
-                    <p class="text-xs text-gray-500">CSV format coming soon</p>
+                    <p class="font-semibold text-gray-300 text-sm">Upload Zmanim CSV</p>
+                    <p class="text-[10px] sm:text-xs text-gray-500">Coming soon</p>
                 </div>
                 <input type="file" accept=".csv" class="hidden" disabled/>
             </label>
@@ -62,13 +64,13 @@ tailwind.config = {
 
     <!-- Sponsors -->
     <section class="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
-        <div class="bg-gray-800/50 px-6 py-3 flex items-center gap-2 border-b border-gray-800">
+        <div class="bg-gray-800/50 px-4 sm:px-6 py-3 flex items-center gap-2 border-b border-gray-800">
             <span class="material-symbols-outlined text-gold">volunteer_activism</span>
-            <h2 class="text-lg font-bold text-gold">Sponsors</h2>
+            <h2 class="text-base sm:text-lg font-bold text-gold">Sponsors</h2>
         </div>
-        <div id="sponsorsContainer" class="p-6 space-y-4"></div>
-        <div class="px-6 pb-6">
-            <button onclick="addSponsor()" class="text-sm text-gold hover:text-yellow-300 flex items-center gap-1 transition">
+        <div id="sponsorsContainer" class="p-4 sm:p-6 space-y-3 sm:space-y-4"></div>
+        <div class="px-4 sm:px-6 pb-4 sm:pb-6">
+            <button onclick="addSponsor()" class="text-sm text-gold hover:text-yellow-300 flex items-center gap-1 transition active:scale-95">
                 <span class="material-symbols-outlined text-lg">add_circle</span> Add Sponsor
             </button>
         </div>
@@ -76,13 +78,13 @@ tailwind.config = {
 
     <!-- Shul Announcements -->
     <section class="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
-        <div class="bg-gray-800/50 px-6 py-3 flex items-center gap-2 border-b border-gray-800">
+        <div class="bg-gray-800/50 px-4 sm:px-6 py-3 flex items-center gap-2 border-b border-gray-800">
             <span class="material-symbols-outlined text-gold">campaign</span>
-            <h2 class="text-lg font-bold text-gold">Shul Announcements</h2>
+            <h2 class="text-base sm:text-lg font-bold text-gold">Shul Announcements</h2>
         </div>
-        <div id="announcementsContainer" class="p-6 space-y-6"></div>
-        <div class="px-6 pb-6">
-            <button onclick="addAnnouncement()" class="text-sm text-gold hover:text-yellow-300 flex items-center gap-1 transition">
+        <div id="announcementsContainer" class="p-4 sm:p-6 space-y-4 sm:space-y-6"></div>
+        <div class="px-4 sm:px-6 pb-4 sm:pb-6">
+            <button onclick="addAnnouncement()" class="text-sm text-gold hover:text-yellow-300 flex items-center gap-1 transition active:scale-95">
                 <span class="material-symbols-outlined text-lg">add_circle</span> Add Announcement
             </button>
         </div>
@@ -90,13 +92,13 @@ tailwind.config = {
 
     <!-- Community Announcements -->
     <section class="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
-        <div class="bg-gray-800/50 px-6 py-3 flex items-center gap-2 border-b border-gray-800">
+        <div class="bg-gray-800/50 px-4 sm:px-6 py-3 flex items-center gap-2 border-b border-gray-800">
             <span class="material-symbols-outlined text-gold">groups</span>
-            <h2 class="text-lg font-bold text-gold">Community Announcements</h2>
+            <h2 class="text-base sm:text-lg font-bold text-gold">Community Announcements</h2>
         </div>
-        <div id="communityContainer" class="p-6 space-y-4"></div>
-        <div class="px-6 pb-6">
-            <button onclick="addCommunity()" class="text-sm text-gold hover:text-yellow-300 flex items-center gap-1 transition">
+        <div id="communityContainer" class="p-4 sm:p-6 space-y-3 sm:space-y-4"></div>
+        <div class="px-4 sm:px-6 pb-4 sm:pb-6">
+            <button onclick="addCommunity()" class="text-sm text-gold hover:text-yellow-300 flex items-center gap-1 transition active:scale-95">
                 <span class="material-symbols-outlined text-lg">add_circle</span> Add Section
             </button>
         </div>
@@ -104,32 +106,39 @@ tailwind.config = {
 
     <!-- Info Bar -->
     <section class="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
-        <div class="bg-gray-800/50 px-6 py-3 flex items-center gap-2 border-b border-gray-800">
+        <div class="bg-gray-800/50 px-4 sm:px-6 py-3 flex items-center gap-2 border-b border-gray-800">
             <span class="material-symbols-outlined text-gold">info</span>
-            <h2 class="text-lg font-bold text-gold">Bottom Info Bar</h2>
+            <h2 class="text-base sm:text-lg font-bold text-gold">Bottom Info Bar</h2>
         </div>
-        <div class="p-6 space-y-4">
+        <div class="p-4 sm:p-6 space-y-3 sm:space-y-4">
             <div>
                 <label class="block text-xs text-gray-500 mb-1">Hebrew Text (left)</label>
-                <input id="infoHebrew" type="text" dir="rtl" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
+                <input id="infoHebrew" type="text" dir="rtl" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none"/>
             </div>
             <div>
                 <label class="block text-xs text-gray-500 mb-1">Welcome Message (center)</label>
-                <input id="infoWelcome" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
+                <input id="infoWelcome" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none"/>
             </div>
             <div>
                 <label class="block text-xs text-gray-500 mb-1">Reminder / Note (right)</label>
-                <input id="infoReminder" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
+                <input id="infoReminder" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none"/>
             </div>
         </div>
     </section>
-
-    <div class="flex justify-end pb-8">
-        <button onclick="saveAll()" class="bg-gold text-black font-bold px-8 py-3 rounded text-sm hover:bg-yellow-400 transition flex items-center gap-2">
-            <span class="material-symbols-outlined text-lg">save</span> Save All Changes
-        </button>
-    </div>
 </main>
+
+<!-- Sticky Save Button (mobile) -->
+<div class="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur border-t border-gray-800 p-3 sm:hidden z-40">
+    <button onclick="saveAll()" class="w-full bg-gold text-black font-bold py-3 rounded text-sm active:scale-[0.98] transition flex items-center gap-2 justify-center">
+        <span class="material-symbols-outlined text-lg">save</span> Save All Changes
+    </button>
+</div>
+<!-- Desktop Save Button -->
+<div class="hidden sm:flex max-w-5xl mx-auto px-6 justify-end pb-8">
+    <button onclick="saveAll()" class="bg-gold text-black font-bold px-8 py-3 rounded text-sm hover:bg-yellow-400 transition flex items-center gap-2">
+        <span class="material-symbols-outlined text-lg">save</span> Save All Changes
+    </button>
+</div>
 
 <script>
 // ========================================
@@ -147,7 +156,6 @@ async function fetchScreenData() {
 }
 
 async function saveScreenData(data) {
-    // Always save to localStorage as fallback
     localStorage.setItem('shulScreenData', JSON.stringify(data));
     try {
         const res = await fetch('/api/save-data', {
@@ -166,17 +174,16 @@ async function saveScreenData(data) {
 // ========================================
 function addSponsor(label, name) {
     const container = document.getElementById('sponsorsContainer');
-    const idx = container.children.length;
     const div = document.createElement('div');
-    div.className = 'flex gap-4 items-start bg-gray-800/50 rounded-lg p-4';
+    div.className = 'flex gap-3 items-start bg-gray-800/50 rounded-lg p-3 sm:p-4';
     div.innerHTML = `
         <div class="flex-1 space-y-2">
             <div><label class="block text-xs text-gray-500 mb-1">Label</label>
-            <input type="text" value="${esc(label || '')}" class="sponsor-label w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/></div>
+            <input type="text" value="${esc(label || '')}" class="sponsor-label w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. Kiddush Sponsored By"/></div>
             <div><label class="block text-xs text-gray-500 mb-1">Name</label>
-            <input type="text" value="${esc(name || '')}" class="sponsor-name w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/></div>
+            <input type="text" value="${esc(name || '')}" class="sponsor-name w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. THE COHEN FAMILY"/></div>
         </div>
-        <button onclick="this.parentElement.remove()" class="text-gray-500 hover:text-red-400 mt-6 transition">
+        <button onclick="this.parentElement.remove()" class="text-gray-500 hover:text-red-400 active:text-red-400 mt-6 transition p-1">
             <span class="material-symbols-outlined">delete</span>
         </button>`;
     container.appendChild(div);
@@ -187,29 +194,30 @@ function addSponsor(label, name) {
 // ========================================
 function addAnnouncement(title, desc, imageData) {
     const container = document.getElementById('announcementsContainer');
-    const id = 'ann-' + Date.now();
     const div = document.createElement('div');
-    div.className = 'bg-gray-800/50 rounded-lg p-4';
+    div.className = 'bg-gray-800/50 rounded-lg p-3 sm:p-4';
     div.innerHTML = `
-        <div class="flex gap-4">
+        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <div class="flex-1 space-y-2">
                 <div><label class="block text-xs text-gray-500 mb-1">Title</label>
-                <input type="text" value="${esc(title || '')}" class="ann-title w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/></div>
+                <input type="text" value="${esc(title || '')}" class="ann-title w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Announcement title"/></div>
                 <div><label class="block text-xs text-gray-500 mb-1">Description</label>
-                <textarea rows="3" class="ann-desc w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none resize-none">${esc(desc || '')}</textarea></div>
+                <textarea rows="3" class="ann-desc w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none resize-none" placeholder="Details...">${esc(desc || '')}</textarea></div>
             </div>
-            <div class="w-36 space-y-1">
-                <label class="block text-xs text-gray-500 mb-1">Image</label>
-                <img class="ann-img-preview w-full aspect-[4/5] object-cover rounded border border-gray-700 bg-gray-800 ${imageData ? '' : 'hidden'}" src="${imageData || ''}"/>
-                <div class="ann-img-placeholder w-full aspect-[4/5] rounded border-2 border-dashed border-gray-600 flex flex-col items-center justify-center bg-gray-800 cursor-pointer hover:border-gold/50 transition ${imageData ? 'hidden' : ''}" onclick="this.parentElement.querySelector('.ann-img-input').click()">
-                    <span class="material-symbols-outlined text-2xl text-gray-500">add_photo_alternate</span>
-                    <p class="text-[10px] text-gray-500 mt-1">Upload</p>
+            <div class="flex sm:flex-col gap-3 items-start">
+                <div class="w-24 sm:w-28 shrink-0">
+                    <label class="block text-xs text-gray-500 mb-1">Image</label>
+                    <img class="ann-img-preview w-full aspect-[4/5] object-cover rounded border border-gray-700 bg-gray-800 ${imageData ? '' : 'hidden'}" src="${imageData || ''}"/>
+                    <div class="ann-img-placeholder w-full aspect-[4/5] rounded border-2 border-dashed border-gray-600 flex flex-col items-center justify-center bg-gray-800 cursor-pointer hover:border-gold/50 active:border-gold/50 transition ${imageData ? 'hidden' : ''}" onclick="this.parentElement.querySelector('.ann-img-input').click()">
+                        <span class="material-symbols-outlined text-xl text-gray-500">add_photo_alternate</span>
+                        <p class="text-[9px] text-gray-500 mt-0.5">Upload</p>
+                    </div>
+                    <input type="file" accept="image/*" class="ann-img-input hidden" onchange="handleImg(event, this.parentElement)"/>
                 </div>
-                <input type="file" accept="image/*" class="ann-img-input hidden" onchange="handleImg(event, this.parentElement)"/>
+                <button onclick="this.closest('.bg-gray-800\\/50').remove()" class="text-gray-500 hover:text-red-400 active:text-red-400 transition p-1 mt-4 sm:mt-0">
+                    <span class="material-symbols-outlined">delete</span>
+                </button>
             </div>
-            <button onclick="this.closest('.bg-gray-800\\/50').remove()" class="text-gray-500 hover:text-red-400 transition self-start mt-6">
-                <span class="material-symbols-outlined">delete</span>
-            </button>
         </div>`;
     container.appendChild(div);
 }
@@ -233,17 +241,17 @@ function handleImg(event, parent) {
 function addCommunity(label, names, sub) {
     const container = document.getElementById('communityContainer');
     const div = document.createElement('div');
-    div.className = 'flex gap-4 items-start bg-gray-800/50 rounded-lg p-4';
+    div.className = 'flex gap-3 items-start bg-gray-800/50 rounded-lg p-3 sm:p-4';
     div.innerHTML = `
-        <div class="flex-1 grid grid-cols-3 gap-4">
+        <div class="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             <div><label class="block text-xs text-gray-500 mb-1">Category Label</label>
-            <input type="text" value="${esc(label || '')}" class="comm-label w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/></div>
+            <input type="text" value="${esc(label || '')}" class="comm-label w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. Mazel Tov Birthdays"/></div>
             <div><label class="block text-xs text-gray-500 mb-1">Names (one per line)</label>
-            <textarea rows="2" class="comm-names w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none resize-none">${esc(names || '')}</textarea></div>
+            <textarea rows="2" class="comm-names w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none resize-none" placeholder="One name per line">${esc(names || '')}</textarea></div>
             <div><label class="block text-xs text-gray-500 mb-1">Subtitle (optional)</label>
-            <input type="text" value="${esc(sub || '')}" class="comm-sub w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/></div>
+            <input type="text" value="${esc(sub || '')}" class="comm-sub w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. 25 Golden Years"/></div>
         </div>
-        <button onclick="this.parentElement.remove()" class="text-gray-500 hover:text-red-400 mt-6 transition">
+        <button onclick="this.parentElement.remove()" class="text-gray-500 hover:text-red-400 active:text-red-400 mt-6 transition p-1">
             <span class="material-symbols-outlined">delete</span>
         </button>`;
     container.appendChild(div);
@@ -252,7 +260,7 @@ function addCommunity(label, names, sub) {
 // ========================================
 // HELPERS
 // ========================================
-function esc(s) { return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 
 function showToast(success, msg) {
     if (success) {
@@ -271,7 +279,6 @@ function showToast(success, msg) {
 async function loadData() {
     const data = await fetchScreenData();
     if (!data) {
-        // Defaults
         addSponsor('Kiddush Sponsored By', 'THE COHEN FAMILY');
         addSponsor('Ner LaMoar Sponsored By', 'ANONYMOUS');
         addAnnouncement('Winter Clothing Drive', 'Ongoing collection for local families in the main lobby bins. Please ensure items are gently used and clean.', '');
@@ -297,48 +304,23 @@ async function loadData() {
 async function saveAll() {
     const sponsors = [];
     document.querySelectorAll('#sponsorsContainer > div').forEach(function(el) {
-        sponsors.push({
-            label: el.querySelector('.sponsor-label').value,
-            name: el.querySelector('.sponsor-name').value
-        });
+        sponsors.push({ label: el.querySelector('.sponsor-label').value, name: el.querySelector('.sponsor-name').value });
     });
-
     const announcements = [];
     document.querySelectorAll('#announcementsContainer > div').forEach(function(el) {
-        announcements.push({
-            title: el.querySelector('.ann-title').value,
-            description: el.querySelector('.ann-desc').value,
-            imageData: el.querySelector('.ann-img-preview').src || ''
-        });
+        announcements.push({ title: el.querySelector('.ann-title').value, description: el.querySelector('.ann-desc').value, imageData: el.querySelector('.ann-img-preview').src || '' });
     });
-
     const community = [];
     document.querySelectorAll('#communityContainer > div').forEach(function(el) {
-        community.push({
-            label: el.querySelector('.comm-label').value,
-            names: el.querySelector('.comm-names').value,
-            sub: el.querySelector('.comm-sub').value
-        });
+        community.push({ label: el.querySelector('.comm-label').value, names: el.querySelector('.comm-names').value, sub: el.querySelector('.comm-sub').value });
     });
-
     const data = {
-        sponsors: sponsors,
-        announcements: announcements,
-        community: community,
-        infoBar: {
-            hebrew: document.getElementById('infoHebrew').value,
-            welcome: document.getElementById('infoWelcome').value,
-            reminder: document.getElementById('infoReminder').value
-        },
+        sponsors, announcements, community,
+        infoBar: { hebrew: document.getElementById('infoHebrew').value, welcome: document.getElementById('infoWelcome').value, reminder: document.getElementById('infoReminder').value },
         updatedAt: new Date().toISOString()
     };
-
-    try {
-        await saveScreenData(data);
-        showToast(true);
-    } catch (e) {
-        showToast(false, e.message);
-    }
+    try { await saveScreenData(data); showToast(true); }
+    catch (e) { showToast(false, e.message); }
 }
 
 loadData();
