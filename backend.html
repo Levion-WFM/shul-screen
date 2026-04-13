@@ -224,13 +224,26 @@ function addAnnouncement(title, desc, imageData) {
 function handleImg(event, parent) {
     const file = event.target.files[0];
     if (!file) return;
+    // Resize image to max 400px wide to keep payload small
     const reader = new FileReader();
     reader.onload = function(e) {
-        const img = parent.querySelector('.ann-img-preview');
-        img.src = e.target.result;
-        img.dataset.hasImage = 'true';
-        img.classList.remove('hidden');
-        parent.querySelector('.ann-img-placeholder').classList.add('hidden');
+        const tempImg = new Image();
+        tempImg.onload = function() {
+            const canvas = document.createElement('canvas');
+            const maxW = 400;
+            const scale = Math.min(maxW / tempImg.width, 1);
+            canvas.width = tempImg.width * scale;
+            canvas.height = tempImg.height * scale;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(tempImg, 0, 0, canvas.width, canvas.height);
+            const compressed = canvas.toDataURL('image/jpeg', 0.7);
+            const img = parent.querySelector('.ann-img-preview');
+            img.src = compressed;
+            img.dataset.hasImage = 'true';
+            img.classList.remove('hidden');
+            parent.querySelector('.ann-img-placeholder').classList.add('hidden');
+        };
+        tempImg.src = e.target.result;
     };
     reader.readAsDataURL(file);
 }
