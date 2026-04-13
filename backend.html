@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Shul Screen Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+    theme: {
+        extend: {
+            colors: {
+                gold: "#e9c349",
+                dark: "#1a1a1a"
+            },
+            fontFamily: {
+                body: ["Work Sans", "sans-serif"]
+            }
+        }
+    }
+}
+</script>
+</head>
+<body class="bg-gray-950 text-gray-100 font-body min-h-screen">
+
+<header class="bg-gray-900 border-b border-gold/30 py-4 px-8 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-gold text-3xl" style="font-variation-settings: 'FILL' 1;">temple_hindu</span>
+        <div>
+            <h1 class="text-xl font-bold text-gold tracking-wide">Shul Screen Admin</h1>
+            <p class="text-xs text-gray-500">Beis Medrash D Jackson 21</p>
+        </div>
+    </div>
+    <div class="flex gap-3">
+        <button onclick="saveAll()" class="bg-gold text-black font-bold px-6 py-2 rounded text-sm hover:bg-yellow-400 transition flex items-center gap-2">
+            <span class="material-symbols-outlined text-lg">save</span> Save All
+        </button>
+        <a href="index.html" target="_blank" class="bg-gray-800 text-gray-300 font-bold px-4 py-2 rounded text-sm hover:bg-gray-700 transition flex items-center gap-2">
+            <span class="material-symbols-outlined text-lg">visibility</span> View Screen
+        </a>
+    </div>
+</header>
+
+<div id="toast" class="fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded shadow-lg font-bold text-sm hidden z-50 flex items-center gap-2">
+    <span class="material-symbols-outlined text-lg">check_circle</span> Saved successfully
+</div>
+
+<main class="max-w-5xl mx-auto py-8 px-6 space-y-8">
+
+    <!-- Zmanim -->
+    <section class="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
+        <div class="bg-gray-800/50 px-6 py-3 flex items-center gap-2 border-b border-gray-800">
+            <span class="material-symbols-outlined text-gold">schedule</span>
+            <h2 class="text-lg font-bold text-gold">Zmanim</h2>
+        </div>
+        <div class="p-6">
+            <p class="text-gray-400 text-sm mb-4">Upload a CSV to update all zmanim times. Format: label, time</p>
+            <label class="flex items-center gap-3 bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg p-6 cursor-pointer hover:border-gold/50 transition text-center justify-center">
+                <span class="material-symbols-outlined text-3xl text-gray-500">upload_file</span>
+                <div>
+                    <p class="font-semibold text-gray-300">Upload Zmanim CSV</p>
+                    <p class="text-xs text-gray-500">CSV format coming soon</p>
+                </div>
+                <input type="file" accept=".csv" class="hidden" disabled/>
+            </label>
+        </div>
+    </section>
+
+    <!-- Sponsors -->
+    <section class="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
+        <div class="bg-gray-800/50 px-6 py-3 flex items-center gap-2 border-b border-gray-800">
+            <span class="material-symbols-outlined text-gold">volunteer_activism</span>
+            <h2 class="text-lg font-bold text-gold">Sponsors</h2>
+        </div>
+        <div class="p-6 grid grid-cols-2 gap-6">
+            <div class="space-y-3">
+                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Sponsor 1</h3>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Label</label>
+                    <input id="sponsor1Label" type="text" value="Kiddush Sponsored By" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Name</label>
+                    <input id="sponsor1Name" type="text" value="THE COHEN FAMILY" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Sponsor 2</h3>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Label</label>
+                    <input id="sponsor2Label" type="text" value="Ner LaMoar Sponsored By" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Name</label>
+                    <input id="sponsor2Name" type="text" value="ANONYMOUS" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Shul Announcement -->
+    <section class="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
+        <div class="bg-gray-800/50 px-6 py-3 flex items-center gap-2 border-b border-gray-800">
+            <span class="material-symbols-outlined text-gold">campaign</span>
+            <h2 class="text-lg font-bold text-gold">Shul Announcement</h2>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="flex gap-6">
+                <div class="space-y-3 flex-1">
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Title</label>
+                        <input id="announcementTitle" type="text" value="Winter Clothing Drive" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Description</label>
+                        <textarea id="announcementDesc" rows="3" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none resize-none">Ongoing collection for local families in the main lobby bins. Please ensure items are gently used and clean.</textarea>
+                    </div>
+                </div>
+                <div class="w-48 space-y-2">
+                    <label class="block text-xs text-gray-500 mb-1">Image</label>
+                    <div class="relative">
+                        <img id="announcementImagePreview" src="" class="w-full aspect-[4/5] object-cover rounded border border-gray-700 bg-gray-800 hidden"/>
+                        <div id="announcementImagePlaceholder" class="w-full aspect-[4/5] rounded border-2 border-dashed border-gray-600 flex flex-col items-center justify-center bg-gray-800 cursor-pointer hover:border-gold/50 transition" onclick="document.getElementById('announcementImageInput').click()">
+                            <span class="material-symbols-outlined text-3xl text-gray-500">add_photo_alternate</span>
+                            <p class="text-xs text-gray-500 mt-1">Upload Image</p>
+                        </div>
+                        <input id="announcementImageInput" type="file" accept="image/*" class="hidden" onchange="handleImageUpload(event)"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Community Announcements -->
+    <section class="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
+        <div class="bg-gray-800/50 px-6 py-3 flex items-center gap-2 border-b border-gray-800">
+            <span class="material-symbols-outlined text-gold">groups</span>
+            <h2 class="text-lg font-bold text-gold">Community Announcements</h2>
+        </div>
+        <div class="p-6 grid grid-cols-3 gap-6">
+            <div class="space-y-3">
+                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Section 1</h3>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Category Label</label>
+                    <input id="comm1Label" type="text" value="Mazel Tov Birthdays" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Names (one per line)</label>
+                    <textarea id="comm1Names" rows="3" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none resize-none">Sarah Goldberg
+Avi Steinmetz
+Meir Cohen</textarea>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Subtitle (optional)</label>
+                    <input id="comm1Sub" type="text" value="" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Section 2</h3>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Category Label</label>
+                    <input id="comm2Label" type="text" value="Anniversaries" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Names (one per line)</label>
+                    <textarea id="comm2Names" rows="3" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none resize-none">Mr. &amp; Mrs. Kaplan</textarea>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Subtitle (optional)</label>
+                    <input id="comm2Sub" type="text" value="25 Golden Years" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Section 3</h3>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Category Label</label>
+                    <input id="comm3Label" type="text" value="New Addition" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Names (one per line)</label>
+                    <textarea id="comm3Names" rows="3" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none resize-none">The Levi Family</textarea>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Subtitle (optional)</label>
+                    <input id="comm3Sub" type="text" value="Birth of a Baby Girl" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Info Bar -->
+    <section class="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
+        <div class="bg-gray-800/50 px-6 py-3 flex items-center gap-2 border-b border-gray-800">
+            <span class="material-symbols-outlined text-gold">info</span>
+            <h2 class="text-lg font-bold text-gold">Bottom Info Bar</h2>
+        </div>
+        <div class="p-6 space-y-4">
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Hebrew Text (left)</label>
+                <input id="infoHebrew" type="text" dir="rtl" value="משיב הרוח ומוריד הגשם" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
+            </div>
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Welcome Message (center)</label>
+                <input id="infoWelcome" type="text" value="Young Israel of Oceanside • Welcome to all our guests!" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
+            </div>
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Reminder / Note (right)</label>
+                <input id="infoReminder" type="text" value="Remember to set your clocks back this weekend." class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none"/>
+            </div>
+        </div>
+    </section>
+
+    <div class="flex justify-end pb-8">
+        <button onclick="saveAll()" class="bg-gold text-black font-bold px-8 py-3 rounded text-sm hover:bg-yellow-400 transition flex items-center gap-2">
+            <span class="material-symbols-outlined text-lg">save</span> Save All Changes
+        </button>
+    </div>
+</main>
+
+<script>
+// ========================================
+// DATA LAYER — swap these two functions for DB/API later
+// ========================================
+async function fetchScreenData() {
+    // TODO: Replace with real API call, e.g.:
+    // const res = await fetch('/api/screen-data');
+    // return await res.json();
+    return JSON.parse(localStorage.getItem('shulScreenData') || 'null');
+}
+
+async function saveScreenData(data) {
+    // TODO: Replace with real API call, e.g.:
+    // await fetch('/api/screen-data', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
+    localStorage.setItem('shulScreenData', JSON.stringify(data));
+}
+
+// Load saved data on page load
+async function loadData() {
+    const data = await fetchScreenData();
+    if (!data) return;
+
+    if (data.sponsors) {
+        document.getElementById('sponsor1Label').value = data.sponsors.sponsor1Label || '';
+        document.getElementById('sponsor1Name').value = data.sponsors.sponsor1Name || '';
+        document.getElementById('sponsor2Label').value = data.sponsors.sponsor2Label || '';
+        document.getElementById('sponsor2Name').value = data.sponsors.sponsor2Name || '';
+    }
+    if (data.announcement) {
+        document.getElementById('announcementTitle').value = data.announcement.title || '';
+        document.getElementById('announcementDesc').value = data.announcement.description || '';
+        if (data.announcement.imageData) {
+            const img = document.getElementById('announcementImagePreview');
+            img.src = data.announcement.imageData;
+            img.classList.remove('hidden');
+            document.getElementById('announcementImagePlaceholder').classList.add('hidden');
+        }
+    }
+    if (data.community) {
+        document.getElementById('comm1Label').value = data.community.section1Label || '';
+        document.getElementById('comm1Names').value = data.community.section1Names || '';
+        document.getElementById('comm1Sub').value = data.community.section1Sub || '';
+        document.getElementById('comm2Label').value = data.community.section2Label || '';
+        document.getElementById('comm2Names').value = data.community.section2Names || '';
+        document.getElementById('comm2Sub').value = data.community.section2Sub || '';
+        document.getElementById('comm3Label').value = data.community.section3Label || '';
+        document.getElementById('comm3Names').value = data.community.section3Names || '';
+        document.getElementById('comm3Sub').value = data.community.section3Sub || '';
+    }
+    if (data.infoBar) {
+        document.getElementById('infoHebrew').value = data.infoBar.hebrew || '';
+        document.getElementById('infoWelcome').value = data.infoBar.welcome || '';
+        document.getElementById('infoReminder').value = data.infoBar.reminder || '';
+    }
+}
+
+function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = document.getElementById('announcementImagePreview');
+        img.src = e.target.result;
+        img.classList.remove('hidden');
+        document.getElementById('announcementImagePlaceholder').classList.add('hidden');
+    };
+    reader.readAsDataURL(file);
+}
+
+async function saveAll() {
+    const data = {
+        sponsors: {
+            sponsor1Label: document.getElementById('sponsor1Label').value,
+            sponsor1Name: document.getElementById('sponsor1Name').value,
+            sponsor2Label: document.getElementById('sponsor2Label').value,
+            sponsor2Name: document.getElementById('sponsor2Name').value
+        },
+        announcement: {
+            title: document.getElementById('announcementTitle').value,
+            description: document.getElementById('announcementDesc').value,
+            imageData: document.getElementById('announcementImagePreview').src || ''
+        },
+        community: {
+            section1Label: document.getElementById('comm1Label').value,
+            section1Names: document.getElementById('comm1Names').value,
+            section1Sub: document.getElementById('comm1Sub').value,
+            section2Label: document.getElementById('comm2Label').value,
+            section2Names: document.getElementById('comm2Names').value,
+            section2Sub: document.getElementById('comm2Sub').value,
+            section3Label: document.getElementById('comm3Label').value,
+            section3Names: document.getElementById('comm3Names').value,
+            section3Sub: document.getElementById('comm3Sub').value
+        },
+        infoBar: {
+            hebrew: document.getElementById('infoHebrew').value,
+            welcome: document.getElementById('infoWelcome').value,
+            reminder: document.getElementById('infoReminder').value
+        },
+        updatedAt: new Date().toISOString()
+    };
+
+    await saveScreenData(data);
+
+    const toast = document.getElementById('toast');
+    toast.classList.remove('hidden');
+    setTimeout(() => toast.classList.add('hidden'), 2000);
+}
+
+loadData();
+</script>
+</body></html>
