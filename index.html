@@ -280,60 +280,104 @@ async function fetchScreenData() {
     }
 }
 
+// ========================================
+// SIZING RULES — scales based on item count
+// ========================================
+var annSizes = {
+    1: { img: 'w-56', title: 'text-5xl', desc: 'text-2xl', pad: 'p-10 gap-10', maxW: 'max-w-lg', justify: 'justify-center' },
+    2: { img: 'w-44', title: 'text-3xl', desc: 'text-lg',  pad: 'p-5 gap-6',   maxW: 'max-w-sm', justify: 'justify-around' },
+    3: { img: 'w-32', title: 'text-2xl', desc: 'text-base', pad: 'p-3 gap-4',  maxW: 'max-w-xs', justify: 'justify-around' }
+};
+var commSizes = {
+    1: { name: 'text-4xl', label: 'text-xs',    sub: 'text-xs',    pad: 'p-8', space: 'space-y-3', divH: 'h-24' },
+    2: { name: 'text-2xl', label: 'text-[10px]', sub: 'text-[10px]', pad: 'p-6', space: 'space-y-2', divH: 'h-24' },
+    3: { name: 'text-xl',  label: 'text-[9px]',  sub: 'text-[9px]',  pad: 'p-4', space: 'space-y-1', divH: 'h-20' }
+};
+var sponsorSizes = {
+    1: { name: 'text-xl',   label: 'text-[10px]', gap: 'gap-4', pad: 'p-6' },
+    2: { name: 'text-lg',   label: 'text-[8px]',  gap: 'gap-3', pad: 'p-6' },
+    3: { name: 'text-base', label: 'text-[7px]',  gap: 'gap-2', pad: 'p-4' }
+};
+
 async function loadScreenData() {
     var data = await fetchScreenData();
     if (!data) return;
 
     // Sponsors (dynamic array)
     if (data.sponsors && data.sponsors.length) {
+        var count = Math.min(data.sponsors.length, 3);
+        var sz = sponsorSizes[count];
         var sponsorContainer = document.getElementById('sponsorSlots');
         sponsorContainer.innerHTML = '';
+        sponsorContainer.className = 'flex flex-col w-full relative z-10 ' + sz.gap + ' px-2';
+        // Update plaque padding
+        var plaque = sponsorContainer.parentElement;
+        plaque.classList.remove('p-4', 'p-6');
+        plaque.classList.add(sz.pad);
         data.sponsors.forEach(function(s, i) {
+            if (i >= 3) return;
             var html = '<div class="text-center">';
-            html += '<p class="text-[8px] text-on-primary uppercase tracking-[0.3em] font-bold opacity-80">' + esc(s.label) + '</p>';
-            html += '<h3 class="font-headline text-lg text-on-primary font-bold tracking-[0.05em] whitespace-nowrap drop-shadow-sm">' + esc(s.name) + '</h3>';
+            html += '<p class="' + sz.label + ' text-on-primary uppercase tracking-[0.3em] font-bold opacity-80">' + esc(s.label) + '</p>';
+            html += '<h3 class="font-headline ' + sz.name + ' text-on-primary font-bold tracking-[0.05em] whitespace-nowrap drop-shadow-sm">' + esc(s.name) + '</h3>';
             html += '</div>';
-            if (i < data.sponsors.length - 1) html += '<div class="h-px bg-on-primary/20 w-3/4 mx-auto"></div>';
+            if (i < Math.min(data.sponsors.length, 3) - 1) html += '<div class="h-px bg-on-primary/20 w-3/4 mx-auto"></div>';
             sponsorContainer.innerHTML += html;
         });
     }
 
-    // Announcements (dynamic array)
-    var defaultImg = 'https://lh3.googleusercontent.com/aida-public/AB6AXuD1chIswQ7KY6RZQA5tAZ5JLyZyjZ40Sxj_FXOXfyHHY_hb3OaNusAw0zR56InT__nLUpK0HLS-QwLWSqJZSMJpG7p08XyvKGuVl4lpW2PynOIdOrd-iVEfs5h80HsQprt5paokA10Ys8WLFs9Ke_009KcWIHzpLE2YjlIIMg03fVGFMKdObCgybbmbC5f70WHEENa0lJIZhPtj2wI-5vl35JdVTfQsgZgkw2ynf87Ye716T6uo4MxVSyYxMoPk47XTyowlFlabe2w_';
+    // Announcements (dynamic array with sizing)
     if (data.announcements && data.announcements.length) {
+        var count = Math.min(data.announcements.length, 3);
+        var sz = annSizes[count];
         var annContainer = document.getElementById('announcementSlots');
         annContainer.innerHTML = '';
-        data.announcements.forEach(function(a) {
-            var imgSrc = (a.imageData && a.imageData.length > 10 && (a.imageData.startsWith('data:') || a.imageData.startsWith('http')))
-                ? a.imageData : defaultImg;
-            var html = '<div class="p-6 flex-1 flex gap-8 items-center justify-center border-b border-white/5">';
-            html += '<div class="relative w-48 aspect-[4/5] elevated-3d border-4 border-primary/30 rounded-sm overflow-hidden flex-shrink-0">';
-            html += '<img class="w-full h-full object-cover" src="' + esc(imgSrc) + '"/>';
-            html += '<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div></div>';
-            html += '<div class="text-left flex-1 max-w-sm">';
-            html += '<h3 class="font-headline text-3xl font-bold text-primary mb-2 text-3d">' + esc(a.title) + '</h3>';
-            html += '<p class="text-lg italic text-secondary leading-relaxed">' + esc(a.description) + '</p>';
-            html += '</div></div>';
+        annContainer.className = 'flex flex-col flex-1 ' + sz.justify;
+        data.announcements.forEach(function(a, i) {
+            if (i >= 3) return;
+            var hasImg = a.imageData && a.imageData.length > 10 && (a.imageData.startsWith('data:') || a.imageData.startsWith('http'));
+            var html = '<div class="' + sz.pad + ' flex-1 flex items-center justify-center border-b border-white/5">';
+            if (hasImg) {
+                html += '<div class="relative ' + sz.img + ' aspect-[4/5] elevated-3d border-4 border-primary/30 rounded-sm overflow-hidden flex-shrink-0">';
+                html += '<img class="w-full h-full object-cover" src="' + esc(a.imageData) + '"/>';
+                html += '<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div></div>';
+            }
+            var hasText = a.title || a.description;
+            if (hasText) {
+                html += '<div class="' + (hasImg ? 'text-left' : 'text-center') + ' flex-1 ' + sz.maxW + '">';
+                if (a.title) html += '<h3 class="font-headline ' + sz.title + ' font-bold text-primary mb-2 text-3d">' + esc(a.title) + '</h3>';
+                if (a.description) html += '<p class="' + sz.desc + ' italic text-secondary leading-relaxed">' + esc(a.description) + '</p>';
+                html += '</div>';
+            }
+            html += '</div>';
             annContainer.innerHTML += html;
         });
     }
 
-    // Community (dynamic array)
+    // Community (dynamic array with sizing)
     if (data.community && data.community.length) {
+        var count = Math.min(data.community.length, 3);
+        var sz = commSizes[count];
         var commContainer = document.getElementById('communitySlots');
         commContainer.innerHTML = '';
+        commContainer.className = sz.pad + ' flex-1 flex justify-around items-center text-center';
         data.community.forEach(function(c, i) {
+            if (i >= 3) return;
             var lines = (c.names || '').split('\n').filter(function(l){ return l.trim(); });
-            var html = '<div class="flex-1 space-y-2">';
-            html += '<p class="text-[10px] uppercase tracking-[0.4em] font-bold text-primary/80">' + esc(c.label) + '</p>';
+            // Cap names at 4 when showing 3 sections
+            var maxNames = count === 3 ? 4 : 99;
+            var truncated = lines.length > maxNames;
+            if (truncated) lines = lines.slice(0, maxNames);
+            var html = '<div class="flex-1 ' + sz.space + '">';
+            html += '<p class="' + sz.label + ' uppercase tracking-[0.4em] font-bold text-primary/80">' + esc(c.label) + '</p>';
             html += '<div class="flex flex-col gap-1">';
             lines.forEach(function(name) {
-                html += '<p class="font-headline text-2xl italic font-bold text-primary text-3d">' + esc(name) + '</p>';
+                html += '<p class="font-headline ' + sz.name + ' italic font-bold text-primary text-3d">' + esc(name) + '</p>';
             });
+            if (truncated) html += '<p class="font-headline ' + sz.name + ' italic font-bold text-primary/60">&amp; others</p>';
             html += '</div>';
-            if (c.sub) html += '<p class="text-[10px] uppercase tracking-widest font-semibold text-secondary">' + esc(c.sub) + '</p>';
+            if (c.sub) html += '<p class="' + sz.sub + ' uppercase tracking-widest font-semibold text-secondary">' + esc(c.sub) + '</p>';
             html += '</div>';
-            if (i < data.community.length - 1) html += '<div class="w-px h-24 bg-white/10 mx-4"></div>';
+            if (i < Math.min(data.community.length, 3) - 1) html += '<div class="w-px ' + sz.divH + ' bg-white/10 mx-4"></div>';
             commContainer.innerHTML += html;
         });
     }
