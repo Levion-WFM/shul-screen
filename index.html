@@ -2,6 +2,9 @@
 <html class="dark" lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Beis Medrash D Jackson 21</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;500;600;700&amp;family=Work_Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -38,17 +41,11 @@
             font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24
         }
         .wood-grain {
-            background-color: #3a3a3a;
+            background-color: #1a1510;
             background-image: url(bg-texture.jpg);
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-        }
-        .parchment-muted {
-            background-color: #1e1816;
-            background-image:
-                url(https://lh3.googleusercontent.com/aida-public/AB6AXuC1uasx9CuAa5S2J7CaSxBCqHTOamhYCyGm9nO31hYf2U4kmRkwfBu4AdYZfgOwHPuzPSsMErJFl14E6NqTuJTqnSLI_iFs7yUXaIeAqFobCOes2r3gYMJlEf10fTVHZhnxZVeBC-9DpfyEczp8ywDnprVStFoKJsuzIyc3NevzL6IkqzdUrFs7dyFlefbGj3i4DiWxwr-yjpX1sOUP08lEA-Ksid0rysv4Fkys51X0RSI9By_AU6w_p4XPG5726skOcUL5Vf5gSRCO);
-            background-blend-mode: multiply;
         }
         .gold-inlay {
             background: linear-gradient(135deg, #8b6b00 0%, #ffe088 45%, #e9c349 55%, #8b6b00 100%);
@@ -59,7 +56,7 @@
         .gold-border-3d {
             border: 4px solid;
             border-image: linear-gradient(135deg, #c4a129, #ffe088, #8b6b00) 1;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.12);
         }
         .elevated-3d {
             box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 15px rgba(0,0,0,0.4), inset 1px 1px 0 rgba(255,255,255,0.05);
@@ -67,13 +64,16 @@
         .text-3d {
             text-shadow: 2px 2px 0px #000, 3px 3px 5px rgba(0,0,0,0.6);
         }
+        .text-3d-light {
+            text-shadow: 1px 1px 0px #000, 2px 2px 3px rgba(0,0,0,0.4);
+        }
         .brass-plaque {
             background: linear-gradient(135deg, #a67c00 0%, #bf9b30 40%, #ffcf40 50%, #bf9b30 60%, #a67c00 100%);
             box-shadow:
                 2px 2px 4px rgba(0,0,0,0.5),
                 inset 1px 1px 1px rgba(255,255,255,0.2),
                 inset -1px -1px 1px rgba(0,0,0,0.2);
-            border: 1px solid #7a5c00;
+            border: 2px solid #7a5c00;
         }
         .glow-text-hebrew {
             text-shadow: 0 0 10px rgba(233, 195, 73, 0.4), 2px 2px 0px #000;
@@ -81,20 +81,19 @@
     </style>
 </head>
 <body class="bg-[#0a0706] text-white font-body min-h-screen flex flex-col overflow-auto">
-<!-- Header Optimized for Perfect Centering -->
+<!-- Header -->
 <nav class="bg-[#0a0706] border-b-4 gold-border-3d py-5 px-16 flex justify-between items-center relative z-50">
 <div class="w-1/5 flex justify-start">
-<span class="material-symbols-outlined text-5xl gold-inlay" style="font-variation-settings: 'FILL' 1;">temple_hindu</span>
+<span class="material-symbols-outlined text-5xl gold-inlay" style="font-variation-settings: 'FILL' 1;">auto_stories</span>
 </div>
-<!-- Absolute Centering for Title -->
 <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
 <h1 class="text-5xl font-headline font-bold gold-inlay tracking-[0.1em] text-center leading-tight pointer-events-auto whitespace-nowrap">
                 BEIS MEDRASH D JACKSON 21
             </h1>
 </div>
 <div class="w-1/3 flex flex-col items-end">
-<span class="text-xl font-headline font-bold text-primary tracking-widest uppercase">Friday, Oct 27, 2023</span>
-<span class="text-sm font-headline opacity-60 italic tracking-widest uppercase text-secondary">12 Cheshvan 5784</span>
+<span id="secularDate" class="text-xl font-headline font-bold text-primary tracking-widest uppercase"></span>
+<span id="hebrewDate" class="text-sm font-headline opacity-60 italic tracking-widest uppercase text-secondary"></span>
 </div>
 </nav>
 <!-- Main Grid -->
@@ -106,28 +105,28 @@
 <h2 class="text-primary font-headline text-center py-4 text-xl tracking-[0.2em] font-bold border-b border-white/10 uppercase bg-black/40">Shabbat Zmanim</h2>
 <div class="flex-1 p-6 flex flex-col justify-around">
 <div class="text-center">
-<p class="text-[10px] uppercase tracking-[0.3em] font-bold text-secondary mb-1">Candle Lighting</p>
-<p class="text-primary font-headline font-bold text-4xl text-3d">5:42 PM</p>
+<p class="text-xs uppercase tracking-[0.3em] font-bold text-secondary mb-1">Candle Lighting</p>
+<p id="z-candle-lighting" class="text-primary font-headline font-bold text-4xl text-3d">—</p>
 </div>
 <div class="text-center">
-<p class="text-[10px] uppercase tracking-[0.3em] font-bold text-secondary mb-1">Mincha &amp; Kabbalat</p>
-<p class="text-primary font-headline font-bold text-4xl text-3d">5:45 PM</p>
+<p class="text-xs uppercase tracking-[0.3em] font-bold text-secondary mb-1">Mincha &amp; Kabbalat</p>
+<p id="z-mincha-friday" class="text-primary font-headline font-bold text-4xl text-3d">—</p>
 </div>
 <div class="text-center">
-<p class="text-[10px] uppercase tracking-[0.3em] font-bold text-secondary mb-1">Shacharit</p>
-<p class="text-primary font-headline font-bold text-4xl text-3d">9:00 AM</p>
+<p class="text-xs uppercase tracking-[0.3em] font-bold text-secondary mb-1">Shacharit</p>
+<p id="z-shacharit" class="text-primary font-headline font-bold text-4xl text-3d">—</p>
 </div>
 <div class="text-center">
-<p class="text-[10px] uppercase tracking-[0.3em] font-bold text-secondary mb-1">Mincha</p>
-<p class="text-primary font-headline font-bold text-4xl text-3d">5:30 PM</p>
+<p class="text-xs uppercase tracking-[0.3em] font-bold text-secondary mb-1">Mincha</p>
+<p id="z-mincha-saturday" class="text-primary font-headline font-bold text-4xl text-3d">—</p>
 </div>
 <div class="text-center">
-<p class="text-[10px] uppercase tracking-[0.3em] font-bold text-secondary mb-1">Havdalah</p>
-<p class="text-primary font-headline font-bold text-4xl text-3d">6:41 PM</p>
+<p class="text-xs uppercase tracking-[0.3em] font-bold text-secondary mb-1">Havdalah</p>
+<p id="z-havdalah" class="text-primary font-headline font-bold text-4xl text-3d">—</p>
 </div>
 </div>
 <div class="bg-black/50 py-2 text-center border-t border-white/5">
-<p class="text-xs tracking-[0.4em] font-bold text-primary/80 uppercase italic">Parshat Vayeira</p>
+<p id="z-parshat" class="text-sm tracking-[0.4em] font-bold text-primary/80 uppercase italic">—</p>
 </div>
 </div>
 <!-- Daily Zmanim -->
@@ -135,68 +134,31 @@
 <h2 class="text-primary font-headline text-center py-4 text-xl tracking-[0.2em] font-bold border-b border-white/10 uppercase bg-black/40">Daily Zmanim</h2>
 <div class="flex-1 p-6 flex flex-col justify-around">
 <div class="text-center">
-<p class="text-[10px] uppercase tracking-[0.3em] font-bold text-secondary mb-1">Alot HaShachar</p>
-<p class="text-primary font-headline font-bold text-3xl text-3d">5:58 AM</p>
+<p class="text-xs uppercase tracking-[0.3em] font-bold text-secondary mb-1">Alot HaShachar</p>
+<p id="z-alot" class="text-primary font-headline font-bold text-3xl text-3d">—</p>
 </div>
 <div class="text-center">
-<p class="text-[10px] uppercase tracking-[0.3em] font-bold text-secondary mb-1">Sunrise</p>
-<p class="text-primary font-headline font-bold text-3xl text-3d">7:14 AM</p>
+<p class="text-xs uppercase tracking-[0.3em] font-bold text-secondary mb-1">Sunrise</p>
+<p id="z-sunrise" class="text-primary font-headline font-bold text-3xl text-3d">—</p>
 </div>
 <div class="text-center">
-<p class="text-[10px] uppercase tracking-[0.3em] font-bold text-secondary mb-1">Latest Shema</p>
-<p class="text-primary font-headline font-bold text-3xl text-3d">9:56 AM</p>
+<p class="text-xs uppercase tracking-[0.3em] font-bold text-secondary mb-1">Latest Shema</p>
+<p id="z-shema" class="text-primary font-headline font-bold text-3xl text-3d">—</p>
 </div>
 <div class="text-center">
-<p class="text-[10px] uppercase tracking-[0.3em] font-bold text-secondary mb-1">Sunset (Shkia)</p>
-<p class="text-primary font-headline font-bold text-3xl text-3d">5:52 PM</p>
+<p class="text-xs uppercase tracking-[0.3em] font-bold text-secondary mb-1">Sunset (Shkia)</p>
+<p id="z-sunset" class="text-primary font-headline font-bold text-3xl text-3d">—</p>
 </div>
 </div>
 </div>
 </div>
 <!-- Center Column: Announcements Stacked -->
 <div class="col-span-6 flex flex-col">
-<!-- Combined Announcements -->
 <div class="bg-[#060504] elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 rounded-sm overflow-hidden">
 <h2 class="text-center font-headline text-2xl py-4 border-b border-white/10 tracking-[0.3em] font-bold uppercase bg-black/40 text-primary">Announcements</h2>
-<!-- Dynamic Announcements -->
-<div id="announcementSlots">
-<div class="p-6 flex-1 flex gap-8 items-center justify-center border-b border-white/5">
-<div class="relative w-48 aspect-[4/5] elevated-3d border-4 border-primary/30 rounded-sm overflow-hidden flex-shrink-0">
-<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1chIswQ7KY6RZQA5tAZ5JLyZyjZ40Sxj_FXOXfyHHY_hb3OaNusAw0zR56InT__nLUpK0HLS-QwLWSqJZSMJpG7p08XyvKGuVl4lpW2PynOIdOrd-iVEfs5h80HsQprt5paokA10Ys8WLFs9Ke_009KcWIHzpLE2YjlIIMg03fVGFMKdObCgybbmbC5f70WHEENa0lJIZhPtj2wI-5vl35JdVTfQsgZgkw2ynf87Ye716T6uo4MxVSyYxMoPk47XTyowlFlabe2w_"/>
-<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+<div id="announcementSlots" class="flex flex-col flex-1 justify-center">
 </div>
-<div class="text-left flex-1 max-w-sm">
-<h3 class="font-headline text-3xl font-bold text-primary mb-2 text-3d">Winter Clothing Drive</h3>
-<p class="text-lg italic text-secondary leading-relaxed">Ongoing collection for local families in the main lobby bins. Please ensure items are gently used and clean.</p>
-</div>
-</div>
-</div>
-<!-- Dynamic Community -->
 <div id="communitySlots" class="p-6 flex-1 flex justify-around items-center text-center">
-<div class="flex-1 space-y-2">
-<p class="text-[10px] uppercase tracking-[0.4em] font-bold text-primary/80">Mazel Tov Birthdays</p>
-<div class="flex flex-col gap-1">
-<p class="font-headline text-2xl italic font-bold text-primary text-3d">Sarah Goldberg</p>
-<p class="font-headline text-2xl italic font-bold text-primary text-3d">Avi Steinmetz</p>
-<p class="font-headline text-2xl italic font-bold text-primary text-3d">Meir Cohen</p>
-</div>
-</div>
-<div class="w-px h-24 bg-white/10 mx-4"></div>
-<div class="flex-1 space-y-2">
-<p class="text-[10px] uppercase tracking-[0.4em] font-bold text-primary/80">Anniversaries</p>
-<div class="flex flex-col gap-1">
-<p class="font-headline text-2xl italic font-bold text-primary text-3d">Mr. &amp; Mrs. Kaplan</p>
-</div>
-<p class="text-[10px] uppercase tracking-widest font-semibold text-secondary">25 Golden Years</p>
-</div>
-<div class="w-px h-24 bg-white/10 mx-4"></div>
-<div class="flex-1 space-y-2">
-<p class="text-[10px] uppercase tracking-[0.4em] font-bold text-primary/80">New Addition</p>
-<div class="flex flex-col gap-1">
-<p class="font-headline text-2xl italic font-bold text-primary text-3d">The Levi Family</p>
-</div>
-<p class="text-[10px] uppercase tracking-widest font-semibold text-secondary">Birth of a Baby Girl</p>
-</div>
 </div>
 </div>
 </div>
@@ -205,83 +167,63 @@
 <!-- Weekly Schedule -->
 <div class="bg-surface-container-high elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 rounded-sm overflow-hidden">
 <h2 class="text-primary font-headline text-center py-4 text-xl tracking-[0.2em] font-bold border-b border-white/10 uppercase bg-black/40 whitespace-nowrap">Weekly Schedule</h2>
-<div class="flex-1 p-6 flex flex-col justify-between py-6">
-<div class="text-center">
-<p class="text-[10px] uppercase tracking-[0.25em] font-bold text-secondary mb-1">Shachris (Sun)</p>
-<p class="text-primary font-headline font-bold text-2xl text-3d">7:30 / 8:30 AM</p>
-</div>
-<div class="text-center">
-<p class="text-[10px] uppercase tracking-[0.25em] font-bold text-secondary mb-1">Shachris (M-F)</p>
-<p class="text-primary font-headline font-bold text-2xl text-3d">6:30 / 7:30 AM</p>
-</div>
-<div class="text-center">
-<p class="text-[10px] uppercase tracking-[0.25em] font-bold text-secondary mb-1">Mincha / Maariv</p>
-<p class="text-primary font-headline font-bold text-2xl text-3d">5:40 PM</p>
-</div>
-<div class="text-center">
-<p class="text-[10px] uppercase tracking-[0.25em] font-bold text-secondary mb-1">Late Maariv</p>
-<p class="text-primary font-headline font-bold text-2xl text-3d">9:00 PM</p>
-</div>
-<div class="text-center">
-<p class="text-[10px] uppercase tracking-[0.25em] font-bold text-secondary mb-1">Morning Seder</p>
-<p class="text-primary font-headline font-bold text-2xl text-3d">8:15 AM</p>
-</div>
-<div class="text-center">
-<p class="text-[10px] uppercase tracking-[0.25em] font-bold text-secondary mb-1">Night Seder</p>
-<p class="text-primary font-headline font-bold text-2xl text-3d">8:30 PM</p>
-</div>
-<div class="text-center">
-<p class="text-[10px] uppercase tracking-[0.25em] font-bold text-secondary mb-1">Shiur from Rav</p>
-<p class="text-primary font-headline font-bold text-2xl text-3d">8:00 PM</p>
-</div>
+<div id="scheduleSlots" class="flex-1 p-6 flex flex-col justify-between py-6">
 </div>
 </div>
 <!-- Sponsor Section -->
-<div class="brass-plaque p-6 flex items-center justify-center gap-5 rounded-sm flex-none relative overflow-hidden group"><!-- Decorative rivet heads -->
+<div class="brass-plaque p-6 flex items-center justify-center gap-5 rounded-sm flex-none relative overflow-hidden group">
 <div class="absolute top-2 left-2 w-1 h-1 rounded-full bg-black/20 shadow-inner"></div>
 <div class="absolute top-2 right-2 w-1 h-1 rounded-full bg-black/20 shadow-inner"></div>
 <div class="absolute bottom-2 left-2 w-1 h-1 rounded-full bg-black/20 shadow-inner"></div>
 <div class="absolute bottom-2 right-2 w-1 h-1 rounded-full bg-black/20 shadow-inner"></div>
 <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none"></div>
 <div id="sponsorSlots" class="flex flex-col w-full relative z-10 gap-3 px-2">
-<div class="text-center">
-<p class="text-[8px] text-on-primary uppercase tracking-[0.3em] font-bold opacity-80">Kiddush Sponsored By</p>
-<h3 class="font-headline text-lg text-on-primary font-bold tracking-[0.05em] whitespace-nowrap drop-shadow-sm">THE COHEN FAMILY</h3>
-</div>
-<div class="h-px bg-on-primary/20 w-3/4 mx-auto"></div>
-<div class="text-center">
-<p class="text-[8px] text-on-primary uppercase tracking-[0.3em] font-bold opacity-80">Ner LaMoar Sponsored By</p>
-<h3 class="font-headline text-lg text-on-primary font-bold tracking-[0.05em] whitespace-nowrap drop-shadow-sm">ANONYMOUS</h3>
-</div>
 </div></div>
 </div>
 </main>
-<!-- Static Info Bar (Replaces Marquee) -->
+<!-- Info Bar -->
 <div class="bg-[#0a0706] border-y-4 gold-border-3d h-16 flex items-center shadow-xl relative z-40 overflow-hidden">
 <div class="px-10 text-primary font-headline text-2xl flex w-full justify-between items-center">
-<span id="infoHebrew" class="flex items-center gap-6 font-bold text-3xl glow-text-hebrew pt-1">משיב הרוח ומוריד הגשם</span>
-<span id="infoWelcome" class="tracking-[0.2em] uppercase font-bold text-xl">Young Israel of Oceanside • Welcome to all our guests!</span>
-<span id="infoReminder" class="italic font-semibold text-xl text-secondary">Remember to set your clocks back this weekend.</span>
+<span id="infoHebrew" dir="rtl" class="flex items-center gap-6 font-bold text-3xl glow-text-hebrew pt-1"></span>
+<span id="infoWelcome" class="tracking-[0.2em] uppercase font-bold text-xl"></span>
+<span id="infoReminder" class="italic font-semibold text-xl text-secondary"></span>
 </div>
 </div>
+<!-- Last Updated Indicator -->
+<div id="lastUpdated" class="fixed bottom-1 right-2 text-[10px] text-green-500/60 font-mono z-50"></div>
 <script>
 // ========================================
-// DATA LAYER — reads from API, falls back to localStorage
+// DATA LAYER
 // ========================================
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+var lastFetchOk = false;
 
 async function fetchScreenData() {
     try {
         var res = await fetch('/api/get-data');
         if (!res.ok) throw new Error('API error');
+        lastFetchOk = true;
         return await res.json();
     } catch (e) {
-        return JSON.parse(localStorage.getItem('shulScreenData') || 'null');
+        lastFetchOk = false;
+        try { return JSON.parse(localStorage.getItem('shulScreenData') || 'null'); }
+        catch (e2) { return null; }
     }
 }
 
 // ========================================
-// SIZING RULES — scales based on item count
+// DYNAMIC DATE
+// ========================================
+function updateSecularDate() {
+    var el = document.getElementById('secularDate');
+    if (el) el.textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
+}
+updateSecularDate();
+setInterval(updateSecularDate, 60000);
+
+// ========================================
+// SIZING RULES
 // ========================================
 var annSizes = {
     1: { img: 'w-56', title: 'text-5xl', desc: 'text-2xl', pad: 'p-10 gap-10', maxW: 'max-w-lg', justify: 'justify-center' },
@@ -289,100 +231,153 @@ var annSizes = {
     3: { img: 'w-32', title: 'text-2xl', desc: 'text-base', pad: 'p-3 gap-4',  maxW: 'max-w-xs', justify: 'justify-around' }
 };
 var commSizes = {
-    1: { name: 'text-4xl', label: 'text-xs',    sub: 'text-xs',    pad: 'p-8', space: 'space-y-3', divH: 'h-24' },
-    2: { name: 'text-2xl', label: 'text-[10px]', sub: 'text-[10px]', pad: 'p-6', space: 'space-y-2', divH: 'h-24' },
-    3: { name: 'text-xl',  label: 'text-[9px]',  sub: 'text-[9px]',  pad: 'p-4', space: 'space-y-1', divH: 'h-20' }
+    1: { name: 'text-4xl', label: 'text-sm',  sub: 'text-sm',  pad: 'p-8', space: 'space-y-3', divH: 'h-24' },
+    2: { name: 'text-2xl', label: 'text-xs',  sub: 'text-xs',  pad: 'p-6', space: 'space-y-2', divH: 'h-24' },
+    3: { name: 'text-xl',  label: 'text-xs',  sub: 'text-xs',  pad: 'p-4', space: 'space-y-1', divH: 'h-20' }
 };
 var sponsorSizes = {
-    1: { name: 'text-xl',   label: 'text-[10px]', gap: 'gap-4', pad: 'p-6' },
-    2: { name: 'text-lg',   label: 'text-[8px]',  gap: 'gap-3', pad: 'p-6' },
-    3: { name: 'text-base', label: 'text-[7px]',  gap: 'gap-2', pad: 'p-4' }
+    1: { name: 'text-xl',   label: 'text-xs',  gap: 'gap-4', pad: 'p-6' },
+    2: { name: 'text-lg',   label: 'text-xs',  gap: 'gap-3', pad: 'p-6' },
+    3: { name: 'text-base', label: 'text-xs',  gap: 'gap-2', pad: 'p-4' }
 };
 
+// ========================================
+// RENDER
+// ========================================
 async function loadScreenData() {
     var data = await fetchScreenData();
+
+    // Update stale indicator
+    var indicator = document.getElementById('lastUpdated');
+    if (lastFetchOk) {
+        indicator.textContent = 'Updated ' + new Date().toLocaleTimeString();
+        indicator.className = 'fixed bottom-1 right-2 text-[10px] text-green-500/60 font-mono z-50';
+    } else {
+        indicator.textContent = 'Offline — ' + new Date().toLocaleTimeString();
+        indicator.className = 'fixed bottom-1 right-2 text-[10px] text-red-400/80 font-mono z-50';
+    }
+
     if (!data) return;
 
-    // Sponsors (dynamic array)
+    // ── Zmanim ──
+    if (data.zmanim) {
+        var z = data.zmanim;
+        var zmMap = {
+            'z-candle-lighting': z.candleLighting,
+            'z-mincha-friday': z.minchaFriday,
+            'z-shacharit': z.shacharit,
+            'z-mincha-saturday': z.minchaSaturday,
+            'z-havdalah': z.havdalah,
+            'z-alot': z.alot,
+            'z-sunrise': z.sunrise,
+            'z-shema': z.shema,
+            'z-sunset': z.sunset,
+            'z-parshat': z.parshat
+        };
+        for (var id in zmMap) {
+            var el = document.getElementById(id);
+            if (el && zmMap[id]) el.textContent = zmMap[id];
+        }
+        // Hebrew date
+        var hd = document.getElementById('hebrewDate');
+        if (hd && z.hebrewDate) hd.textContent = z.hebrewDate;
+    }
+
+    // ── Weekly Schedule ──
+    var schedContainer = document.getElementById('scheduleSlots');
+    schedContainer.innerHTML = '';
+    if (data.schedule && data.schedule.length) {
+        var schedHtml = '';
+        data.schedule.forEach(function(s) {
+            schedHtml += '<div class="text-center">';
+            schedHtml += '<p class="text-xs uppercase tracking-[0.25em] font-bold text-secondary mb-1">' + esc(s.label) + '</p>';
+            schedHtml += '<p class="text-primary font-headline font-bold text-2xl text-3d-light">' + esc(s.time) + '</p>';
+            schedHtml += '</div>';
+        });
+        schedContainer.innerHTML = schedHtml;
+    }
+
+    // ── Sponsors ──
+    var sponsorContainer = document.getElementById('sponsorSlots');
+    sponsorContainer.innerHTML = '';
     if (data.sponsors && data.sponsors.length) {
         var count = Math.min(data.sponsors.length, 3);
         var sz = sponsorSizes[count];
-        var sponsorContainer = document.getElementById('sponsorSlots');
-        sponsorContainer.innerHTML = '';
         sponsorContainer.className = 'flex flex-col w-full relative z-10 ' + sz.gap + ' px-2';
-        // Update plaque padding
         var plaque = sponsorContainer.parentElement;
         plaque.classList.remove('p-4', 'p-6');
         plaque.classList.add(sz.pad);
+        var sHtml = '';
         data.sponsors.forEach(function(s, i) {
             if (i >= 3) return;
-            var html = '<div class="text-center">';
-            html += '<p class="' + sz.label + ' text-on-primary uppercase tracking-[0.3em] font-bold opacity-80">' + esc(s.label) + '</p>';
-            html += '<h3 class="font-headline ' + sz.name + ' text-on-primary font-bold tracking-[0.05em] whitespace-nowrap drop-shadow-sm">' + esc(s.name) + '</h3>';
-            html += '</div>';
-            if (i < Math.min(data.sponsors.length, 3) - 1) html += '<div class="h-px bg-on-primary/20 w-3/4 mx-auto"></div>';
-            sponsorContainer.innerHTML += html;
+            sHtml += '<div class="text-center">';
+            sHtml += '<p class="' + sz.label + ' text-on-primary uppercase tracking-[0.3em] font-bold opacity-80">' + esc(s.label) + '</p>';
+            sHtml += '<h3 class="font-headline ' + sz.name + ' text-on-primary font-bold tracking-[0.05em] overflow-hidden text-ellipsis drop-shadow-sm">' + esc(s.name) + '</h3>';
+            sHtml += '</div>';
+            if (i < count - 1) sHtml += '<div class="h-px bg-on-primary/20 w-3/4 mx-auto"></div>';
         });
+        sponsorContainer.innerHTML = sHtml;
     }
 
-    // Announcements (dynamic array with sizing)
+    // ── Announcements ──
+    var annContainer = document.getElementById('announcementSlots');
+    annContainer.innerHTML = '';
     if (data.announcements && data.announcements.length) {
         var count = Math.min(data.announcements.length, 3);
         var sz = annSizes[count];
-        var annContainer = document.getElementById('announcementSlots');
-        annContainer.innerHTML = '';
         annContainer.className = 'flex flex-col flex-1 ' + sz.justify;
+        var aHtml = '';
         data.announcements.forEach(function(a, i) {
             if (i >= 3) return;
-            var hasImg = a.imageData && a.imageData.length > 10 && (a.imageData.startsWith('data:') || a.imageData.startsWith('http'));
-            var html = '<div class="' + sz.pad + ' flex-1 flex items-center justify-center border-b border-white/5">';
+            var hasImg = a.imageData && a.imageData.length > 10 && a.imageData.startsWith('data:');
+            aHtml += '<div class="' + sz.pad + ' flex-1 flex items-center justify-center border-b border-white/5">';
             if (hasImg) {
-                html += '<div class="relative ' + sz.img + ' aspect-[4/5] elevated-3d border-4 border-primary/30 rounded-sm overflow-hidden flex-shrink-0">';
-                html += '<img class="w-full h-full object-cover" src="' + esc(a.imageData) + '"/>';
-                html += '<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div></div>';
+                aHtml += '<div class="relative ' + sz.img + ' aspect-[4/5] elevated-3d border-4 border-primary/30 rounded-sm overflow-hidden flex-shrink-0">';
+                aHtml += '<img class="w-full h-full object-cover" src="' + esc(a.imageData) + '"/>';
+                aHtml += '<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div></div>';
             }
             var hasText = a.title || a.description;
             if (hasText) {
-                html += '<div class="' + (hasImg ? 'text-left' : 'text-center') + ' flex-1 ' + sz.maxW + '">';
-                if (a.title) html += '<h3 class="font-headline ' + sz.title + ' font-bold text-primary mb-2 text-3d">' + esc(a.title) + '</h3>';
-                if (a.description) html += '<p class="' + sz.desc + ' italic text-secondary leading-relaxed">' + esc(a.description) + '</p>';
-                html += '</div>';
+                aHtml += '<div class="' + (hasImg ? 'text-left' : 'text-center') + ' flex-1 ' + sz.maxW + '">';
+                if (a.title) aHtml += '<h3 class="font-headline ' + sz.title + ' font-bold text-primary mb-2 text-3d">' + esc(a.title) + '</h3>';
+                if (a.description) aHtml += '<p class="' + sz.desc + ' italic text-secondary leading-relaxed">' + esc(a.description) + '</p>';
+                aHtml += '</div>';
             }
-            html += '</div>';
-            annContainer.innerHTML += html;
+            aHtml += '</div>';
         });
+        annContainer.innerHTML = aHtml;
     }
 
-    // Community (dynamic array with sizing)
+    // ── Community ──
+    var commContainer = document.getElementById('communitySlots');
+    commContainer.innerHTML = '';
     if (data.community && data.community.length) {
         var count = Math.min(data.community.length, 3);
         var sz = commSizes[count];
-        var commContainer = document.getElementById('communitySlots');
-        commContainer.innerHTML = '';
         commContainer.className = sz.pad + ' flex-1 flex justify-around items-center text-center';
+        var cHtml = '';
         data.community.forEach(function(c, i) {
             if (i >= 3) return;
             var lines = (c.names || '').split('\n').filter(function(l){ return l.trim(); });
-            // Cap names at 4 when showing 3 sections
             var maxNames = count === 3 ? 4 : 99;
             var truncated = lines.length > maxNames;
             if (truncated) lines = lines.slice(0, maxNames);
-            var html = '<div class="flex-1 ' + sz.space + '">';
-            html += '<p class="' + sz.label + ' uppercase tracking-[0.4em] font-bold text-primary/80">' + esc(c.label) + '</p>';
-            html += '<div class="flex flex-col gap-1">';
+            cHtml += '<div class="flex-1 ' + sz.space + '">';
+            cHtml += '<p class="' + sz.label + ' uppercase tracking-[0.4em] font-bold text-primary/80">' + esc(c.label) + '</p>';
+            cHtml += '<div class="flex flex-col gap-1">';
             lines.forEach(function(name) {
-                html += '<p class="font-headline ' + sz.name + ' italic font-bold text-primary text-3d">' + esc(name) + '</p>';
+                cHtml += '<p class="font-headline ' + sz.name + ' italic font-bold text-primary text-3d">' + esc(name) + '</p>';
             });
-            if (truncated) html += '<p class="font-headline ' + sz.name + ' italic font-bold text-primary/60">&amp; others</p>';
-            html += '</div>';
-            if (c.sub) html += '<p class="' + sz.sub + ' uppercase tracking-widest font-semibold text-secondary">' + esc(c.sub) + '</p>';
-            html += '</div>';
-            if (i < Math.min(data.community.length, 3) - 1) html += '<div class="w-px ' + sz.divH + ' bg-white/10 mx-4"></div>';
-            commContainer.innerHTML += html;
+            if (truncated) cHtml += '<p class="font-headline ' + sz.name + ' italic font-bold text-primary/60">&amp; others</p>';
+            cHtml += '</div>';
+            if (c.sub) cHtml += '<p class="' + sz.sub + ' uppercase tracking-widest font-semibold text-secondary">' + esc(c.sub) + '</p>';
+            cHtml += '</div>';
+            if (i < count - 1) cHtml += '<div class="w-px ' + sz.divH + ' bg-white/10 mx-4"></div>';
         });
+        commContainer.innerHTML = cHtml;
     }
 
-    // Info Bar
+    // ── Info Bar ──
     if (data.infoBar) {
         if (data.infoBar.hebrew) document.getElementById('infoHebrew').textContent = data.infoBar.hebrew;
         if (data.infoBar.welcome) document.getElementById('infoWelcome').textContent = data.infoBar.welcome;
@@ -390,7 +385,11 @@ async function loadScreenData() {
     }
 }
 
-loadScreenData();
-setInterval(loadScreenData, 30000);
+// Recursive setTimeout prevents stacking on slow networks
+async function refreshLoop() {
+    await loadScreenData();
+    setTimeout(refreshLoop, 30000);
+}
+refreshLoop();
 </script>
 </body></html>
