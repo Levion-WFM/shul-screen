@@ -12,7 +12,7 @@ tailwind.config = {
 }
 </script>
 <style>
-    input, textarea, select { font-size: 16px !important; } /* prevents iOS zoom on focus */
+    input, textarea, select { font-size: 16px !important; }
 </style>
 </head>
 <body class="bg-gray-950 text-gray-100 font-body min-h-screen pb-20 sm:pb-8">
@@ -43,22 +43,60 @@ tailwind.config = {
 
 <main class="max-w-5xl mx-auto py-4 sm:py-8 px-3 sm:px-6 space-y-4 sm:space-y-8">
 
+    <!-- Auth Token -->
+    <section class="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
+        <div class="bg-gray-800/50 px-4 sm:px-6 py-3 flex items-center gap-2 border-b border-gray-800">
+            <span class="material-symbols-outlined text-gold">lock</span>
+            <h2 class="text-base sm:text-lg font-bold text-gold">Admin Token</h2>
+        </div>
+        <div class="p-4 sm:p-6">
+            <label class="block text-xs text-gray-500 mb-1">Enter admin token to save changes</label>
+            <input id="adminToken" type="password" class="w-full sm:w-80 bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Token (leave blank if none set)"/>
+        </div>
+    </section>
+
     <!-- Zmanim -->
     <section class="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
         <div class="bg-gray-800/50 px-4 sm:px-6 py-3 flex items-center gap-2 border-b border-gray-800">
             <span class="material-symbols-outlined text-gold">schedule</span>
-            <h2 class="text-base sm:text-lg font-bold text-gold">Zmanim</h2>
+            <h2 class="text-base sm:text-lg font-bold text-gold">Zmanim & Dates</h2>
         </div>
-        <div class="p-4 sm:p-6">
-            <p class="text-gray-400 text-xs sm:text-sm mb-3">Upload a CSV to update all zmanim times.</p>
-            <label class="flex items-center gap-3 bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg p-4 sm:p-6 cursor-pointer hover:border-gold/50 transition text-center justify-center">
-                <span class="material-symbols-outlined text-2xl sm:text-3xl text-gray-500">upload_file</span>
-                <div>
-                    <p class="font-semibold text-gray-300 text-sm">Upload Zmanim CSV</p>
-                    <p class="text-[10px] sm:text-xs text-gray-500">Coming soon</p>
-                </div>
-                <input type="file" accept=".csv" class="hidden" disabled/>
-            </label>
+        <div class="p-4 sm:p-6 space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div><label class="block text-xs text-gray-500 mb-1">Parshat HaShavua</label>
+                <input id="zParshat" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. Parshat Vayeira"/></div>
+                <div><label class="block text-xs text-gray-500 mb-1">Hebrew Date</label>
+                <input id="zHebrewDate" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. 12 Cheshvan 5784"/></div>
+            </div>
+            <p class="text-xs text-gold font-semibold mt-2">Shabbat Zmanim</p>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div><label class="block text-xs text-gray-500 mb-1">Candle Lighting</label><input id="zCandleLighting" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="5:42 PM"/></div>
+                <div><label class="block text-xs text-gray-500 mb-1">Mincha (Fri)</label><input id="zMinchaFriday" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="5:45 PM"/></div>
+                <div><label class="block text-xs text-gray-500 mb-1">Shacharit (Shabbat)</label><input id="zShacharit" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="9:00 AM"/></div>
+                <div><label class="block text-xs text-gray-500 mb-1">Mincha (Sat)</label><input id="zMinchaSaturday" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="5:30 PM"/></div>
+                <div><label class="block text-xs text-gray-500 mb-1">Havdalah</label><input id="zHavdalah" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="6:41 PM"/></div>
+            </div>
+            <p class="text-xs text-gold font-semibold mt-2">Daily Zmanim</p>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div><label class="block text-xs text-gray-500 mb-1">Alot HaShachar</label><input id="zAlot" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="5:30 AM"/></div>
+                <div><label class="block text-xs text-gray-500 mb-1">Sunrise</label><input id="zSunrise" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="7:10 AM"/></div>
+                <div><label class="block text-xs text-gray-500 mb-1">Latest Shema</label><input id="zShema" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="9:48 AM"/></div>
+                <div><label class="block text-xs text-gray-500 mb-1">Sunset</label><input id="zSunset" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="5:56 PM"/></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Weekly Schedule -->
+    <section class="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
+        <div class="bg-gray-800/50 px-4 sm:px-6 py-3 flex items-center gap-2 border-b border-gray-800">
+            <span class="material-symbols-outlined text-gold">calendar_month</span>
+            <h2 class="text-base sm:text-lg font-bold text-gold">Weekly Schedule</h2>
+        </div>
+        <div id="scheduleContainer" class="p-4 sm:p-6 space-y-3"></div>
+        <div class="px-4 sm:px-6 pb-4 sm:pb-6">
+            <button onclick="addScheduleItem()" class="text-sm text-gold hover:text-yellow-300 flex items-center gap-1 transition active:scale-95">
+                <span class="material-symbols-outlined text-lg">add_circle</span> Add Schedule Item
+            </button>
         </div>
     </section>
 
@@ -67,10 +105,11 @@ tailwind.config = {
         <div class="bg-gray-800/50 px-4 sm:px-6 py-3 flex items-center gap-2 border-b border-gray-800">
             <span class="material-symbols-outlined text-gold">volunteer_activism</span>
             <h2 class="text-base sm:text-lg font-bold text-gold">Sponsors</h2>
+            <span id="sponsorCount" class="text-xs text-gray-500 ml-auto"></span>
         </div>
         <div id="sponsorsContainer" class="p-4 sm:p-6 space-y-3 sm:space-y-4"></div>
         <div class="px-4 sm:px-6 pb-4 sm:pb-6">
-            <button onclick="addSponsor()" class="text-sm text-gold hover:text-yellow-300 flex items-center gap-1 transition active:scale-95">
+            <button id="addSponsorBtn" onclick="addSponsor()" class="text-sm text-gold hover:text-yellow-300 flex items-center gap-1 transition active:scale-95">
                 <span class="material-symbols-outlined text-lg">add_circle</span> Add Sponsor
             </button>
         </div>
@@ -81,10 +120,11 @@ tailwind.config = {
         <div class="bg-gray-800/50 px-4 sm:px-6 py-3 flex items-center gap-2 border-b border-gray-800">
             <span class="material-symbols-outlined text-gold">campaign</span>
             <h2 class="text-base sm:text-lg font-bold text-gold">Shul Announcements</h2>
+            <span id="annCount" class="text-xs text-gray-500 ml-auto"></span>
         </div>
         <div id="announcementsContainer" class="p-4 sm:p-6 space-y-4 sm:space-y-6"></div>
         <div class="px-4 sm:px-6 pb-4 sm:pb-6">
-            <button onclick="addAnnouncement()" class="text-sm text-gold hover:text-yellow-300 flex items-center gap-1 transition active:scale-95">
+            <button id="addAnnBtn" onclick="addAnnouncement()" class="text-sm text-gold hover:text-yellow-300 flex items-center gap-1 transition active:scale-95">
                 <span class="material-symbols-outlined text-lg">add_circle</span> Add Announcement
             </button>
         </div>
@@ -111,31 +151,25 @@ tailwind.config = {
             <h2 class="text-base sm:text-lg font-bold text-gold">Bottom Info Bar</h2>
         </div>
         <div class="p-4 sm:p-6 space-y-3 sm:space-y-4">
-            <div>
-                <label class="block text-xs text-gray-500 mb-1">Hebrew Text (left)</label>
-                <input id="infoHebrew" type="text" dir="rtl" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none"/>
-            </div>
-            <div>
-                <label class="block text-xs text-gray-500 mb-1">Welcome Message (center)</label>
-                <input id="infoWelcome" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none"/>
-            </div>
-            <div>
-                <label class="block text-xs text-gray-500 mb-1">Reminder / Note (right)</label>
-                <input id="infoReminder" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none"/>
-            </div>
+            <div><label class="block text-xs text-gray-500 mb-1">Hebrew Text (left)</label>
+            <input id="infoHebrew" type="text" dir="rtl" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none"/></div>
+            <div><label class="block text-xs text-gray-500 mb-1">Welcome Message (center)</label>
+            <input id="infoWelcome" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none"/></div>
+            <div><label class="block text-xs text-gray-500 mb-1">Reminder / Note (right)</label>
+            <input id="infoReminder" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none"/></div>
         </div>
     </section>
 </main>
 
 <!-- Sticky Save Button (mobile) -->
 <div class="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur border-t border-gray-800 p-3 sm:hidden z-40">
-    <button onclick="saveAll()" class="w-full bg-gold text-black font-bold py-3 rounded text-sm active:scale-[0.98] transition flex items-center gap-2 justify-center">
+    <button id="saveBtnMobile" onclick="saveAll()" class="w-full bg-gold text-black font-bold py-3 rounded text-sm active:scale-[0.98] transition flex items-center gap-2 justify-center">
         <span class="material-symbols-outlined text-lg">save</span> Save All Changes
     </button>
 </div>
 <!-- Desktop Save Button -->
 <div class="hidden sm:flex max-w-5xl mx-auto px-6 justify-end pb-8">
-    <button onclick="saveAll()" class="bg-gold text-black font-bold px-8 py-3 rounded text-sm hover:bg-yellow-400 transition flex items-center gap-2">
+    <button id="saveBtnDesktop" onclick="saveAll()" class="bg-gold text-black font-bold px-8 py-3 rounded text-sm hover:bg-yellow-400 transition flex items-center gap-2">
         <span class="material-symbols-outlined text-lg">save</span> Save All Changes
     </button>
 </div>
@@ -151,47 +185,90 @@ async function fetchScreenData() {
         return await res.json();
     } catch (e) {
         console.warn('API unavailable, falling back to localStorage', e);
-        return JSON.parse(localStorage.getItem('shulScreenData') || 'null');
+        try { return JSON.parse(localStorage.getItem('shulScreenData') || 'null'); }
+        catch { return null; }
     }
 }
 
 async function saveScreenData(data) {
-    localStorage.setItem('shulScreenData', JSON.stringify(data));
+    const token = document.getElementById('adminToken').value;
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+
     const res = await fetch('/api/save-data', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(data)
     });
     if (!res.ok) {
-        var err = await res.text();
-        throw new Error('Save failed: ' + err);
+        const err = await res.json().catch(() => ({ error: 'Save failed' }));
+        throw new Error(err.error || 'Save failed');
     }
+    // Only update localStorage AFTER successful API save
+    localStorage.setItem('shulScreenData', JSON.stringify(data));
 }
 
 // ========================================
-// DYNAMIC SPONSORS
+// DYNAMIC SCHEDULE
 // ========================================
-function addSponsor(label, name) {
-    const container = document.getElementById('sponsorsContainer');
+function addScheduleItem(label, time) {
+    const container = document.getElementById('scheduleContainer');
     const div = document.createElement('div');
-    div.className = 'flex gap-3 items-start bg-gray-800/50 rounded-lg p-3 sm:p-4';
+    div.className = 'flex gap-3 items-center bg-gray-800/50 rounded-lg p-3';
     div.innerHTML = `
-        <div class="flex-1 space-y-2">
-            <div><label class="block text-xs text-gray-500 mb-1">Label</label>
-            <input type="text" value="${esc(label || '')}" class="sponsor-label w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. Kiddush Sponsored By"/></div>
-            <div><label class="block text-xs text-gray-500 mb-1">Name</label>
-            <input type="text" value="${esc(name || '')}" class="sponsor-name w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. THE COHEN FAMILY"/></div>
+        <div class="flex-1 grid grid-cols-2 gap-3">
+            <input type="text" value="${esc(label || '')}" class="sched-label bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. Shacharit Sun"/>
+            <input type="text" value="${esc(time || '')}" class="sched-time bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. 8:00 AM"/>
         </div>
-        <button onclick="this.parentElement.remove()" class="text-gray-500 hover:text-red-400 active:text-red-400 mt-6 transition p-1">
+        <button onclick="this.parentElement.remove()" class="text-gray-500 hover:text-red-400 transition p-1">
             <span class="material-symbols-outlined">delete</span>
         </button>`;
     container.appendChild(div);
 }
 
 // ========================================
-// DYNAMIC ANNOUNCEMENTS
+// DYNAMIC SPONSORS (max 3)
 // ========================================
+function updateSponsorCount() {
+    const count = document.querySelectorAll('#sponsorsContainer > div').length;
+    document.getElementById('sponsorCount').textContent = count + '/3';
+    const btn = document.getElementById('addSponsorBtn');
+    if (count >= 3) { btn.classList.add('opacity-50', 'pointer-events-none'); }
+    else { btn.classList.remove('opacity-50', 'pointer-events-none'); }
+}
+
+function addSponsor(label, name) {
+    if (document.querySelectorAll('#sponsorsContainer > div').length >= 3) return;
+    const container = document.getElementById('sponsorsContainer');
+    const div = document.createElement('div');
+    div.className = 'flex gap-3 items-start bg-gray-800/50 rounded-lg p-3 sm:p-4';
+    div.innerHTML = `
+        <div class="flex-1 space-y-2">
+            <div><label class="block text-xs text-gray-500 mb-1">Label</label>
+            <input type="text" value="${esc(label || '')}" class="sponsor-label w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. Kiddush Sponsored By" maxlength="60"/></div>
+            <div><label class="block text-xs text-gray-500 mb-1">Name</label>
+            <input type="text" value="${esc(name || '')}" class="sponsor-name w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. THE COHEN FAMILY" maxlength="60"/></div>
+        </div>
+        <button onclick="this.parentElement.remove(); updateSponsorCount();" class="text-gray-500 hover:text-red-400 active:text-red-400 mt-6 transition p-1">
+            <span class="material-symbols-outlined">delete</span>
+        </button>`;
+    container.appendChild(div);
+    updateSponsorCount();
+}
+
+// ========================================
+// DYNAMIC ANNOUNCEMENTS (max 3)
+// ========================================
+function updateAnnCount() {
+    const count = document.querySelectorAll('#announcementsContainer > div').length;
+    document.getElementById('annCount').textContent = count + '/3';
+    const btn = document.getElementById('addAnnBtn');
+    if (count >= 3) { btn.classList.add('opacity-50', 'pointer-events-none'); }
+    else { btn.classList.remove('opacity-50', 'pointer-events-none'); }
+}
+
 function addAnnouncement(title, desc, imageData) {
+    if (document.querySelectorAll('#announcementsContainer > div').length >= 3) return;
     const container = document.getElementById('announcementsContainer');
     const div = document.createElement('div');
     div.className = 'ann-card bg-gray-800/50 rounded-lg p-3 sm:p-4';
@@ -199,9 +276,9 @@ function addAnnouncement(title, desc, imageData) {
         <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <div class="flex-1 space-y-2">
                 <div><label class="block text-xs text-gray-500 mb-1">Title</label>
-                <input type="text" value="${esc(title || '')}" class="ann-title w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Announcement title"/></div>
+                <input type="text" value="${esc(title || '')}" class="ann-title w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Announcement title" maxlength="80"/></div>
                 <div><label class="block text-xs text-gray-500 mb-1">Description</label>
-                <textarea rows="3" class="ann-desc w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none resize-none" placeholder="Details...">${esc(desc || '')}</textarea></div>
+                <textarea rows="3" maxlength="300" class="ann-desc w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none resize-none" placeholder="Details...">${esc(desc || '')}</textarea></div>
             </div>
             <div class="flex sm:flex-col gap-3 items-start">
                 <div class="w-24 sm:w-28 shrink-0">
@@ -213,18 +290,18 @@ function addAnnouncement(title, desc, imageData) {
                     </div>
                     <input type="file" accept="image/*" class="ann-img-input hidden" onchange="handleImg(event, this.parentElement)"/>
                 </div>
-                <button onclick="this.closest('.ann-card').remove()" class="text-gray-500 hover:text-red-400 active:text-red-400 transition p-1 mt-4 sm:mt-0">
+                <button onclick="this.closest('.ann-card').remove(); updateAnnCount();" class="text-gray-500 hover:text-red-400 active:text-red-400 transition p-1 mt-4 sm:mt-0">
                     <span class="material-symbols-outlined">delete</span>
                 </button>
             </div>
         </div>`;
     container.appendChild(div);
+    updateAnnCount();
 }
 
 function handleImg(event, parent) {
     const file = event.target.files[0];
     if (!file) return;
-    // Resize image to max 400px wide to keep payload small
     const reader = new FileReader();
     reader.onload = function(e) {
         const tempImg = new Image();
@@ -273,7 +350,7 @@ function addCommunity(label, names, sub) {
 // ========================================
 // HELPERS
 // ========================================
-function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 function showToast(success, msg) {
     if (success) {
@@ -286,6 +363,22 @@ function showToast(success, msg) {
     }
 }
 
+function setSaveLoading(loading) {
+    const btns = [document.getElementById('saveBtnMobile'), document.getElementById('saveBtnDesktop')];
+    btns.forEach(btn => {
+        if (!btn) return;
+        btn.disabled = loading;
+        if (loading) {
+            btn.dataset.origHtml = btn.innerHTML;
+            btn.innerHTML = '<span class="material-symbols-outlined text-lg animate-spin">progress_activity</span> Saving...';
+            btn.classList.add('opacity-70');
+        } else {
+            btn.innerHTML = btn.dataset.origHtml || btn.innerHTML;
+            btn.classList.remove('opacity-70');
+        }
+    });
+}
+
 // ========================================
 // LOAD / SAVE
 // ========================================
@@ -293,28 +386,51 @@ async function loadData() {
     const data = await fetchScreenData();
     if (!data) {
         addSponsor('Kiddush Sponsored By', 'THE COHEN FAMILY');
-        addSponsor('Ner LaMoar Sponsored By', 'ANONYMOUS');
-        addAnnouncement('Winter Clothing Drive', 'Ongoing collection for local families in the main lobby bins. Please ensure items are gently used and clean.', '');
-        addCommunity('Mazel Tov Birthdays', 'Sarah Goldberg\nAvi Steinmetz\nMeir Cohen', '');
-        addCommunity('Anniversaries', 'Mr. & Mrs. Kaplan', '25 Golden Years');
-        addCommunity('New Addition', 'The Levi Family', 'Birth of a Baby Girl');
+        addAnnouncement('Winter Clothing Drive', 'Ongoing collection for local families in the main lobby bins.', '');
+        addCommunity('Mazel Tov Birthdays', 'Sarah Goldberg\nAvi Steinmetz', '');
+        addScheduleItem('Shacharit Sun', '8:00 AM');
+        addScheduleItem('Shacharit M-F', '6:45 AM');
+        addScheduleItem('Mincha / Maariv', '5:45 PM');
         document.getElementById('infoHebrew').value = 'משיב הרוח ומוריד הגשם';
-        document.getElementById('infoWelcome').value = 'Young Israel of Oceanside • Welcome to all our guests!';
-        document.getElementById('infoReminder').value = 'Remember to set your clocks back this weekend.';
+        document.getElementById('infoWelcome').value = 'Beis Medrash D Jackson 21 • Welcome!';
+        document.getElementById('infoReminder').value = '';
         return;
     }
 
     if (data.sponsors) data.sponsors.forEach(function(s) { addSponsor(s.label, s.name); });
     if (data.announcements) data.announcements.forEach(function(a) { addAnnouncement(a.title, a.description, a.imageData); });
     if (data.community) data.community.forEach(function(c) { addCommunity(c.label, c.names, c.sub); });
+    if (data.schedule) data.schedule.forEach(function(s) { addScheduleItem(s.label, s.time); });
     if (data.infoBar) {
         document.getElementById('infoHebrew').value = data.infoBar.hebrew || '';
         document.getElementById('infoWelcome').value = data.infoBar.welcome || '';
         document.getElementById('infoReminder').value = data.infoBar.reminder || '';
     }
+    if (data.zmanim) {
+        var z = data.zmanim;
+        document.getElementById('zParshat').value = z.parshat || '';
+        document.getElementById('zHebrewDate').value = z.hebrewDate || '';
+        document.getElementById('zCandleLighting').value = z.candleLighting || '';
+        document.getElementById('zMinchaFriday').value = z.minchaFriday || '';
+        document.getElementById('zShacharit').value = z.shacharit || '';
+        document.getElementById('zMinchaSaturday').value = z.minchaSaturday || '';
+        document.getElementById('zHavdalah').value = z.havdalah || '';
+        document.getElementById('zAlot').value = z.alot || '';
+        document.getElementById('zSunrise').value = z.sunrise || '';
+        document.getElementById('zShema').value = z.shema || '';
+        document.getElementById('zSunset').value = z.sunset || '';
+    }
+    // Restore admin token from localStorage
+    var savedToken = localStorage.getItem('shulAdminToken');
+    if (savedToken) document.getElementById('adminToken').value = savedToken;
 }
 
+var saving = false;
 async function saveAll() {
+    if (saving) return;
+    saving = true;
+    setSaveLoading(true);
+
     const sponsors = [];
     document.querySelectorAll('#sponsorsContainer > div').forEach(function(el) {
         sponsors.push({ label: el.querySelector('.sponsor-label').value, name: el.querySelector('.sponsor-name').value });
@@ -329,13 +445,33 @@ async function saveAll() {
     document.querySelectorAll('#communityContainer > div').forEach(function(el) {
         community.push({ label: el.querySelector('.comm-label').value, names: el.querySelector('.comm-names').value, sub: el.querySelector('.comm-sub').value });
     });
+    const schedule = [];
+    document.querySelectorAll('#scheduleContainer > div').forEach(function(el) {
+        schedule.push({ label: el.querySelector('.sched-label').value, time: el.querySelector('.sched-time').value });
+    });
+    const zmanim = {
+        parshat: document.getElementById('zParshat').value,
+        hebrewDate: document.getElementById('zHebrewDate').value,
+        candleLighting: document.getElementById('zCandleLighting').value,
+        minchaFriday: document.getElementById('zMinchaFriday').value,
+        shacharit: document.getElementById('zShacharit').value,
+        minchaSaturday: document.getElementById('zMinchaSaturday').value,
+        havdalah: document.getElementById('zHavdalah').value,
+        alot: document.getElementById('zAlot').value,
+        sunrise: document.getElementById('zSunrise').value,
+        shema: document.getElementById('zShema').value,
+        sunset: document.getElementById('zSunset').value,
+    };
     const data = {
-        sponsors, announcements, community,
+        sponsors, announcements, community, schedule, zmanim,
         infoBar: { hebrew: document.getElementById('infoHebrew').value, welcome: document.getElementById('infoWelcome').value, reminder: document.getElementById('infoReminder').value },
         updatedAt: new Date().toISOString()
     };
+    // Save admin token to localStorage for convenience
+    localStorage.setItem('shulAdminToken', document.getElementById('adminToken').value);
     try { await saveScreenData(data); showToast(true); }
     catch (e) { showToast(false, e.message); }
+    finally { saving = false; setSaveLoading(false); }
 }
 
 loadData();
