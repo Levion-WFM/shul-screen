@@ -37,6 +37,12 @@
         }
     </script>
 <style>
+        /* Dynamic root font-size: scales all rem-based Tailwind utilities
+           proportionally to the viewport. Designed for 1920x1080 = 16px base.
+           Scales down to 8px min (very small windows) and up to 22px max (4K). */
+        html {
+            font-size: clamp(8px, min(0.833vw, 1.481vh), 22px);
+        }
         .material-symbols-outlined {
             font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24
         }
@@ -54,122 +60,122 @@
             filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.4));
         }
         .gold-border-3d {
-            border: 3px solid;
+            border: 0.1875rem solid;
             border-image: linear-gradient(135deg, #c4a129, #ffe088, #8b6b00) 1;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.1);
+            box-shadow: 0 0.25rem 1rem rgba(0,0,0,0.7), inset 0 0.0625rem 0 rgba(255,255,255,0.1);
         }
         .elevated-3d {
-            box-shadow: 0 10px 30px rgba(0,0,0,0.7), 0 0 8px rgba(0,0,0,0.3), inset 1px 1px 0 rgba(255,255,255,0.05);
+            box-shadow: 0 0.625rem 1.875rem rgba(0,0,0,0.7), 0 0 0.5rem rgba(0,0,0,0.3), inset 0.0625rem 0.0625rem 0 rgba(255,255,255,0.05);
         }
         .text-3d {
-            text-shadow: 1px 1px 0px #000, 2px 2px 3px rgba(0,0,0,0.5);
+            text-shadow: 0.0625rem 0.0625rem 0 #000, 0.125rem 0.125rem 0.1875rem rgba(0,0,0,0.5);
         }
         .text-3d-light {
-            text-shadow: 1px 1px 0px #000, 1px 1px 2px rgba(0,0,0,0.3);
+            text-shadow: 0.0625rem 0.0625rem 0 #000, 0.0625rem 0.0625rem 0.125rem rgba(0,0,0,0.3);
         }
         .brass-plaque {
             background: linear-gradient(135deg, #a67c00 0%, #bf9b30 40%, #ffcf40 50%, #bf9b30 60%, #a67c00 100%);
             box-shadow:
-                1px 1px 3px rgba(0,0,0,0.5),
-                inset 1px 1px 1px rgba(255,255,255,0.2),
-                inset -1px -1px 1px rgba(0,0,0,0.2);
-            border: 1px solid #7a5c00;
+                0.0625rem 0.0625rem 0.1875rem rgba(0,0,0,0.5),
+                inset 0.0625rem 0.0625rem 0.0625rem rgba(255,255,255,0.2),
+                inset -0.0625rem -0.0625rem 0.0625rem rgba(0,0,0,0.2);
+            border: 0.0625rem solid #7a5c00;
         }
         .glow-text-hebrew {
-            text-shadow: 0 0 10px rgba(233, 195, 73, 0.4), 2px 2px 0px #000;
+            text-shadow: 0 0 0.625rem rgba(233, 195, 73, 0.4), 0.125rem 0.125rem 0 #000;
         }
     </style>
 </head>
 <body class="bg-[#0a0706] text-white font-body h-screen flex flex-col overflow-hidden">
 <!-- Header -->
-<nav class="bg-[#0a0706] border-b-3 gold-border-3d py-2 px-6 grid grid-cols-12 items-center z-50">
+<nav class="bg-[#0a0706] gold-border-3d py-3 px-8 grid grid-cols-12 items-center z-50">
 <div class="col-span-1 flex justify-start">
-<span class="material-symbols-outlined text-2xl gold-inlay" style="font-variation-settings: 'FILL' 1;">auto_stories</span>
+<span class="material-symbols-outlined text-3xl gold-inlay" style="font-variation-settings: 'FILL' 1;">auto_stories</span>
 </div>
 <div class="col-span-7 flex justify-center">
-<h1 class="text-2xl font-headline font-bold gold-inlay tracking-[0.08em] text-center leading-tight whitespace-nowrap">
+<h1 class="text-3xl font-headline font-bold gold-inlay tracking-[0.08em] text-center leading-tight whitespace-nowrap">
                 BEIS MEDRASH D JACKSON 21
             </h1>
 </div>
 <div class="col-span-4 flex flex-col items-end">
-<span id="secularDate" class="text-sm font-headline font-bold text-primary tracking-widest uppercase"></span>
-<span id="hebrewDate" class="text-sm font-headline opacity-80 italic tracking-wider text-secondary" dir="rtl"></span>
+<span id="secularDate" class="text-base font-headline font-bold text-primary tracking-widest uppercase"></span>
+<span id="hebrewDate" class="text-base font-headline opacity-80 italic tracking-wider text-secondary" dir="rtl"></span>
 </div>
 </nav>
 <!-- Main Grid -->
-<main class="flex-1 wood-grain p-3 grid grid-cols-12 gap-3 overflow-hidden">
+<main class="flex-1 wood-grain p-4 grid grid-cols-12 gap-4 overflow-hidden">
 <!-- Left Column: Weekly Schedule & Daily Zmanim -->
-<div class="col-span-4 flex flex-col gap-4">
+<div class="col-span-4 flex flex-col gap-5">
 <!-- Weekly Schedule + Shiurim -->
-<div class="bg-surface-container-high elevated-3d border-t-3 gold-border-3d flex flex-col flex-none rounded-sm overflow-hidden">
-<h2 class="text-primary font-headline text-center py-2 text-base font-bold border-b border-white/10 bg-black/40" dir="rtl">זמני חול</h2>
-<div id="scheduleSlots" class="p-2 flex flex-col justify-around">
+<div class="bg-surface-container-high elevated-3d gold-border-3d flex flex-col flex-none rounded-sm overflow-hidden">
+<h2 class="text-primary font-headline text-center py-3 text-lg font-bold border-b border-white/10 bg-black/40" dir="rtl">זמני חול</h2>
+<div id="scheduleSlots" class="p-3 flex flex-col justify-around">
 </div>
 <!-- Gold divider -->
 <div class="mx-3 h-0.5 bg-gradient-to-r from-transparent via-primary/70 to-transparent"></div>
 <!-- Shiurim -->
-<h3 class="text-primary font-headline text-center pt-2 pb-0.5 text-sm font-bold tracking-wider" dir="rtl">שיעורים</h3>
-<div id="shiurimSlots" class="px-2 pb-2 flex flex-col justify-around">
+<h3 class="text-primary font-headline text-center pt-2 pb-1 text-base font-bold tracking-wider" dir="rtl">שיעורים</h3>
+<div id="shiurimSlots" class="px-3 pb-3 flex flex-col justify-around">
 </div>
 </div>
 <!-- Daily Zmanim -->
-<div class="bg-surface-container-high elevated-3d border-t-3 gold-border-3d flex flex-col flex-1 rounded-sm overflow-hidden">
-<h2 class="text-primary font-headline text-center py-2 text-base tracking-[0.15em] font-bold border-b border-white/10 bg-black/40" dir="rtl">זמני היום</h2>
-<div class="flex-1 p-2 flex flex-col justify-around" id="dailyZmanimSlots">
+<div class="bg-surface-container-high elevated-3d gold-border-3d flex flex-col flex-1 rounded-sm overflow-hidden">
+<h2 class="text-primary font-headline text-center py-3 text-lg tracking-[0.15em] font-bold border-b border-white/10 bg-black/40" dir="rtl">זמני היום</h2>
+<div class="flex-1 p-3 flex flex-col justify-around" id="dailyZmanimSlots">
 </div>
 </div>
 </div>
 <!-- Center Column: Announcements Stacked -->
 <div class="col-span-5 flex flex-col">
-<div class="bg-[#060504] elevated-3d border-t-3 gold-border-3d flex flex-col flex-1 rounded-sm overflow-hidden">
-<h2 class="text-center font-headline text-lg py-2 border-b border-white/10 font-bold bg-black/40 text-primary" dir="rtl">הודעות</h2>
+<div class="bg-[#060504] elevated-3d gold-border-3d flex flex-col flex-1 rounded-sm overflow-hidden">
+<h2 class="text-center font-headline text-xl py-3 border-b border-white/10 font-bold bg-black/40 text-primary" dir="rtl">הודעות</h2>
 <div id="announcementSlots" class="flex flex-col flex-1 justify-center">
 </div>
-<div id="communitySlots" class="p-3 flex-1 flex justify-around items-center text-center">
+<div id="communitySlots" class="p-4 flex-1 flex justify-around items-center text-center">
 </div>
 </div>
 </div>
 <!-- Right Column: Shabbat Zmanim & Sponsor -->
-<div class="col-span-3 flex flex-col gap-4">
+<div class="col-span-3 flex flex-col gap-5">
 <!-- Shabbat Zmanim -->
-<div class="bg-surface-container-high elevated-3d border-t-3 gold-border-3d flex flex-col flex-1 rounded-sm overflow-hidden">
-<h2 class="text-primary font-headline text-center py-2 text-base tracking-[0.15em] font-bold border-b border-white/10 bg-black/40" dir="rtl">זמני שבת</h2>
-<div class="flex-1 p-3 flex flex-col justify-around">
+<div class="bg-surface-container-high elevated-3d gold-border-3d flex flex-col flex-1 rounded-sm overflow-hidden">
+<h2 class="text-primary font-headline text-center py-3 text-lg tracking-[0.15em] font-bold border-b border-white/10 bg-black/40" dir="rtl">זמני שבת</h2>
+<div class="flex-1 p-4 flex flex-col justify-around">
 <div class="text-center">
-<p class="text-sm font-bold text-secondary mb-0.5" dir="rtl">הדלקת נרות</p>
-<p id="z-candle-lighting" class="text-primary font-headline font-bold text-2xl text-3d">—</p>
+<p class="text-base font-bold text-secondary mb-0.5" dir="rtl">הדלקת נרות</p>
+<p id="z-candle-lighting" class="text-primary font-headline font-bold text-3xl text-3d">—</p>
 </div>
 <div class="text-center">
-<p class="text-sm font-bold text-secondary mb-0.5" dir="rtl">מנחה וקבלת שבת</p>
-<p id="z-mincha-friday" class="text-primary font-headline font-bold text-2xl text-3d">—</p>
+<p class="text-base font-bold text-secondary mb-0.5" dir="rtl">מנחה וקבלת שבת</p>
+<p id="z-mincha-friday" class="text-primary font-headline font-bold text-3xl text-3d">—</p>
 </div>
 <div class="text-center">
-<p class="text-sm font-bold text-secondary mb-0.5" dir="rtl">שחרית</p>
-<p id="z-shacharit" class="text-primary font-headline font-bold text-2xl text-3d">—</p>
+<p class="text-base font-bold text-secondary mb-0.5" dir="rtl">שחרית</p>
+<p id="z-shacharit" class="text-primary font-headline font-bold text-3xl text-3d">—</p>
 </div>
 <div class="text-center hidden" id="z-shiur-mincha-wrap">
-<p class="text-xs font-bold text-secondary mb-0.5" dir="rtl">שיעור הלכה</p>
-<p id="z-shiur-mincha" class="text-primary font-headline font-bold text-xl">—</p>
+<p class="text-sm font-bold text-secondary mb-0.5" dir="rtl">שיעור הלכה</p>
+<p id="z-shiur-mincha" class="text-primary font-headline font-bold text-2xl">—</p>
 </div>
 <div class="text-center">
-<p class="text-sm font-bold text-secondary mb-0.5" dir="rtl">מנחה</p>
-<p id="z-mincha-saturday" class="text-primary font-headline font-bold text-2xl text-3d">—</p>
+<p class="text-base font-bold text-secondary mb-0.5" dir="rtl">מנחה</p>
+<p id="z-mincha-saturday" class="text-primary font-headline font-bold text-3xl text-3d">—</p>
 </div>
 <div class="text-center hidden" id="z-shiur-maariv-wrap">
-<p class="text-xs font-bold text-secondary mb-0.5" dir="rtl">פרקי אבות</p>
-<p id="z-shiur-maariv" class="text-primary font-headline font-bold text-xl">—</p>
+<p class="text-sm font-bold text-secondary mb-0.5" dir="rtl">פרקי אבות</p>
+<p id="z-shiur-maariv" class="text-primary font-headline font-bold text-2xl">—</p>
 </div>
 <div class="text-center">
-<p class="text-sm font-bold text-secondary mb-0.5" dir="rtl">מעריב</p>
-<p id="z-havdalah" class="text-primary font-headline font-bold text-2xl text-3d">—</p>
+<p class="text-base font-bold text-secondary mb-0.5" dir="rtl">מעריב</p>
+<p id="z-havdalah" class="text-primary font-headline font-bold text-3xl text-3d">—</p>
 </div>
 </div>
-<div class="bg-black/50 py-1.5 text-center border-t border-white/5">
-<p id="z-parshat" class="text-sm tracking-[0.15em] font-bold text-primary uppercase italic">—</p>
+<div class="bg-black/50 py-2 text-center border-t border-white/5">
+<p id="z-parshat" class="text-base tracking-[0.15em] font-bold text-primary uppercase italic">—</p>
 </div>
 </div>
 <!-- Sponsor Section -->
-<div class="brass-plaque p-4 flex items-center justify-center gap-3 rounded-sm flex-none relative overflow-hidden group">
+<div class="brass-plaque p-5 flex items-center justify-center gap-4 rounded-sm flex-none relative overflow-hidden group">
 <div class="absolute top-2 left-2 w-1 h-1 rounded-full bg-black/20 shadow-inner"></div>
 <div class="absolute top-2 right-2 w-1 h-1 rounded-full bg-black/20 shadow-inner"></div>
 <div class="absolute bottom-2 left-2 w-1 h-1 rounded-full bg-black/20 shadow-inner"></div>
@@ -180,11 +186,11 @@
 </div>
 </main>
 <!-- Info Bar -->
-<div class="bg-[#0a0706] border-y-3 gold-border-3d h-10 flex items-center shadow-xl relative z-40 overflow-hidden">
-<div class="px-6 text-primary font-headline text-base flex w-full justify-between items-center">
-<span id="infoSefirah" dir="rtl" class="font-bold text-sm glow-text-hebrew pt-0.5 truncate max-w-[45%]"></span>
-<span id="infoWelcome" class="tracking-[0.15em] uppercase font-bold text-sm"></span>
-<span id="infoReminder" class="italic font-semibold text-sm text-secondary"></span>
+<div class="bg-[#0a0706] gold-border-3d h-12 flex items-center shadow-xl relative z-40 overflow-hidden">
+<div class="px-8 text-primary font-headline flex w-full justify-between items-center">
+<span id="infoSefirah" dir="rtl" class="font-bold text-base glow-text-hebrew pt-0.5 truncate max-w-[45%]"></span>
+<span id="infoWelcome" class="tracking-[0.15em] uppercase font-bold text-base"></span>
+<span id="infoReminder" class="italic font-semibold text-base text-secondary"></span>
 </div>
 </div>
 <!-- Last Updated Indicator -->
@@ -257,19 +263,19 @@ setInterval(updateSecularDate, 60000);
 // SIZING RULES
 // ========================================
 var annSizes = {
-    1: { img: 'w-48', title: 'text-2xl', desc: 'text-base', pad: 'p-3 gap-3', maxW: 'max-w-lg', justify: 'justify-center' },
-    2: { img: 'w-32', title: 'text-xl', desc: 'text-sm',  pad: 'p-2 gap-3',   maxW: 'max-w-sm', justify: 'justify-around' },
-    3: { img: 'w-24', title: 'text-lg', desc: 'text-xs', pad: 'p-2 gap-2',  maxW: 'max-w-xs', justify: 'justify-around' }
+    1: { img: 'w-60', title: 'text-3xl', desc: 'text-lg', pad: 'p-5 gap-5', maxW: 'max-w-xl', justify: 'justify-center' },
+    2: { img: 'w-40', title: 'text-2xl', desc: 'text-base',  pad: 'p-3 gap-4',   maxW: 'max-w-md', justify: 'justify-around' },
+    3: { img: 'w-28', title: 'text-xl', desc: 'text-sm', pad: 'p-2 gap-3',  maxW: 'max-w-sm', justify: 'justify-around' }
 };
 var commSizes = {
-    1: { name: 'text-2xl', label: 'text-xs', sub: 'text-xs', pad: 'p-4', space: 'space-y-2', divH: 'h-16' },
-    2: { name: 'text-lg', label: 'text-xs',   sub: 'text-xs',   pad: 'p-3', space: 'space-y-1', divH: 'h-16' },
-    3: { name: 'text-base', label: 'text-xs',   sub: 'text-xs',   pad: 'p-2', space: 'space-y-1', divH: 'h-12' }
+    1: { name: 'text-3xl', label: 'text-sm', sub: 'text-sm', pad: 'p-6', space: 'space-y-2', divH: 'h-20' },
+    2: { name: 'text-xl', label: 'text-xs',   sub: 'text-xs',   pad: 'p-4', space: 'space-y-2', divH: 'h-20' },
+    3: { name: 'text-lg', label: 'text-xs',   sub: 'text-xs',   pad: 'p-3', space: 'space-y-1', divH: 'h-16' }
 };
 var sponsorSizes = {
-    1: { name: 'text-base',   label: 'text-xs',  gap: 'gap-3', pad: 'p-4' },
-    2: { name: 'text-sm',   label: 'text-xs',  gap: 'gap-2', pad: 'p-4' },
-    3: { name: 'text-sm', label: 'text-xs',  gap: 'gap-1', pad: 'p-3' }
+    1: { name: 'text-lg',   label: 'text-sm',  gap: 'gap-3', pad: 'p-5' },
+    2: { name: 'text-base',   label: 'text-xs',  gap: 'gap-2', pad: 'p-5' },
+    3: { name: 'text-sm', label: 'text-xs',  gap: 'gap-2', pad: 'p-4' }
 };
 
 // ========================================
@@ -357,9 +363,9 @@ async function loadScreenData() {
         var dzHtml = '';
         dailyItems.forEach(function(item) {
             if (!item.value) return;
-            dzHtml += '<div class="flex justify-between items-center px-2 py-0.5">';
-            dzHtml += '<span class="text-xs font-bold text-secondary" dir="rtl">' + esc(item.label) + '</span>';
-            dzHtml += '<span class="text-primary font-headline font-bold text-sm text-3d-light">' + esc(item.value) + '</span>';
+            dzHtml += '<div class="flex justify-between items-center px-3 py-0.5">';
+            dzHtml += '<span class="text-sm font-bold text-secondary" dir="rtl">' + esc(item.label) + '</span>';
+            dzHtml += '<span class="text-primary font-headline font-bold text-lg text-3d-light">' + esc(item.value) + '</span>';
             dzHtml += '</div>';
         });
         dailyContainer.innerHTML = dzHtml;
@@ -371,9 +377,9 @@ async function loadScreenData() {
     if (data.schedule && data.schedule.length) {
         var schedHtml = '';
         data.schedule.forEach(function(s) {
-            schedHtml += '<div class="flex justify-between items-center px-2 py-1.5">';
-            schedHtml += '<span class="text-sm font-bold text-secondary" dir="rtl">' + esc(s.label) + '</span>';
-            schedHtml += '<span class="text-primary font-headline font-bold text-xl text-3d-light">' + esc(s.time) + '</span>';
+            schedHtml += '<div class="flex justify-between items-center px-3 py-2">';
+            schedHtml += '<span class="text-base font-bold text-secondary" dir="rtl">' + esc(s.label) + '</span>';
+            schedHtml += '<span class="text-primary font-headline font-bold text-2xl text-3d-light">' + esc(s.time) + '</span>';
             schedHtml += '</div>';
         });
         schedContainer.innerHTML = schedHtml;
@@ -386,9 +392,9 @@ async function loadScreenData() {
         if (data.shiurim && data.shiurim.length) {
             var shHtml = '';
             data.shiurim.forEach(function(s) {
-                shHtml += '<div class="flex justify-between items-center px-2 py-1.5">';
-                shHtml += '<span class="text-xs font-bold text-secondary" dir="rtl">' + esc(s.label) + '</span>';
-                shHtml += '<span class="text-primary font-headline font-bold text-lg text-3d-light">' + esc(s.time) + '</span>';
+                shHtml += '<div class="flex justify-between items-center px-3 py-2">';
+                shHtml += '<span class="text-sm font-bold text-secondary" dir="rtl">' + esc(s.label) + '</span>';
+                shHtml += '<span class="text-primary font-headline font-bold text-xl text-3d-light">' + esc(s.time) + '</span>';
                 shHtml += '</div>';
             });
             shiurimContainer.innerHTML = shHtml;
