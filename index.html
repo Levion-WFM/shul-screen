@@ -98,7 +98,32 @@
 </nav>
 <!-- Main Grid -->
 <main class="flex-1 wood-grain p-10 grid grid-cols-12 gap-8 overflow-hidden">
-<!-- Left Column: Zmanim -->
+<!-- Left Column: Weekly Schedule & Daily Zmanim -->
+<div class="col-span-3 flex flex-col gap-8">
+<!-- Weekly Schedule -->
+<div class="bg-surface-container-high elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 rounded-sm overflow-hidden">
+<h2 class="text-primary font-headline text-center py-4 text-xl tracking-[0.2em] font-bold border-b border-white/10 uppercase bg-black/40 whitespace-nowrap">Weekly Schedule</h2>
+<div id="scheduleSlots" class="flex-1 p-6 flex flex-col justify-between py-6">
+</div>
+</div>
+<!-- Daily Zmanim -->
+<div class="bg-surface-container-high elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 rounded-sm overflow-hidden">
+<h2 class="text-primary font-headline text-center py-4 text-xl tracking-[0.2em] font-bold border-b border-white/10 bg-black/40" dir="rtl">זמני היום</h2>
+<div class="flex-1 p-4 flex flex-col justify-around" id="dailyZmanimSlots">
+</div>
+</div>
+</div>
+<!-- Center Column: Announcements Stacked -->
+<div class="col-span-6 flex flex-col">
+<div class="bg-[#060504] elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 rounded-sm overflow-hidden">
+<h2 class="text-center font-headline text-2xl py-4 border-b border-white/10 tracking-[0.3em] font-bold uppercase bg-black/40 text-primary">Announcements</h2>
+<div id="announcementSlots" class="flex flex-col flex-1 justify-center">
+</div>
+<div id="communitySlots" class="p-6 flex-1 flex justify-around items-center text-center">
+</div>
+</div>
+</div>
+<!-- Right Column: Shabbat Zmanim & Sponsor -->
 <div class="col-span-3 flex flex-col gap-8">
 <!-- Shabbat Zmanim -->
 <div class="bg-surface-container-high elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 rounded-sm overflow-hidden">
@@ -127,31 +152,6 @@
 </div>
 <div class="bg-black/50 py-2 text-center border-t border-white/5">
 <p id="z-parshat" class="text-sm tracking-[0.4em] font-bold text-primary/80 uppercase italic">—</p>
-</div>
-</div>
-<!-- Daily Zmanim -->
-<div class="bg-surface-container-high elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 rounded-sm overflow-hidden">
-<h2 class="text-primary font-headline text-center py-4 text-xl tracking-[0.2em] font-bold border-b border-white/10 bg-black/40" dir="rtl">זמני היום</h2>
-<div class="flex-1 p-4 flex flex-col justify-around" id="dailyZmanimSlots">
-</div>
-</div>
-</div>
-<!-- Center Column: Announcements Stacked -->
-<div class="col-span-6 flex flex-col">
-<div class="bg-[#060504] elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 rounded-sm overflow-hidden">
-<h2 class="text-center font-headline text-2xl py-4 border-b border-white/10 tracking-[0.3em] font-bold uppercase bg-black/40 text-primary">Announcements</h2>
-<div id="announcementSlots" class="flex flex-col flex-1 justify-center">
-</div>
-<div id="communitySlots" class="p-6 flex-1 flex justify-around items-center text-center">
-</div>
-</div>
-</div>
-<!-- Right Column: Weekly Schedule & Sponsor -->
-<div class="col-span-3 flex flex-col gap-8">
-<!-- Weekly Schedule -->
-<div class="bg-surface-container-high elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 rounded-sm overflow-hidden">
-<h2 class="text-primary font-headline text-center py-4 text-xl tracking-[0.2em] font-bold border-b border-white/10 uppercase bg-black/40 whitespace-nowrap">Weekly Schedule</h2>
-<div id="scheduleSlots" class="flex-1 p-6 flex flex-col justify-between py-6">
 </div>
 </div>
 <!-- Sponsor Section -->
