@@ -182,7 +182,7 @@
 <!-- Info Bar -->
 <div class="bg-[#0a0706] border-y-4 gold-border-3d h-16 flex items-center shadow-xl relative z-40 overflow-hidden">
 <div class="px-10 text-primary font-headline text-2xl flex w-full justify-between items-center">
-<span id="infoHebrew" dir="rtl" class="flex items-center gap-6 font-bold text-3xl glow-text-hebrew pt-1"></span>
+<span id="infoSefirah" dir="rtl" class="flex items-center gap-6 font-bold text-xl glow-text-hebrew pt-1"></span>
 <span id="infoWelcome" class="tracking-[0.2em] uppercase font-bold text-xl"></span>
 <span id="infoReminder" class="italic font-semibold text-xl text-secondary"></span>
 </div>
@@ -333,9 +333,7 @@ async function loadScreenData() {
             }
         }
 
-        // Hebrew date
-        var hd = document.getElementById('hebrewDate');
-        if (hd && z.hebrewDate) hd.textContent = z.hebrewDate;
+        // Hebrew date is now handled by shkiyah-based switching below
     }
 
     // ── Daily Zmanim (from daily_zmanim table) ──
@@ -477,9 +475,40 @@ async function loadScreenData() {
         commContainer.innerHTML = cHtml;
     }
 
+    // ── Shkiyah-based switching ──
+    // After sunset: show tomorrow's Hebrew date and tomorrow's sefirah
+    var isAfterSunset = false;
+    if (data.sunsetTime) {
+        var sunsetMin = parseTimeToMin(data.sunsetTime);
+        var nowLocal = new Date();
+        var nowMin = nowLocal.getHours() * 60 + nowLocal.getMinutes();
+        isAfterSunset = nowMin >= sunsetMin;
+    }
+
+    // Hebrew date: switch at shkiyah
+    if (data.hebrewDates) {
+        var hebrewToShow = isAfterSunset
+            ? (data.hebrewDates.tomorrow || data.hebrewDates.today)
+            : (data.hebrewDates.today || '');
+        var hdEl = document.getElementById('hebrewDate');
+        if (hdEl && hebrewToShow) hdEl.textContent = hebrewToShow;
+    }
+
+    // Sefirah: switch at shkiyah (after sunset = count tomorrow's day)
+    var sefirahEl = document.getElementById('infoSefirah');
+    if (sefirahEl && data.sefirah) {
+        var sefirahToShow = isAfterSunset
+            ? (data.sefirah.tomorrow || data.sefirah.today)
+            : (data.sefirah.today || null);
+        if (sefirahToShow) {
+            sefirahEl.textContent = sefirahToShow.hebrew;
+        } else {
+            sefirahEl.textContent = '';
+        }
+    }
+
     // ── Info Bar ──
     if (data.infoBar) {
-        if (data.infoBar.hebrew) document.getElementById('infoHebrew').textContent = data.infoBar.hebrew;
         if (data.infoBar.welcome) document.getElementById('infoWelcome').textContent = data.infoBar.welcome;
         if (data.infoBar.reminder) document.getElementById('infoReminder').textContent = data.infoBar.reminder;
     }
