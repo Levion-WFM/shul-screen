@@ -65,6 +65,17 @@ module.exports = async function handler(req, res) {
             data.zmanim.sunset = d.sunset || data.zmanim.sunset;
         }
 
+        // Auto-populate Hebrew date from hebrew_dates table
+        var hebrewRows = await sql`
+            SELECT hebrew_date FROM hebrew_dates
+            WHERE gregorian_date = ${todayStr}::date
+            LIMIT 1
+        `;
+        if (hebrewRows.length > 0) {
+            if (!data.zmanim) data.zmanim = {};
+            data.zmanim.hebrewDate = hebrewRows[0].hebrew_date;
+        }
+
         // Add debug info (remove after confirming it works)
         data._debug = {
             shabbosStr: shabbosStr,
