@@ -80,7 +80,7 @@
         }
     </style>
 </head>
-<body class="bg-[#0a0706] text-white font-body min-h-screen flex flex-col overflow-auto">
+<body class="bg-[#0a0706] text-white font-body h-screen flex flex-col overflow-hidden">
 <!-- Header -->
 <nav class="bg-[#0a0706] border-b-4 gold-border-3d py-4 px-10 grid grid-cols-12 items-center z-50">
 <div class="col-span-1 flex justify-start">
@@ -97,7 +97,7 @@
 </div>
 </nav>
 <!-- Main Grid -->
-<main class="flex-1 wood-grain p-10 grid grid-cols-12 gap-8 overflow-hidden">
+<main class="flex-1 wood-grain p-6 grid grid-cols-12 gap-6 overflow-hidden">
 <!-- Left Column: Weekly Schedule & Daily Zmanim -->
 <div class="col-span-4 flex flex-col gap-8">
 <!-- Weekly Schedule + Shiurim -->
@@ -494,14 +494,20 @@ async function loadScreenData() {
         if (hdEl && hebrewToShow) hdEl.textContent = hebrewToShow;
     }
 
-    // Sefirah: switch at shkiyah (after sunset = count tomorrow's day)
+    // Sefirah or fallback Hebrew text on bottom left
     var sefirahEl = document.getElementById('infoSefirah');
-    if (sefirahEl && data.sefirah) {
-        var sefirahToShow = isAfterSunset
-            ? (data.sefirah.tomorrow || data.sefirah.today)
-            : (data.sefirah.today || null);
+    if (sefirahEl) {
+        var sefirahToShow = null;
+        if (data.sefirah) {
+            sefirahToShow = isAfterSunset
+                ? (data.sefirah.tomorrow || data.sefirah.today)
+                : (data.sefirah.today || null);
+        }
         if (sefirahToShow) {
             sefirahEl.textContent = sefirahToShow.hebrew;
+        } else if (data.infoBar && data.infoBar.hebrew) {
+            // Fallback: show manual Hebrew text when not in sefirah season
+            sefirahEl.textContent = data.infoBar.hebrew;
         } else {
             sefirahEl.textContent = '';
         }
