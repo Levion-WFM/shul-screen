@@ -83,6 +83,19 @@ tailwind.config = {
                 <div><label class="block text-xs text-gray-500 mb-1">Mincha (Sat)</label><input id="zMinchaSaturday" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Auto"/></div>
                 <div><label class="block text-xs text-gray-500 mb-1">Havdalah / Maariv</label><input id="zHavdalah" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Auto"/></div>
             </div>
+            <p class="text-xs text-gold font-semibold mt-3">שיעורי שבת</p>
+            <div class="flex items-center gap-3 mt-1 bg-gray-800/50 rounded-lg p-3">
+                <input type="checkbox" id="shabbosShiurMinchaToggle" class="w-4 h-4 accent-yellow-500 rounded"/>
+                <label for="shabbosShiurMinchaToggle" class="text-sm text-gray-300">
+                    Show <strong class="text-gold">שיעור הלכה מהרב</strong> — 20 min before Shabbat Mincha
+                </label>
+            </div>
+            <div class="flex items-center gap-3 mt-2 bg-gray-800/50 rounded-lg p-3">
+                <input type="checkbox" id="shabbosShiurMaarivToggle" class="w-4 h-4 accent-yellow-500 rounded"/>
+                <label for="shabbosShiurMaarivToggle" class="text-sm text-gray-300">
+                    Show <strong class="text-gold">שיעור לפני מעריב</strong> — ~15 min before Maariv (rounded to 5)
+                </label>
+            </div>
             <p class="text-xs text-gold font-semibold mt-2">Daily Zmanim <span class="text-gray-500 font-normal">(manual or from daily_zmanim table)</span></p>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div><label class="block text-xs text-gray-500 mb-1">Alot HaShachar</label><input id="zAlot" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="5:30 AM"/></div>
@@ -103,6 +116,20 @@ tailwind.config = {
         <div class="px-4 sm:px-6 pb-4 sm:pb-6">
             <button onclick="addScheduleItem()" class="text-sm text-gold hover:text-yellow-300 flex items-center gap-1 transition active:scale-95">
                 <span class="material-symbols-outlined text-lg">add_circle</span> Add Schedule Item
+            </button>
+        </div>
+    </section>
+
+    <!-- Shiurim -->
+    <section class="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
+        <div class="bg-gray-800/50 px-4 sm:px-6 py-3 flex items-center gap-2 border-b border-gray-800">
+            <span class="material-symbols-outlined text-gold">menu_book</span>
+            <h2 class="text-base sm:text-lg font-bold text-gold">שיעורים / Shiurim</h2>
+        </div>
+        <div id="shiurimContainer" class="p-4 sm:p-6 space-y-3"></div>
+        <div class="px-4 sm:px-6 pb-4 sm:pb-6">
+            <button onclick="addShiur()" class="text-sm text-gold hover:text-yellow-300 flex items-center gap-1 transition active:scale-95">
+                <span class="material-symbols-outlined text-lg">add_circle</span> Add Shiur
             </button>
         </div>
     </section>
@@ -226,6 +253,24 @@ function addScheduleItem(label, time) {
         <div class="flex-1 grid grid-cols-2 gap-3">
             <input type="text" value="${esc(label || '')}" class="sched-label bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. Shacharit Sun"/>
             <input type="text" value="${esc(time || '')}" class="sched-time bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. 8:00 AM"/>
+        </div>
+        <button onclick="this.parentElement.remove()" class="text-gray-500 hover:text-red-400 transition p-1">
+            <span class="material-symbols-outlined">delete</span>
+        </button>`;
+    container.appendChild(div);
+}
+
+// ========================================
+// DYNAMIC SHIURIM
+// ========================================
+function addShiur(label, time) {
+    const container = document.getElementById('shiurimContainer');
+    const div = document.createElement('div');
+    div.className = 'flex gap-3 items-center bg-gray-800/50 rounded-lg p-3';
+    div.innerHTML = `
+        <div class="flex-1 grid grid-cols-2 gap-3">
+            <input type="text" value="${esc(label || '')}" class="shiur-label bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. שיעור יום ג׳ — הלכה" dir="rtl"/>
+            <input type="text" value="${esc(time || '')}" class="shiur-time bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. 10:15"/>
         </div>
         <button onclick="this.parentElement.remove()" class="text-gray-500 hover:text-red-400 transition p-1">
             <span class="material-symbols-outlined">delete</span>
@@ -408,6 +453,7 @@ async function loadData() {
     if (data.announcements) data.announcements.forEach(function(a) { addAnnouncement(a.title, a.description, a.imageData); });
     if (data.community) data.community.forEach(function(c) { addCommunity(c.label, c.names, c.sub); });
     if (data.schedule) data.schedule.forEach(function(s) { addScheduleItem(s.label, s.time); });
+    if (data.shiurim) data.shiurim.forEach(function(s) { addShiur(s.label, s.time); });
     if (data.infoBar) {
         document.getElementById('infoHebrew').value = data.infoBar.hebrew || '';
         document.getElementById('infoWelcome').value = data.infoBar.welcome || '';
@@ -426,6 +472,8 @@ async function loadData() {
         document.getElementById('zSunrise').value = z.sunrise || '';
         document.getElementById('zShema').value = z.shema || '';
         document.getElementById('zSunset').value = z.sunset || '';
+        document.getElementById('shabbosShiurMinchaToggle').checked = !!z.shabbosShiurMincha;
+        document.getElementById('shabbosShiurMaarivToggle').checked = !!z.shabbosShiurMaariv;
     }
     // Restore admin token from localStorage
     var savedToken = localStorage.getItem('shulAdminToken');
@@ -456,6 +504,10 @@ async function saveAll() {
     document.querySelectorAll('#scheduleContainer > div').forEach(function(el) {
         schedule.push({ label: el.querySelector('.sched-label').value, time: el.querySelector('.sched-time').value });
     });
+    const shiurim = [];
+    document.querySelectorAll('#shiurimContainer > div').forEach(function(el) {
+        shiurim.push({ label: el.querySelector('.shiur-label').value, time: el.querySelector('.shiur-time').value });
+    });
     const zmanim = {
         parshat: document.getElementById('zParshat').value,
         hebrewDate: document.getElementById('zHebrewDate').value,
@@ -468,9 +520,11 @@ async function saveAll() {
         sunrise: document.getElementById('zSunrise').value,
         shema: document.getElementById('zShema').value,
         sunset: document.getElementById('zSunset').value,
+        shabbosShiurMincha: document.getElementById('shabbosShiurMinchaToggle').checked,
+        shabbosShiurMaariv: document.getElementById('shabbosShiurMaarivToggle').checked,
     };
     const data = {
-        sponsors, announcements, community, schedule, zmanim,
+        sponsors, announcements, community, schedule, shiurim, zmanim,
         infoBar: { hebrew: document.getElementById('infoHebrew').value, welcome: document.getElementById('infoWelcome').value, reminder: document.getElementById('infoReminder').value },
         updatedAt: new Date().toISOString()
     };

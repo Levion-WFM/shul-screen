@@ -100,10 +100,16 @@
 <main class="flex-1 wood-grain p-10 grid grid-cols-12 gap-8 overflow-hidden">
 <!-- Left Column: Weekly Schedule & Daily Zmanim -->
 <div class="col-span-4 flex flex-col gap-8">
-<!-- Weekly Schedule -->
+<!-- Weekly Schedule + Shiurim -->
 <div class="bg-surface-container-high elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 rounded-sm overflow-hidden">
 <h2 class="text-primary font-headline text-center py-4 text-xl font-bold border-b border-white/10 bg-black/40" dir="rtl">זמני חול</h2>
-<div id="scheduleSlots" class="flex-1 p-6 flex flex-col justify-between py-6">
+<div id="scheduleSlots" class="p-4 flex flex-col justify-around">
+</div>
+<!-- Gold divider -->
+<div class="mx-6 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
+<!-- Shiurim -->
+<h3 class="text-primary/80 font-headline text-center pt-3 pb-1 text-sm font-bold tracking-wider" dir="rtl">שיעורים</h3>
+<div id="shiurimSlots" class="px-4 pb-4 flex flex-col justify-around">
 </div>
 </div>
 <!-- Daily Zmanim -->
@@ -141,9 +147,17 @@
 <p class="text-sm font-bold text-secondary mb-1" dir="rtl">שחרית</p>
 <p id="z-shacharit" class="text-primary font-headline font-bold text-4xl text-3d">—</p>
 </div>
+<div class="text-center hidden" id="z-shiur-mincha-wrap">
+<p class="text-xs font-bold text-secondary/70 mb-0.5" dir="rtl">שיעור הלכה מהרב</p>
+<p id="z-shiur-mincha" class="text-primary/80 font-headline font-bold text-2xl">—</p>
+</div>
 <div class="text-center">
 <p class="text-sm font-bold text-secondary mb-1" dir="rtl">מנחה</p>
 <p id="z-mincha-saturday" class="text-primary font-headline font-bold text-4xl text-3d">—</p>
+</div>
+<div class="text-center hidden" id="z-shiur-maariv-wrap">
+<p class="text-xs font-bold text-secondary/70 mb-0.5" dir="rtl">שיעור לפני מעריב</p>
+<p id="z-shiur-maariv" class="text-primary/80 font-headline font-bold text-2xl">—</p>
 </div>
 <div class="text-center">
 <p class="text-sm font-bold text-secondary mb-1" dir="rtl">מעריב</p>
@@ -180,6 +194,39 @@
 // DATA LAYER
 // ========================================
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// Parse "7:00" or "7:00 PM" to minutes since midnight
+function parseTimeToMin(t) {
+    if (!t) return 0;
+    t = t.trim();
+    var isPM = /pm/i.test(t);
+    var isAM = /am/i.test(t);
+    var clean = t.replace(/\s*(am|pm)\s*/i, '');
+    var parts = clean.split(':');
+    var h = parseInt(parts[0], 10) || 0;
+    var m = parseInt(parts[1], 10) || 0;
+    if (isPM && h < 12) h += 12;
+    if (isAM && h === 12) h = 0;
+    // If no AM/PM and hour < 12 and likely afternoon (for zmanim context)
+    if (!isPM && !isAM && h < 6) h += 12;
+    return h * 60 + m;
+}
+// Minutes to "H:MM" display
+function minToTime(mins) {
+    var h = Math.floor(mins / 60);
+    var m = mins % 60;
+    return h + ':' + (m < 10 ? '0' : '') + m;
+}
+// Subtract N minutes from a time string
+function subtractMinutes(timeStr, n) {
+    return minToTime(parseTimeToMin(timeStr) - n);
+}
+// Subtract ~N minutes and round to nearest 5
+function subtractAndRound5(timeStr, n) {
+    var mins = parseTimeToMin(timeStr) - n;
+    mins = Math.round(mins / 5) * 5;
+    return minToTime(mins);
+}
 
 var lastFetchOk = false;
 
@@ -262,6 +309,30 @@ async function loadScreenData() {
             var el = document.getElementById(id);
             if (el && zmMap[id]) el.textContent = zmMap[id];
         }
+        // Shabbos shiur before mincha (20 min before)
+        var shiurMinchaWrap = document.getElementById('z-shiur-mincha-wrap');
+        var shiurMinchaEl = document.getElementById('z-shiur-mincha');
+        if (shiurMinchaWrap && shiurMinchaEl) {
+            if (z.shabbosShiurMincha && z.minchaSaturday) {
+                shiurMinchaEl.textContent = subtractMinutes(z.minchaSaturday, 20);
+                shiurMinchaWrap.classList.remove('hidden');
+            } else {
+                shiurMinchaWrap.classList.add('hidden');
+            }
+        }
+
+        // Shabbos shiur before maariv (~15 min, rounded to nearest 5)
+        var shiurMaarivWrap = document.getElementById('z-shiur-maariv-wrap');
+        var shiurMaarivEl = document.getElementById('z-shiur-maariv');
+        if (shiurMaarivWrap && shiurMaarivEl) {
+            if (z.shabbosShiurMaariv && z.havdalah) {
+                shiurMaarivEl.textContent = subtractAndRound5(z.havdalah, 15);
+                shiurMaarivWrap.classList.remove('hidden');
+            } else {
+                shiurMaarivWrap.classList.add('hidden');
+            }
+        }
+
         // Hebrew date
         var hd = document.getElementById('hebrewDate');
         if (hd && z.hebrewDate) hd.textContent = z.hebrewDate;
@@ -302,12 +373,28 @@ async function loadScreenData() {
     if (data.schedule && data.schedule.length) {
         var schedHtml = '';
         data.schedule.forEach(function(s) {
-            schedHtml += '<div class="text-center">';
-            schedHtml += '<p class="text-base font-bold text-secondary mb-1" dir="rtl">' + esc(s.label) + '</p>';
-            schedHtml += '<p class="text-primary font-headline font-bold text-2xl text-3d-light">' + esc(s.time) + '</p>';
+            schedHtml += '<div class="flex justify-between items-center px-3 py-2">';
+            schedHtml += '<span class="text-sm font-bold text-secondary" dir="rtl">' + esc(s.label) + '</span>';
+            schedHtml += '<span class="text-primary font-headline font-bold text-xl text-3d-light">' + esc(s.time) + '</span>';
             schedHtml += '</div>';
         });
         schedContainer.innerHTML = schedHtml;
+    }
+
+    // ── Shiurim (below schedule, separated by gold line) ──
+    var shiurimContainer = document.getElementById('shiurimSlots');
+    if (shiurimContainer) {
+        shiurimContainer.innerHTML = '';
+        if (data.shiurim && data.shiurim.length) {
+            var shHtml = '';
+            data.shiurim.forEach(function(s) {
+                shHtml += '<div class="flex justify-between items-center px-3 py-1.5">';
+                shHtml += '<span class="text-sm font-bold text-secondary" dir="rtl">' + esc(s.label) + '</span>';
+                shHtml += '<span class="text-primary font-headline font-bold text-lg text-3d-light">' + esc(s.time) + '</span>';
+                shHtml += '</div>';
+            });
+            shiurimContainer.innerHTML = shHtml;
+        }
     }
 
     // ── Sponsors ──
