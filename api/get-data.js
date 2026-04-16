@@ -48,21 +48,29 @@ module.exports = async function handler(req, res) {
             data.zmanim.havdalah = z.maariv || data.zmanim.havdalah;
         }
 
-        // Also fetch daily zmanim for today if available
+        // Fetch daily zmanim for today
         var todayStr = now.toISOString().split('T')[0];
         var dailyRows = await sql`
             SELECT * FROM daily_zmanim
-            WHERE zman_date = ${todayStr}::date
+            WHERE civil_date = ${todayStr}::date
             LIMIT 1
         `;
 
         if (dailyRows.length > 0) {
             var d = dailyRows[0];
-            if (!data.zmanim) data.zmanim = {};
-            data.zmanim.alot = d.alot_hashachar || data.zmanim.alot;
-            data.zmanim.sunrise = d.sunrise || data.zmanim.sunrise;
-            data.zmanim.shema = d.sof_zman_shema_gra || data.zmanim.shema;
-            data.zmanim.sunset = d.sunset || data.zmanim.sunset;
+            if (!data.dailyZmanim) data.dailyZmanim = {};
+            data.dailyZmanim.alos72 = d.alos72;
+            data.dailyZmanim.talis = d.talis;
+            data.dailyZmanim.sunrise = d.sunrise;
+            data.dailyZmanim.shemaMa = d.shema_ma;
+            data.dailyZmanim.shemaGra = d.shema_gra;
+            data.dailyZmanim.shachrisGra = d.shachris_gra;
+            data.dailyZmanim.midday = d.midday;
+            data.dailyZmanim.minchaGedola = d.mincha_gedola;
+            data.dailyZmanim.plag = d.plag;
+            data.dailyZmanim.sunset = d.sunset;
+            data.dailyZmanim.tzes3stars = d.tzes_3stars;
+            data.dailyZmanim.tzes72fix = d.tzes72fix;
         }
 
         // Auto-populate Hebrew date from hebrew_dates table

@@ -132,23 +132,7 @@
 <!-- Daily Zmanim -->
 <div class="bg-surface-container-high elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 rounded-sm overflow-hidden">
 <h2 class="text-primary font-headline text-center py-4 text-xl tracking-[0.2em] font-bold border-b border-white/10 bg-black/40" dir="rtl">זמני היום</h2>
-<div class="flex-1 p-6 flex flex-col justify-around">
-<div class="text-center">
-<p class="text-sm font-bold text-secondary mb-1" dir="rtl">עלות השחר</p>
-<p id="z-alot" class="text-primary font-headline font-bold text-3xl text-3d">—</p>
-</div>
-<div class="text-center">
-<p class="text-sm font-bold text-secondary mb-1" dir="rtl">הנץ החמה</p>
-<p id="z-sunrise" class="text-primary font-headline font-bold text-3xl text-3d">—</p>
-</div>
-<div class="text-center">
-<p class="text-sm font-bold text-secondary mb-1" dir="rtl">סוף זמן ק״ש</p>
-<p id="z-shema" class="text-primary font-headline font-bold text-3xl text-3d">—</p>
-</div>
-<div class="text-center">
-<p class="text-sm font-bold text-secondary mb-1" dir="rtl">שקיעה</p>
-<p id="z-sunset" class="text-primary font-headline font-bold text-3xl text-3d">—</p>
-</div>
+<div class="flex-1 p-4 flex flex-col justify-around" id="dailyZmanimSlots">
 </div>
 </div>
 </div>
@@ -281,6 +265,35 @@ async function loadScreenData() {
         // Hebrew date
         var hd = document.getElementById('hebrewDate');
         if (hd && z.hebrewDate) hd.textContent = z.hebrewDate;
+    }
+
+    // ── Daily Zmanim (from daily_zmanim table) ──
+    var dailyContainer = document.getElementById('dailyZmanimSlots');
+    if (dailyContainer && data.dailyZmanim) {
+        var dz = data.dailyZmanim;
+        var dailyItems = [
+            { label: 'עלות השחר', value: dz.alos72 },
+            { label: 'טלית ותפילין', value: dz.talis },
+            { label: 'הנץ החמה', value: dz.sunrise },
+            { label: 'סזק״ש מ״א', value: dz.shemaMa },
+            { label: 'סזק״ש גר״א', value: dz.shemaGra },
+            { label: 'סוף זמן תפילה', value: dz.shachrisGra },
+            { label: 'חצות', value: dz.midday },
+            { label: 'מנחה גדולה', value: dz.minchaGedola },
+            { label: 'פלג המנחה', value: dz.plag },
+            { label: 'שקיעה', value: dz.sunset },
+            { label: 'צאת הכוכבים', value: dz.tzes3stars },
+            { label: 'ר״ת (72 דק׳)', value: dz.tzes72fix },
+        ];
+        var dzHtml = '';
+        dailyItems.forEach(function(item) {
+            if (!item.value) return;
+            dzHtml += '<div class="flex justify-between items-center px-2 py-1">';
+            dzHtml += '<span class="text-xs font-bold text-secondary" dir="rtl">' + esc(item.label) + '</span>';
+            dzHtml += '<span class="text-primary font-headline font-bold text-lg text-3d-light">' + esc(item.value) + '</span>';
+            dzHtml += '</div>';
+        });
+        dailyContainer.innerHTML = dzHtml;
     }
 
     // ── Weekly Schedule ──
