@@ -420,7 +420,9 @@ async function loadScreenData() {
     // ── Announcements ──
     var annContainer = document.getElementById('announcementSlots');
     annContainer.innerHTML = '';
-    if (data.announcements && data.announcements.length) {
+    if (!data.announcements || !data.announcements.length) {
+        annContainer.className = 'flex-none'; // Don't take space when empty
+    } else if (data.announcements && data.announcements.length) {
         var count = Math.min(data.announcements.length, 3);
         var sz = annSizes[count];
         annContainer.className = 'flex flex-col flex-1 ' + sz.justify;
