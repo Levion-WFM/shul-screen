@@ -93,7 +93,7 @@
 </div>
 <div class="col-span-4 flex flex-col items-end">
 <span id="secularDate" class="text-lg font-headline font-bold text-primary tracking-widest uppercase"></span>
-<span id="hebrewDate" class="text-sm font-headline opacity-60 italic tracking-widest text-secondary" dir="rtl"></span>
+<span id="hebrewDate" class="text-lg font-headline opacity-80 italic tracking-wider text-secondary" dir="rtl"></span>
 </div>
 </nav>
 <!-- Main Grid -->
@@ -106,9 +106,9 @@
 <div id="scheduleSlots" class="p-4 flex flex-col justify-around">
 </div>
 <!-- Gold divider -->
-<div class="mx-6 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
+<div class="mx-4 h-0.5 bg-gradient-to-r from-transparent via-primary/70 to-transparent"></div>
 <!-- Shiurim -->
-<h3 class="text-primary/80 font-headline text-center pt-3 pb-1 text-sm font-bold tracking-wider" dir="rtl">שיעורים</h3>
+<h3 class="text-primary font-headline text-center pt-3 pb-1 text-lg font-bold tracking-wider" dir="rtl">שיעורים</h3>
 <div id="shiurimSlots" class="px-4 pb-4 flex flex-col justify-around">
 </div>
 </div>
@@ -136,36 +136,36 @@
 <h2 class="text-primary font-headline text-center py-4 text-xl tracking-[0.2em] font-bold border-b border-white/10 bg-black/40" dir="rtl">זמני שבת</h2>
 <div class="flex-1 p-6 flex flex-col justify-around">
 <div class="text-center">
-<p class="text-sm font-bold text-secondary mb-1" dir="rtl">הדלקת נרות</p>
+<p class="text-lg font-bold text-secondary mb-1" dir="rtl">הדלקת נרות</p>
 <p id="z-candle-lighting" class="text-primary font-headline font-bold text-4xl text-3d">—</p>
 </div>
 <div class="text-center">
-<p class="text-sm font-bold text-secondary mb-1" dir="rtl">מנחה וקבלת שבת</p>
+<p class="text-lg font-bold text-secondary mb-1" dir="rtl">מנחה וקבלת שבת</p>
 <p id="z-mincha-friday" class="text-primary font-headline font-bold text-4xl text-3d">—</p>
 </div>
 <div class="text-center">
-<p class="text-sm font-bold text-secondary mb-1" dir="rtl">שחרית</p>
+<p class="text-lg font-bold text-secondary mb-1" dir="rtl">שחרית</p>
 <p id="z-shacharit" class="text-primary font-headline font-bold text-4xl text-3d">—</p>
 </div>
 <div class="text-center hidden" id="z-shiur-mincha-wrap">
-<p class="text-xs font-bold text-secondary/70 mb-0.5" dir="rtl">שיעור הלכה</p>
-<p id="z-shiur-mincha" class="text-primary/80 font-headline font-bold text-2xl">—</p>
+<p class="text-base font-bold text-secondary mb-0.5" dir="rtl">שיעור הלכה</p>
+<p id="z-shiur-mincha" class="text-primary font-headline font-bold text-3xl">—</p>
 </div>
 <div class="text-center">
-<p class="text-sm font-bold text-secondary mb-1" dir="rtl">מנחה</p>
+<p class="text-lg font-bold text-secondary mb-1" dir="rtl">מנחה</p>
 <p id="z-mincha-saturday" class="text-primary font-headline font-bold text-4xl text-3d">—</p>
 </div>
 <div class="text-center hidden" id="z-shiur-maariv-wrap">
-<p class="text-xs font-bold text-secondary/70 mb-0.5" dir="rtl">פרקי אבות</p>
-<p id="z-shiur-maariv" class="text-primary/80 font-headline font-bold text-2xl">—</p>
+<p class="text-base font-bold text-secondary mb-0.5" dir="rtl">פרקי אבות</p>
+<p id="z-shiur-maariv" class="text-primary font-headline font-bold text-3xl">—</p>
 </div>
 <div class="text-center">
-<p class="text-sm font-bold text-secondary mb-1" dir="rtl">מעריב</p>
+<p class="text-lg font-bold text-secondary mb-1" dir="rtl">מעריב</p>
 <p id="z-havdalah" class="text-primary font-headline font-bold text-4xl text-3d">—</p>
 </div>
 </div>
 <div class="bg-black/50 py-2 text-center border-t border-white/5">
-<p id="z-parshat" class="text-sm tracking-[0.4em] font-bold text-primary/80 uppercase italic">—</p>
+<p id="z-parshat" class="text-lg tracking-[0.2em] font-bold text-primary uppercase italic">—</p>
 </div>
 </div>
 <!-- Sponsor Section -->
@@ -182,7 +182,7 @@
 <!-- Info Bar -->
 <div class="bg-[#0a0706] border-y-4 gold-border-3d h-16 flex items-center shadow-xl relative z-40 overflow-hidden">
 <div class="px-10 text-primary font-headline text-2xl flex w-full justify-between items-center">
-<span id="infoSefirah" dir="rtl" class="flex items-center gap-6 font-bold text-xl glow-text-hebrew pt-1"></span>
+<span id="infoSefirah" dir="rtl" class="font-bold text-lg glow-text-hebrew pt-1 truncate max-w-[45%]"></span>
 <span id="infoWelcome" class="tracking-[0.2em] uppercase font-bold text-xl"></span>
 <span id="infoReminder" class="italic font-semibold text-xl text-secondary"></span>
 </div>
@@ -262,14 +262,14 @@ var annSizes = {
     3: { img: 'w-36', title: 'text-2xl', desc: 'text-base', pad: 'p-3 gap-4',  maxW: 'max-w-sm', justify: 'justify-around' }
 };
 var commSizes = {
-    1: { name: 'text-4xl', label: 'text-sm',  sub: 'text-sm',  pad: 'p-8', space: 'space-y-3', divH: 'h-24' },
-    2: { name: 'text-2xl', label: 'text-xs',  sub: 'text-xs',  pad: 'p-6', space: 'space-y-2', divH: 'h-24' },
-    3: { name: 'text-xl',  label: 'text-xs',  sub: 'text-xs',  pad: 'p-4', space: 'space-y-1', divH: 'h-20' }
+    1: { name: 'text-4xl', label: 'text-base', sub: 'text-base', pad: 'p-8', space: 'space-y-3', divH: 'h-24' },
+    2: { name: 'text-2xl', label: 'text-sm',   sub: 'text-sm',   pad: 'p-6', space: 'space-y-2', divH: 'h-24' },
+    3: { name: 'text-2xl', label: 'text-sm',   sub: 'text-sm',   pad: 'p-4', space: 'space-y-1', divH: 'h-20' }
 };
 var sponsorSizes = {
-    1: { name: 'text-xl',   label: 'text-xs',  gap: 'gap-4', pad: 'p-6' },
-    2: { name: 'text-lg',   label: 'text-xs',  gap: 'gap-3', pad: 'p-6' },
-    3: { name: 'text-base', label: 'text-xs',  gap: 'gap-2', pad: 'p-4' }
+    1: { name: 'text-xl',   label: 'text-sm',  gap: 'gap-4', pad: 'p-6' },
+    2: { name: 'text-lg',   label: 'text-sm',  gap: 'gap-3', pad: 'p-6' },
+    3: { name: 'text-base', label: 'text-sm',  gap: 'gap-2', pad: 'p-4' }
 };
 
 // ========================================
@@ -358,8 +358,8 @@ async function loadScreenData() {
         dailyItems.forEach(function(item) {
             if (!item.value) return;
             dzHtml += '<div class="flex justify-between items-center px-3 py-1">';
-            dzHtml += '<span class="text-sm font-bold text-secondary" dir="rtl">' + esc(item.label) + '</span>';
-            dzHtml += '<span class="text-primary font-headline font-bold text-lg text-3d-light">' + esc(item.value) + '</span>';
+            dzHtml += '<span class="text-base font-bold text-secondary" dir="rtl">' + esc(item.label) + '</span>';
+            dzHtml += '<span class="text-primary font-headline font-bold text-xl text-3d-light">' + esc(item.value) + '</span>';
             dzHtml += '</div>';
         });
         dailyContainer.innerHTML = dzHtml;
