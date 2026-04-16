@@ -303,7 +303,7 @@ async function loadScreenData() {
         var schedHtml = '';
         data.schedule.forEach(function(s) {
             schedHtml += '<div class="text-center">';
-            schedHtml += '<p class="text-xs uppercase tracking-[0.25em] font-bold text-secondary mb-1">' + esc(s.label) + '</p>';
+            schedHtml += '<p class="text-base font-bold text-secondary mb-1" dir="rtl">' + esc(s.label) + '</p>';
             schedHtml += '<p class="text-primary font-headline font-bold text-2xl text-3d-light">' + esc(s.time) + '</p>';
             schedHtml += '</div>';
         });
