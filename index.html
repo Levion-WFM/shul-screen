@@ -101,7 +101,7 @@
 <!-- Left Column: Weekly Schedule & Daily Zmanim -->
 <div class="col-span-4 flex flex-col gap-8">
 <!-- Weekly Schedule + Shiurim -->
-<div class="bg-surface-container-high elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 rounded-sm overflow-hidden">
+<div class="bg-surface-container-high elevated-3d border-t-4 gold-border-3d flex flex-col flex-none rounded-sm overflow-hidden">
 <h2 class="text-primary font-headline text-center py-4 text-xl font-bold border-b border-white/10 bg-black/40" dir="rtl">זמני חול</h2>
 <div id="scheduleSlots" class="p-4 flex flex-col justify-around">
 </div>
@@ -359,9 +359,9 @@ async function loadScreenData() {
         var dzHtml = '';
         dailyItems.forEach(function(item) {
             if (!item.value) return;
-            dzHtml += '<div class="flex justify-between items-center px-3 py-1.5">';
+            dzHtml += '<div class="flex justify-between items-center px-3 py-1">';
             dzHtml += '<span class="text-sm font-bold text-secondary" dir="rtl">' + esc(item.label) + '</span>';
-            dzHtml += '<span class="text-primary font-headline font-bold text-xl text-3d-light">' + esc(item.value) + '</span>';
+            dzHtml += '<span class="text-primary font-headline font-bold text-lg text-3d-light">' + esc(item.value) + '</span>';
             dzHtml += '</div>';
         });
         dailyContainer.innerHTML = dzHtml;
