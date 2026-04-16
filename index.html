@@ -82,16 +82,16 @@
 </head>
 <body class="bg-[#0a0706] text-white font-body h-screen flex flex-col overflow-hidden">
 <!-- Header -->
-<nav class="bg-[#0a0706] border-b-4 gold-border-3d py-4 px-10 grid grid-cols-12 items-center z-50">
-<div class="col-span-1 flex justify-start">
+<nav class="bg-[#0a0706] border-b-4 gold-border-3d py-4 px-10 flex items-center relative z-50">
+<div class="flex justify-start shrink-0">
 <span class="material-symbols-outlined text-4xl gold-inlay" style="font-variation-settings: 'FILL' 1;">auto_stories</span>
 </div>
-<div class="col-span-7 flex justify-center">
-<h1 class="text-4xl font-headline font-bold gold-inlay tracking-[0.08em] text-center leading-tight whitespace-nowrap">
+<div class="absolute inset-x-0 flex justify-center pointer-events-none">
+<h1 class="text-4xl font-headline font-bold gold-inlay tracking-[0.08em] text-center leading-tight whitespace-nowrap pointer-events-auto">
                 BEIS MEDRASH D JACKSON 21
             </h1>
 </div>
-<div class="col-span-4 flex flex-col items-end">
+<div class="ml-auto flex flex-col items-end shrink-0">
 <span id="secularDate" class="text-lg font-headline font-bold text-primary tracking-widest uppercase"></span>
 <span id="hebrewDate" class="text-lg font-headline opacity-80 italic tracking-wider text-secondary" dir="rtl"></span>
 </div>
@@ -181,10 +181,10 @@
 </main>
 <!-- Info Bar -->
 <div class="bg-[#0a0706] border-y-4 gold-border-3d h-16 flex items-center shadow-xl relative z-40 overflow-hidden">
-<div class="px-10 text-primary font-headline text-2xl flex w-full justify-between items-center">
-<span id="infoSefirah" dir="rtl" class="font-bold text-lg glow-text-hebrew pt-1 truncate max-w-[45%]"></span>
-<span id="infoWelcome" class="tracking-[0.2em] uppercase font-bold text-xl"></span>
-<span id="infoReminder" class="italic font-semibold text-xl text-secondary"></span>
+<div class="px-10 text-primary font-headline w-full grid grid-cols-3 items-center">
+<span id="infoSefirah" dir="rtl" class="font-bold text-lg glow-text-hebrew truncate text-left"></span>
+<span id="infoWelcome" class="tracking-[0.2em] uppercase font-bold text-xl text-center"></span>
+<span id="infoReminder" class="italic font-semibold text-xl text-secondary text-right"></span>
 </div>
 </div>
 <!-- Last Updated Indicator -->
