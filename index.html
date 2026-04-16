@@ -373,9 +373,9 @@ async function loadScreenData() {
     if (data.schedule && data.schedule.length) {
         var schedHtml = '';
         data.schedule.forEach(function(s) {
-            schedHtml += '<div class="flex justify-between items-center px-3 py-2">';
-            schedHtml += '<span class="text-sm font-bold text-secondary" dir="rtl">' + esc(s.label) + '</span>';
-            schedHtml += '<span class="text-primary font-headline font-bold text-xl text-3d-light">' + esc(s.time) + '</span>';
+            schedHtml += '<div class="flex justify-between items-center px-4 py-3">';
+            schedHtml += '<span class="text-lg font-bold text-secondary" dir="rtl">' + esc(s.label) + '</span>';
+            schedHtml += '<span class="text-primary font-headline font-bold text-3xl text-3d-light">' + esc(s.time) + '</span>';
             schedHtml += '</div>';
         });
         schedContainer.innerHTML = schedHtml;
@@ -388,9 +388,9 @@ async function loadScreenData() {
         if (data.shiurim && data.shiurim.length) {
             var shHtml = '';
             data.shiurim.forEach(function(s) {
-                shHtml += '<div class="flex justify-between items-center px-3 py-1.5">';
-                shHtml += '<span class="text-sm font-bold text-secondary" dir="rtl">' + esc(s.label) + '</span>';
-                shHtml += '<span class="text-primary font-headline font-bold text-lg text-3d-light">' + esc(s.time) + '</span>';
+                shHtml += '<div class="flex justify-between items-center px-4 py-2.5">';
+                shHtml += '<span class="text-base font-bold text-secondary" dir="rtl">' + esc(s.label) + '</span>';
+                shHtml += '<span class="text-primary font-headline font-bold text-2xl text-3d-light">' + esc(s.time) + '</span>';
                 shHtml += '</div>';
             });
             shiurimContainer.innerHTML = shHtml;
