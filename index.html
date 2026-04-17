@@ -82,109 +82,109 @@
 </head>
 <body class="bg-[#0a0706] text-white font-body h-screen flex flex-col overflow-hidden">
 <!-- Header -->
-<nav class="bg-[#0a0706] border-b-4 gold-border-3d py-4 px-10 flex items-center relative z-50">
+<nav class="bg-[#0a0706] border-b-4 gold-border-3d py-2 px-8 flex items-center relative z-50 shrink-0">
 <div class="flex justify-start shrink-0">
-<span class="material-symbols-outlined text-4xl gold-inlay" style="font-variation-settings: 'FILL' 1;">auto_stories</span>
+<span class="material-symbols-outlined text-3xl gold-inlay" style="font-variation-settings: 'FILL' 1;">auto_stories</span>
 </div>
 <div class="absolute inset-x-0 flex justify-center pointer-events-none">
-<h1 class="text-4xl font-headline font-bold gold-inlay tracking-[0.08em] text-center leading-tight whitespace-nowrap pointer-events-auto">
+<h1 class="text-3xl font-headline font-bold gold-inlay tracking-[0.08em] text-center leading-tight whitespace-nowrap pointer-events-auto">
                 BEIS MEDRASH D JACKSON 21
             </h1>
 </div>
 <div class="ml-auto flex flex-col items-end shrink-0">
-<span id="secularDate" class="text-lg font-headline font-bold text-primary tracking-widest uppercase"></span>
-<span id="hebrewDate" class="text-lg font-headline opacity-80 italic tracking-wider text-secondary" dir="rtl"></span>
+<span id="secularDate" class="text-sm font-headline font-bold text-primary tracking-widest uppercase"></span>
+<span id="hebrewDate" class="text-sm font-headline opacity-80 italic tracking-wider text-secondary" dir="rtl"></span>
 </div>
 </nav>
 <!-- Main Grid -->
-<main class="flex-1 wood-grain p-6 grid grid-cols-12 gap-6 overflow-hidden">
+<main class="flex-1 min-h-0 wood-grain p-4 grid grid-cols-12 gap-4 overflow-hidden">
 <!-- Left Column: Weekly Schedule & Daily Zmanim -->
-<div class="col-span-4 flex flex-col gap-8">
+<div class="col-span-4 flex flex-col gap-4 min-h-0">
 <!-- Weekly Schedule + Shiurim -->
 <div class="bg-surface-container-high elevated-3d border-t-4 gold-border-3d flex flex-col flex-none rounded-sm overflow-hidden">
-<h2 class="text-primary font-headline text-center py-4 text-xl font-bold border-b border-white/10 bg-black/40" dir="rtl">זמני חול</h2>
-<div id="scheduleSlots" class="p-4 flex flex-col justify-around">
+<h2 class="text-primary font-headline text-center py-2 text-lg font-bold border-b border-white/10 bg-black/40" dir="rtl">זמני חול</h2>
+<div id="scheduleSlots" class="px-3 py-2 flex flex-col">
 </div>
 <!-- Gold divider -->
 <div class="mx-4 h-0.5 bg-gradient-to-r from-transparent via-primary/70 to-transparent"></div>
 <!-- Shiurim -->
-<h3 class="text-primary font-headline text-center pt-3 pb-1 text-lg font-bold tracking-wider" dir="rtl">שיעורים</h3>
-<div id="shiurimSlots" class="px-4 pb-4 flex flex-col justify-around">
+<h3 class="text-primary font-headline text-center pt-2 pb-0.5 text-base font-bold tracking-wider" dir="rtl">שיעורים</h3>
+<div id="shiurimSlots" class="px-3 pb-2 flex flex-col">
 </div>
 </div>
 <!-- Daily Zmanim -->
-<div class="bg-surface-container-high elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 rounded-sm overflow-hidden">
-<h2 class="text-primary font-headline text-center py-4 text-xl tracking-[0.2em] font-bold border-b border-white/10 bg-black/40" dir="rtl">זמני היום</h2>
-<div class="flex-1 p-4 flex flex-col justify-around" id="dailyZmanimSlots">
+<div class="bg-surface-container-high elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 min-h-0 rounded-sm overflow-hidden">
+<h2 class="text-primary font-headline text-center py-2 text-lg tracking-[0.2em] font-bold border-b border-white/10 bg-black/40 shrink-0" dir="rtl">זמני היום</h2>
+<div class="flex-1 min-h-0 p-2 grid grid-cols-2 auto-rows-fr gap-x-3 gap-y-0.5" id="dailyZmanimSlots">
 </div>
 </div>
 </div>
 <!-- Center Column: Announcements Stacked -->
-<div class="col-span-5 flex flex-col">
-<div class="bg-[#060504] elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 rounded-sm overflow-hidden">
-<h2 class="text-center font-headline text-2xl py-4 border-b border-white/10 font-bold bg-black/40 text-primary" dir="rtl">הודעות</h2>
-<div id="announcementSlots" class="flex flex-col flex-1 justify-center">
+<div class="col-span-5 flex flex-col min-h-0">
+<div class="bg-[#060504] elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 min-h-0 rounded-sm overflow-hidden">
+<h2 class="text-center font-headline text-xl py-2 border-b border-white/10 font-bold bg-black/40 text-primary shrink-0" dir="rtl">הודעות</h2>
+<div id="announcementSlots" class="flex flex-col flex-1 min-h-0 justify-center overflow-hidden">
 </div>
-<div id="communitySlots" class="p-6 flex-1 flex justify-around items-center text-center">
+<div id="communitySlots" class="p-3 flex-none flex justify-around items-center text-center">
 </div>
 </div>
 </div>
 <!-- Right Column: Shabbat Zmanim & Sponsor -->
-<div class="col-span-3 flex flex-col gap-8">
+<div class="col-span-3 flex flex-col gap-4 min-h-0">
 <!-- Shabbat Zmanim -->
-<div class="bg-surface-container-high elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 rounded-sm overflow-hidden">
-<h2 class="text-primary font-headline text-center py-4 text-xl tracking-[0.2em] font-bold border-b border-white/10 bg-black/40" dir="rtl">זמני שבת</h2>
-<div class="flex-1 p-6 flex flex-col justify-around">
+<div class="bg-surface-container-high elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 min-h-0 rounded-sm overflow-hidden">
+<h2 class="text-primary font-headline text-center py-2 text-lg tracking-[0.2em] font-bold border-b border-white/10 bg-black/40 shrink-0" dir="rtl">זמני שבת</h2>
+<div class="flex-1 min-h-0 p-3 flex flex-col justify-around overflow-hidden">
 <div class="text-center">
-<p class="text-lg font-bold text-secondary mb-1" dir="rtl">הדלקת נרות</p>
-<p id="z-candle-lighting" class="text-primary font-headline font-bold text-4xl text-3d">—</p>
+<p class="text-sm font-bold text-secondary" dir="rtl">הדלקת נרות</p>
+<p id="z-candle-lighting" class="text-primary font-headline font-bold text-3xl text-3d leading-tight">—</p>
 </div>
 <div class="text-center">
-<p class="text-lg font-bold text-secondary mb-1" dir="rtl">מנחה וקבלת שבת</p>
-<p id="z-mincha-friday" class="text-primary font-headline font-bold text-4xl text-3d">—</p>
+<p class="text-sm font-bold text-secondary" dir="rtl">מנחה וקבלת שבת</p>
+<p id="z-mincha-friday" class="text-primary font-headline font-bold text-3xl text-3d leading-tight">—</p>
 </div>
 <div class="text-center">
-<p class="text-lg font-bold text-secondary mb-1" dir="rtl">שחרית</p>
-<p id="z-shacharit" class="text-primary font-headline font-bold text-4xl text-3d">—</p>
+<p class="text-sm font-bold text-secondary" dir="rtl">שחרית</p>
+<p id="z-shacharit" class="text-primary font-headline font-bold text-3xl text-3d leading-tight">—</p>
 </div>
 <div class="text-center hidden" id="z-shiur-mincha-wrap">
-<p class="text-base font-bold text-secondary mb-0.5" dir="rtl">שיעור הלכה</p>
-<p id="z-shiur-mincha" class="text-primary font-headline font-bold text-3xl">—</p>
+<p class="text-xs font-bold text-secondary" dir="rtl">שיעור הלכה</p>
+<p id="z-shiur-mincha" class="text-primary font-headline font-bold text-xl leading-tight">—</p>
 </div>
 <div class="text-center">
-<p class="text-lg font-bold text-secondary mb-1" dir="rtl">מנחה</p>
-<p id="z-mincha-saturday" class="text-primary font-headline font-bold text-4xl text-3d">—</p>
+<p class="text-sm font-bold text-secondary" dir="rtl">מנחה</p>
+<p id="z-mincha-saturday" class="text-primary font-headline font-bold text-3xl text-3d leading-tight">—</p>
 </div>
 <div class="text-center hidden" id="z-shiur-maariv-wrap">
-<p class="text-base font-bold text-secondary mb-0.5" dir="rtl">פרקי אבות</p>
-<p id="z-shiur-maariv" class="text-primary font-headline font-bold text-3xl">—</p>
+<p class="text-xs font-bold text-secondary" dir="rtl">פרקי אבות</p>
+<p id="z-shiur-maariv" class="text-primary font-headline font-bold text-xl leading-tight">—</p>
 </div>
 <div class="text-center">
-<p class="text-lg font-bold text-secondary mb-1" dir="rtl">מעריב</p>
-<p id="z-havdalah" class="text-primary font-headline font-bold text-4xl text-3d">—</p>
+<p class="text-sm font-bold text-secondary" dir="rtl">מעריב</p>
+<p id="z-havdalah" class="text-primary font-headline font-bold text-3xl text-3d leading-tight">—</p>
 </div>
 </div>
-<div class="bg-black/50 py-2 text-center border-t border-white/5">
-<p id="z-parshat" class="text-lg tracking-[0.2em] font-bold text-primary uppercase italic">—</p>
+<div class="bg-black/50 py-1.5 text-center border-t border-white/5 shrink-0">
+<p id="z-parshat" class="text-base tracking-[0.2em] font-bold text-primary uppercase italic">—</p>
 </div>
 </div>
 <!-- Sponsor Section -->
-<div class="brass-plaque p-6 flex items-center justify-center gap-5 rounded-sm flex-none relative overflow-hidden group">
+<div class="brass-plaque p-3 flex items-center justify-center gap-3 rounded-sm flex-none relative overflow-hidden group">
 <div class="absolute top-2 left-2 w-1 h-1 rounded-full bg-black/20 shadow-inner"></div>
 <div class="absolute top-2 right-2 w-1 h-1 rounded-full bg-black/20 shadow-inner"></div>
 <div class="absolute bottom-2 left-2 w-1 h-1 rounded-full bg-black/20 shadow-inner"></div>
 <div class="absolute bottom-2 right-2 w-1 h-1 rounded-full bg-black/20 shadow-inner"></div>
 <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none"></div>
-<div id="sponsorSlots" class="flex flex-col w-full relative z-10 gap-3 px-2">
+<div id="sponsorSlots" class="flex flex-col w-full relative z-10 gap-2 px-2">
 </div></div>
 </div>
 </main>
 <!-- Info Bar -->
-<div class="bg-[#0a0706] border-y-4 gold-border-3d h-16 flex items-center shadow-xl relative z-40 overflow-hidden">
-<div class="px-10 text-primary font-headline w-full grid grid-cols-3 items-center">
-<span id="infoSefirah" dir="rtl" class="font-bold text-lg glow-text-hebrew truncate text-left"></span>
-<span id="infoWelcome" class="tracking-[0.2em] uppercase font-bold text-xl text-center"></span>
-<span id="infoReminder" class="italic font-semibold text-xl text-secondary text-right"></span>
+<div class="bg-[#0a0706] border-y-4 gold-border-3d h-12 flex items-center shadow-xl relative z-40 overflow-hidden shrink-0">
+<div class="px-8 text-primary font-headline w-full grid grid-cols-3 items-center gap-4">
+<span id="infoSefirah" dir="rtl" class="font-bold text-base glow-text-hebrew truncate text-left"></span>
+<span id="infoWelcome" class="tracking-[0.2em] uppercase font-bold text-base text-center truncate"></span>
+<span id="infoReminder" class="italic font-semibold text-base text-secondary text-right truncate"></span>
 </div>
 </div>
 <!-- Last Updated Indicator -->
@@ -257,19 +257,19 @@ setInterval(updateSecularDate, 60000);
 // SIZING RULES
 // ========================================
 var annSizes = {
-    1: { img: 'w-80', title: 'text-4xl', desc: 'text-xl', pad: 'p-6 gap-6', maxW: 'max-w-xl', justify: 'justify-center' },
-    2: { img: 'w-52', title: 'text-3xl', desc: 'text-lg',  pad: 'p-4 gap-5',   maxW: 'max-w-md', justify: 'justify-around' },
-    3: { img: 'w-36', title: 'text-2xl', desc: 'text-base', pad: 'p-3 gap-4',  maxW: 'max-w-sm', justify: 'justify-around' }
+    1: { img: 'w-72', title: 'text-3xl', desc: 'text-lg',  pad: 'p-4 gap-5', maxW: 'max-w-xl', justify: 'justify-center' },
+    2: { img: 'w-44', title: 'text-2xl', desc: 'text-base', pad: 'p-3 gap-4', maxW: 'max-w-md', justify: 'justify-around' },
+    3: { img: 'w-32', title: 'text-xl',  desc: 'text-sm',  pad: 'p-2 gap-3', maxW: 'max-w-sm', justify: 'justify-around' }
 };
 var commSizes = {
-    1: { name: 'text-4xl', label: 'text-base', sub: 'text-base', pad: 'p-8', space: 'space-y-3', divH: 'h-24' },
-    2: { name: 'text-2xl', label: 'text-sm',   sub: 'text-sm',   pad: 'p-6', space: 'space-y-2', divH: 'h-24' },
-    3: { name: 'text-2xl', label: 'text-sm',   sub: 'text-sm',   pad: 'p-4', space: 'space-y-1', divH: 'h-20' }
+    1: { name: 'text-3xl', label: 'text-sm',  sub: 'text-sm', pad: 'p-4', space: 'space-y-2', divH: 'h-20' },
+    2: { name: 'text-xl',  label: 'text-xs',  sub: 'text-xs', pad: 'p-3', space: 'space-y-1', divH: 'h-20' },
+    3: { name: 'text-xl',  label: 'text-xs',  sub: 'text-xs', pad: 'p-2', space: 'space-y-0.5', divH: 'h-16' }
 };
 var sponsorSizes = {
-    1: { name: 'text-xl',   label: 'text-sm',  gap: 'gap-4', pad: 'p-6' },
-    2: { name: 'text-lg',   label: 'text-sm',  gap: 'gap-3', pad: 'p-6' },
-    3: { name: 'text-base', label: 'text-sm',  gap: 'gap-2', pad: 'p-4' }
+    1: { name: 'text-lg',  label: 'text-xs', gap: 'gap-2', pad: 'p-3' },
+    2: { name: 'text-base', label: 'text-xs', gap: 'gap-2', pad: 'p-3' },
+    3: { name: 'text-sm',  label: 'text-xs', gap: 'gap-1', pad: 'p-2' }
 };
 
 // ========================================
@@ -357,9 +357,9 @@ async function loadScreenData() {
         var dzHtml = '';
         dailyItems.forEach(function(item) {
             if (!item.value) return;
-            dzHtml += '<div class="flex justify-between items-center px-3 py-1">';
-            dzHtml += '<span class="text-base font-bold text-secondary" dir="rtl">' + esc(item.label) + '</span>';
-            dzHtml += '<span class="text-primary font-headline font-bold text-xl text-3d-light">' + esc(item.value) + '</span>';
+            dzHtml += '<div class="flex justify-between items-baseline gap-2 px-2 py-0.5 min-w-0">';
+            dzHtml += '<span class="text-[11px] font-bold text-secondary truncate" dir="rtl">' + esc(item.label) + '</span>';
+            dzHtml += '<span class="text-primary font-headline font-bold text-base text-3d-light shrink-0">' + esc(item.value) + '</span>';
             dzHtml += '</div>';
         });
         dailyContainer.innerHTML = dzHtml;
@@ -369,11 +369,16 @@ async function loadScreenData() {
     var schedContainer = document.getElementById('scheduleSlots');
     schedContainer.innerHTML = '';
     if (data.schedule && data.schedule.length) {
+        // Scale vertical density by count so tall lists still fit
+        var sCount = data.schedule.length;
+        var sPy = sCount <= 4 ? 'py-1.5' : (sCount <= 6 ? 'py-1' : 'py-0.5');
+        var sTime = sCount <= 4 ? 'text-2xl' : (sCount <= 6 ? 'text-xl' : 'text-lg');
+        var sLabel = sCount <= 6 ? 'text-sm' : 'text-xs';
         var schedHtml = '';
         data.schedule.forEach(function(s) {
-            schedHtml += '<div class="flex justify-between items-center px-4 py-3">';
-            schedHtml += '<span class="text-lg font-bold text-secondary" dir="rtl">' + esc(s.label) + '</span>';
-            schedHtml += '<span class="text-primary font-headline font-bold text-3xl text-3d-light">' + esc(s.time) + '</span>';
+            schedHtml += '<div class="flex justify-between items-baseline gap-2 px-3 ' + sPy + ' min-w-0">';
+            schedHtml += '<span class="' + sLabel + ' font-bold text-secondary truncate" dir="rtl">' + esc(s.label) + '</span>';
+            schedHtml += '<span class="text-primary font-headline font-bold ' + sTime + ' text-3d-light shrink-0">' + esc(s.time) + '</span>';
             schedHtml += '</div>';
         });
         schedContainer.innerHTML = schedHtml;
@@ -384,11 +389,15 @@ async function loadScreenData() {
     if (shiurimContainer) {
         shiurimContainer.innerHTML = '';
         if (data.shiurim && data.shiurim.length) {
+            var hCount = data.shiurim.length;
+            var hPy = hCount <= 4 ? 'py-1' : (hCount <= 6 ? 'py-0.5' : 'py-0');
+            var hTime = hCount <= 4 ? 'text-xl' : (hCount <= 6 ? 'text-lg' : 'text-base');
+            var hLabel = hCount <= 6 ? 'text-xs' : 'text-[11px]';
             var shHtml = '';
             data.shiurim.forEach(function(s) {
-                shHtml += '<div class="flex justify-between items-center px-4 py-2.5">';
-                shHtml += '<span class="text-base font-bold text-secondary" dir="rtl">' + esc(s.label) + '</span>';
-                shHtml += '<span class="text-primary font-headline font-bold text-2xl text-3d-light">' + esc(s.time) + '</span>';
+                shHtml += '<div class="flex justify-between items-baseline gap-2 px-3 ' + hPy + ' min-w-0">';
+                shHtml += '<span class="' + hLabel + ' font-bold text-secondary truncate" dir="rtl">' + esc(s.label) + '</span>';
+                shHtml += '<span class="text-primary font-headline font-bold ' + hTime + ' text-3d-light shrink-0">' + esc(s.time) + '</span>';
                 shHtml += '</div>';
             });
             shiurimContainer.innerHTML = shHtml;
@@ -403,7 +412,7 @@ async function loadScreenData() {
         var sz = sponsorSizes[count];
         sponsorContainer.className = 'flex flex-col w-full relative z-10 ' + sz.gap + ' px-2';
         var plaque = sponsorContainer.parentElement;
-        plaque.classList.remove('p-4', 'p-6');
+        plaque.classList.remove('p-2', 'p-3', 'p-4', 'p-6');
         plaque.classList.add(sz.pad);
         var sHtml = '';
         data.sponsors.forEach(function(s, i) {
@@ -425,22 +434,23 @@ async function loadScreenData() {
     } else if (data.announcements && data.announcements.length) {
         var count = Math.min(data.announcements.length, 3);
         var sz = annSizes[count];
-        annContainer.className = 'flex flex-col flex-1 ' + sz.justify;
+        annContainer.className = 'flex flex-col flex-1 min-h-0 overflow-hidden ' + sz.justify;
         var aHtml = '';
         data.announcements.forEach(function(a, i) {
             if (i >= 3) return;
             var hasImg = a.imageData && a.imageData.length > 10 && a.imageData.startsWith('data:');
-            aHtml += '<div class="' + sz.pad + ' flex-1 flex items-center justify-center border-b border-white/5">';
+            aHtml += '<div class="' + sz.pad + ' flex-1 min-h-0 flex items-center justify-center border-b border-white/5 overflow-hidden">';
             if (hasImg) {
-                aHtml += '<div class="relative ' + sz.img + ' aspect-[4/5] elevated-3d border-4 border-primary/30 rounded-sm overflow-hidden flex-shrink-0">';
-                aHtml += '<img class="w-full h-full object-cover" src="' + esc(a.imageData) + '"/>';
-                aHtml += '<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div></div>';
+                // object-contain so entire flier stays visible (no cropping of text/images)
+                aHtml += '<div class="relative ' + sz.img + ' aspect-[4/5] elevated-3d border-4 border-primary/30 rounded-sm overflow-hidden flex-shrink-0 bg-black flex items-center justify-center">';
+                aHtml += '<img class="w-full h-full object-contain" src="' + esc(a.imageData) + '"/>';
+                aHtml += '</div>';
             }
             var hasText = a.title || a.description;
             if (hasText) {
-                aHtml += '<div class="' + (hasImg ? 'text-left' : 'text-center') + ' flex-1 ' + sz.maxW + '">';
-                if (a.title) aHtml += '<h3 class="font-headline ' + sz.title + ' font-bold text-primary mb-2 text-3d">' + esc(a.title) + '</h3>';
-                if (a.description) aHtml += '<p class="' + sz.desc + ' italic text-secondary leading-relaxed">' + esc(a.description) + '</p>';
+                aHtml += '<div class="' + (hasImg ? 'text-left' : 'text-center') + ' flex-1 min-w-0 ' + sz.maxW + '">';
+                if (a.title) aHtml += '<h3 class="font-headline ' + sz.title + ' font-bold text-primary mb-1 text-3d leading-tight">' + esc(a.title) + '</h3>';
+                if (a.description) aHtml += '<p class="' + sz.desc + ' italic text-secondary leading-snug">' + esc(a.description) + '</p>';
                 aHtml += '</div>';
             }
             aHtml += '</div>';
@@ -454,27 +464,29 @@ async function loadScreenData() {
     if (data.community && data.community.length) {
         var count = Math.min(data.community.length, 3);
         var sz = commSizes[count];
-        commContainer.className = sz.pad + ' flex-1 flex justify-around items-center text-center';
+        commContainer.className = sz.pad + ' flex-none flex justify-around items-center text-center border-t border-white/10';
         var cHtml = '';
         data.community.forEach(function(c, i) {
             if (i >= 3) return;
             var lines = (c.names || '').split('\n').filter(function(l){ return l.trim(); });
-            var maxNames = count === 3 ? 4 : 99;
+            var maxNames = count === 3 ? 3 : (count === 2 ? 5 : 6);
             var truncated = lines.length > maxNames;
             if (truncated) lines = lines.slice(0, maxNames);
-            cHtml += '<div class="flex-1 ' + sz.space + '">';
-            cHtml += '<p class="' + sz.label + ' uppercase tracking-[0.4em] font-bold text-primary/80">' + esc(c.label) + '</p>';
-            cHtml += '<div class="flex flex-col gap-1">';
+            cHtml += '<div class="flex-1 min-w-0 ' + sz.space + '">';
+            cHtml += '<p class="' + sz.label + ' uppercase tracking-[0.3em] font-bold text-primary/80 truncate">' + esc(c.label) + '</p>';
+            cHtml += '<div class="flex flex-col gap-0.5">';
             lines.forEach(function(name) {
-                cHtml += '<p class="font-headline ' + sz.name + ' italic font-bold text-primary text-3d">' + esc(name) + '</p>';
+                cHtml += '<p class="font-headline ' + sz.name + ' italic font-bold text-primary text-3d leading-tight truncate">' + esc(name) + '</p>';
             });
-            if (truncated) cHtml += '<p class="font-headline ' + sz.name + ' italic font-bold text-primary/60">&amp; others</p>';
+            if (truncated) cHtml += '<p class="font-headline ' + sz.name + ' italic font-bold text-primary/60 leading-tight">&amp; others</p>';
             cHtml += '</div>';
-            if (c.sub) cHtml += '<p class="' + sz.sub + ' uppercase tracking-widest font-semibold text-secondary">' + esc(c.sub) + '</p>';
+            if (c.sub) cHtml += '<p class="' + sz.sub + ' uppercase tracking-widest font-semibold text-secondary truncate">' + esc(c.sub) + '</p>';
             cHtml += '</div>';
-            if (i < count - 1) cHtml += '<div class="w-px ' + sz.divH + ' bg-white/10 mx-4"></div>';
+            if (i < count - 1) cHtml += '<div class="w-px ' + sz.divH + ' bg-white/10 mx-2 shrink-0"></div>';
         });
         commContainer.innerHTML = cHtml;
+    } else {
+        commContainer.className = 'hidden';
     }
 
     // ── Shkiyah-based switching ──

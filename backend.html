@@ -27,7 +27,7 @@ tailwind.config = {
                 <p class="text-[10px] sm:text-xs text-gray-500">Beis Medrash D Jackson 21</p>
             </div>
         </div>
-        <a href="index.html" target="_blank" class="bg-gray-800 text-gray-300 font-bold px-3 py-2 rounded text-xs sm:text-sm hover:bg-gray-700 transition flex items-center gap-1">
+        <a href="preview.html" target="_blank" class="bg-gray-800 text-gray-300 font-bold px-3 py-2 rounded text-xs sm:text-sm hover:bg-gray-700 transition flex items-center gap-1">
             <span class="material-symbols-outlined text-base sm:text-lg">visibility</span> <span class="hidden sm:inline">View Screen</span>
         </a>
     </div>
@@ -247,39 +247,101 @@ async function saveScreenData(data) {
 }
 
 // ========================================
+// ROW REORDER HELPERS
+// ========================================
+// Each reorderable row is a direct child of its container with data-row attribute.
+// Up/down buttons call these to swap positions without losing field values (DOM move preserves inputs).
+function moveRowUp(btn) {
+    const row = btn.closest('[data-row]');
+    if (!row) return;
+    const prev = row.previousElementSibling;
+    if (prev && prev.hasAttribute('data-row')) row.parentNode.insertBefore(row, prev);
+}
+function moveRowDown(btn) {
+    const row = btn.closest('[data-row]');
+    if (!row) return;
+    const next = row.nextElementSibling;
+    if (next && next.hasAttribute('data-row')) row.parentNode.insertBefore(next, row);
+}
+function insertRowAbove(btn) {
+    // Called from the + button on an existing row. Inserts a blank row of the same kind right above.
+    const row = btn.closest('[data-row]');
+    if (!row) return;
+    const kind = row.getAttribute('data-row');
+    if (kind === 'sched') {
+        addScheduleItem('', '', row);
+    } else if (kind === 'shiur') {
+        addShiur('', '', row);
+    }
+}
+
+function reorderControls() {
+    return `
+        <div class="flex flex-col gap-0.5 shrink-0">
+            <button type="button" onclick="moveRowUp(this)" title="Move up" class="text-gray-500 hover:text-gold active:text-gold transition p-0.5 leading-none">
+                <span class="material-symbols-outlined text-base">arrow_upward</span>
+            </button>
+            <button type="button" onclick="moveRowDown(this)" title="Move down" class="text-gray-500 hover:text-gold active:text-gold transition p-0.5 leading-none">
+                <span class="material-symbols-outlined text-base">arrow_downward</span>
+            </button>
+        </div>`;
+}
+function insertAboveControl() {
+    return `
+        <button type="button" onclick="insertRowAbove(this)" title="Insert new line above this one" class="text-gray-500 hover:text-gold active:text-gold transition p-1 shrink-0">
+            <span class="material-symbols-outlined">playlist_add</span>
+        </button>`;
+}
+
+// ========================================
 // DYNAMIC SCHEDULE
 // ========================================
-function addScheduleItem(label, time) {
+// beforeEl (optional) — if provided, new row is inserted before it rather than appended
+function addScheduleItem(label, time, beforeEl) {
     const container = document.getElementById('scheduleContainer');
     const div = document.createElement('div');
-    div.className = 'flex gap-3 items-center bg-gray-800/50 rounded-lg p-3';
+    div.setAttribute('data-row', 'sched');
+    div.className = 'flex gap-2 items-center bg-gray-800/50 rounded-lg p-3';
     div.innerHTML = `
-        <div class="flex-1 grid grid-cols-2 gap-3">
+        ${insertAboveControl()}
+        ${reorderControls()}
+        <div class="flex-1 grid grid-cols-2 gap-3 min-w-0">
             <input type="text" value="${esc(label || '')}" class="sched-label bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. Shacharit Sun"/>
             <input type="text" value="${esc(time || '')}" class="sched-time bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. 8:00 AM"/>
         </div>
-        <button onclick="this.parentElement.remove()" class="text-gray-500 hover:text-red-400 transition p-1">
+        <button onclick="this.closest('[data-row]').remove()" class="text-gray-500 hover:text-red-400 transition p-1 shrink-0">
             <span class="material-symbols-outlined">delete</span>
         </button>`;
-    container.appendChild(div);
+    if (beforeEl && beforeEl.parentNode === container) {
+        container.insertBefore(div, beforeEl);
+    } else {
+        container.appendChild(div);
+    }
 }
 
 // ========================================
 // DYNAMIC SHIURIM
 // ========================================
-function addShiur(label, time) {
+function addShiur(label, time, beforeEl) {
     const container = document.getElementById('shiurimContainer');
     const div = document.createElement('div');
-    div.className = 'flex gap-3 items-center bg-gray-800/50 rounded-lg p-3';
+    div.setAttribute('data-row', 'shiur');
+    div.className = 'flex gap-2 items-center bg-gray-800/50 rounded-lg p-3';
     div.innerHTML = `
-        <div class="flex-1 grid grid-cols-2 gap-3">
+        ${insertAboveControl()}
+        ${reorderControls()}
+        <div class="flex-1 grid grid-cols-2 gap-3 min-w-0">
             <input type="text" value="${esc(label || '')}" class="shiur-label bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. שיעור יום ג׳ — הלכה" dir="rtl"/>
             <input type="text" value="${esc(time || '')}" class="shiur-time bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. 10:15"/>
         </div>
-        <button onclick="this.parentElement.remove()" class="text-gray-500 hover:text-red-400 transition p-1">
+        <button onclick="this.closest('[data-row]').remove()" class="text-gray-500 hover:text-red-400 transition p-1 shrink-0">
             <span class="material-symbols-outlined">delete</span>
         </button>`;
-    container.appendChild(div);
+    if (beforeEl && beforeEl.parentNode === container) {
+        container.insertBefore(div, beforeEl);
+    } else {
+        container.appendChild(div);
+    }
 }
 
 // ========================================
@@ -339,7 +401,7 @@ function addAnnouncement(title, desc, imageData) {
             <div class="flex sm:flex-col gap-3 items-start">
                 <div class="w-24 sm:w-28 shrink-0">
                     <label class="block text-xs text-gray-500 mb-1">Image</label>
-                    <img class="ann-img-preview w-full aspect-[4/5] object-cover rounded border border-gray-700 bg-gray-800 cursor-pointer ${imageData ? '' : 'hidden'}" src="${imageData || ''}" data-has-image="${imageData ? 'true' : 'false'}" onclick="this.parentElement.querySelector('.ann-img-input').click()" title="Click to replace"/>
+                    <img class="ann-img-preview w-full aspect-[4/5] object-contain rounded border border-gray-700 bg-black cursor-pointer ${imageData ? '' : 'hidden'}" src="${imageData || ''}" data-has-image="${imageData ? 'true' : 'false'}" onclick="this.parentElement.querySelector('.ann-img-input').click()" title="Click to replace"/>
                     <div class="ann-img-placeholder w-full aspect-[4/5] rounded border-2 border-dashed border-gray-600 flex flex-col items-center justify-center bg-gray-800 cursor-pointer hover:border-gold/50 active:border-gold/50 transition ${imageData ? 'hidden' : ''}" onclick="this.parentElement.querySelector('.ann-img-input').click()">
                         <span class="material-symbols-outlined text-xl text-gray-500">add_photo_alternate</span>
                         <p class="text-[9px] text-gray-500 mt-0.5">Upload</p>
@@ -357,32 +419,78 @@ function addAnnouncement(title, desc, imageData) {
 }
 
 function handleImg(event, parent) {
-    const file = event.target.files[0];
+    const input = event.target;
+    const file = input.files[0];
     if (!file) return;
+
+    // Validate it's actually an image
+    if (!file.type || file.type.indexOf('image/') !== 0) {
+        showToast(false, 'File must be an image (PNG, JPG, etc.)');
+        input.value = '';
+        return;
+    }
+    // Sanity cap on raw file size (30MB) — anything bigger is almost certainly not a flier
+    if (file.size > 30 * 1024 * 1024) {
+        showToast(false, 'Image too large (max 30MB before compression)');
+        input.value = '';
+        return;
+    }
+
+    const placeholder = parent.querySelector('.ann-img-placeholder');
+    const img = parent.querySelector('.ann-img-preview');
+    const removeBtn = parent.querySelector('.ann-img-remove');
+
+    // Show compressing state in placeholder until the new image is ready
+    const origPlaceholderHtml = placeholder.innerHTML;
+    placeholder.innerHTML = '<span class="material-symbols-outlined text-xl text-gray-400 animate-spin">progress_activity</span><p class="text-[9px] text-gray-400 mt-0.5">Compressing…</p>';
+
     const reader = new FileReader();
+    reader.onerror = function() {
+        placeholder.innerHTML = origPlaceholderHtml;
+        showToast(false, 'Could not read file');
+        input.value = '';
+    };
     reader.onload = function(e) {
         const tempImg = new Image();
+        tempImg.onerror = function() {
+            placeholder.innerHTML = origPlaceholderHtml;
+            showToast(false, 'Image appears corrupted');
+            input.value = '';
+        };
         tempImg.onload = function() {
-            const canvas = document.createElement('canvas');
-            const maxW = 400;
-            const scale = Math.min(maxW / tempImg.width, 1);
-            canvas.width = tempImg.width * scale;
-            canvas.height = tempImg.height * scale;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(tempImg, 0, 0, canvas.width, canvas.height);
-            const compressed = canvas.toDataURL('image/jpeg', 0.7);
-            const img = parent.querySelector('.ann-img-preview');
-            img.src = compressed;
-            img.dataset.hasImage = 'true';
-            img.classList.remove('hidden');
-            parent.querySelector('.ann-img-placeholder').classList.add('hidden');
+            try {
+                // Cap the LARGER dimension so tall or wide fliers both compress sanely.
+                // Display sizes on screen: w-72 (288px) single, w-44 (176px) dual, w-32 (128px) triple.
+                // 800px max gives ~2.7× on a 1080p kiosk — plenty sharp, keeps payload small.
+                const maxDim = 800;
+                const srcW = tempImg.naturalWidth || tempImg.width;
+                const srcH = tempImg.naturalHeight || tempImg.height;
+                if (!srcW || !srcH) throw new Error('bad dims');
+                const scale = Math.min(maxDim / Math.max(srcW, srcH), 1);
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.max(1, Math.round(srcW * scale));
+                canvas.height = Math.max(1, Math.round(srcH * scale));
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(tempImg, 0, 0, canvas.width, canvas.height);
+                const compressed = canvas.toDataURL('image/jpeg', 0.75);
+
+                img.src = compressed;
+                img.dataset.hasImage = 'true';
+                img.classList.remove('hidden');
+                placeholder.innerHTML = origPlaceholderHtml;
+                placeholder.classList.add('hidden');
+                if (removeBtn) removeBtn.classList.remove('hidden');
+            } catch (err) {
+                placeholder.innerHTML = origPlaceholderHtml;
+                showToast(false, 'Compression failed — try a different image');
+                input.value = '';
+            }
         };
         tempImg.src = e.target.result;
     };
     reader.readAsDataURL(file);
-    // Show remove button
-    var removeBtn = parent.querySelector('.ann-img-remove');
-    if (removeBtn) removeBtn.classList.remove('hidden');
 }
 
 function removeImg(parent) {
@@ -522,11 +630,17 @@ async function saveAll() {
     });
     const schedule = [];
     document.querySelectorAll('#scheduleContainer > div').forEach(function(el) {
-        schedule.push({ label: el.querySelector('.sched-label').value, time: el.querySelector('.sched-time').value });
+        var label = el.querySelector('.sched-label').value.trim();
+        var time = el.querySelector('.sched-time').value.trim();
+        if (!label && !time) return; // skip empty inserted rows
+        schedule.push({ label: label, time: time });
     });
     const shiurim = [];
     document.querySelectorAll('#shiurimContainer > div').forEach(function(el) {
-        shiurim.push({ label: el.querySelector('.shiur-label').value, time: el.querySelector('.shiur-time').value });
+        var label = el.querySelector('.shiur-label').value.trim();
+        var time = el.querySelector('.shiur-time').value.trim();
+        if (!label && !time) return; // skip empty inserted rows
+        shiurim.push({ label: label, time: time });
     });
     const zmanim = {
         parshat: document.getElementById('zParshat').value,
