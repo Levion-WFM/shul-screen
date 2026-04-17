@@ -84,7 +84,7 @@
 <!-- Header -->
 <nav class="bg-[#0a0706] border-b-4 gold-border-3d py-2 px-8 flex items-center relative z-50 shrink-0">
 <div class="flex justify-start shrink-0">
-<span class="material-symbols-outlined text-3xl gold-inlay" style="font-variation-settings: 'FILL' 1;">auto_stories</span>
+<span class="material-symbols-outlined text-4xl gold-inlay" style="font-variation-settings: 'FILL' 1;">auto_stories</span>
 </div>
 <div class="absolute inset-x-0 flex justify-center pointer-events-none">
 <h1 class="text-4xl font-headline font-bold gold-inlay tracking-[0.08em] text-center leading-tight whitespace-nowrap pointer-events-auto">
@@ -353,7 +353,7 @@ async function loadScreenData() {
         var dzHtml = '';
         dailyItems.forEach(function(item) {
             if (!item.value) return;
-            dzHtml += '<div class="flex justify-between items-baseline gap-2 px-2 py-0.5 min-w-0">';
+            dzHtml += '<div class="flex justify-center items-baseline gap-3 px-2 py-0.5 min-w-0">';
             dzHtml += '<span class="text-lg font-bold text-secondary truncate" dir="rtl">' + esc(item.label) + '</span>';
             dzHtml += '<span class="text-primary font-headline font-bold text-2xl text-3d-light shrink-0">' + esc(item.value) + '</span>';
             dzHtml += '</div>';
