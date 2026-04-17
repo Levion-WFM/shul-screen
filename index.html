@@ -353,7 +353,7 @@ async function loadScreenData() {
         var dzHtml = '';
         dailyItems.forEach(function(item) {
             if (!item.value) return;
-            dzHtml += '<div class="flex justify-between items-baseline gap-2 px-2 py-0.5 min-w-0">';
+            dzHtml += '<div class="flex justify-center items-baseline gap-3 px-2 py-0.5 min-w-0">';
             dzHtml += '<span class="text-lg font-bold text-secondary truncate" dir="rtl">' + esc(item.label) + '</span>';
             dzHtml += '<span class="text-primary font-headline font-bold text-2xl text-3d-light shrink-0">' + esc(item.value) + '</span>';
             dzHtml += '</div>';
