@@ -432,8 +432,10 @@ async function loadScreenData() {
         var hasText = shulItem.title || shulItem.description;
         var sHtml = '';
         if (hasImg) {
-            sHtml += '<div class="h-full aspect-[4/5] max-w-full elevated-3d border-4 border-primary/60 rounded-sm overflow-hidden bg-black flex items-center justify-center shrink-0">';
-            sHtml += '<img class="w-full h-full object-contain" src="' + esc(shulItem.imageData) + '"/>';
+            // No forced aspect — image keeps its natural ratio (landscape fliers don't get letterboxed).
+            // Width cap stops wide fliers from dwarfing the text; max-h-full respects the row height.
+            sHtml += '<div class="max-h-full max-w-[60%] elevated-3d border-4 border-primary/60 rounded-sm overflow-hidden bg-black flex items-center justify-center shrink-0">';
+            sHtml += '<img class="max-h-full max-w-full object-contain" src="' + esc(shulItem.imageData) + '"/>';
             sHtml += '</div>';
         }
         if (hasText) {
@@ -462,10 +464,11 @@ async function loadScreenData() {
             var hasText = f.title || f.description;
             fHtml += '<div class="flex-1 min-w-0 min-h-0 flex flex-col items-center justify-center gap-2 overflow-hidden">';
             if (hasImg) {
-                // flex-1 wrapper gives the flier a defined height to derive aspect-ratio width from
+                // No forced aspect — the flier renders at its natural ratio, letterbox-free.
+                // flex-1 gives it vertical room; max-w-full keeps it within its column width.
                 fHtml += '<div class="flex-1 min-h-0 w-full flex items-center justify-center">';
-                fHtml += '<div class="h-full aspect-[4/5] max-w-full elevated-3d border-4 border-primary/60 rounded-sm overflow-hidden bg-black flex items-center justify-center">';
-                fHtml += '<img class="w-full h-full object-contain" src="' + esc(f.imageData) + '"/>';
+                fHtml += '<div class="max-h-full max-w-full elevated-3d border-4 border-primary/60 rounded-sm overflow-hidden bg-black flex items-center justify-center">';
+                fHtml += '<img class="max-h-full max-w-full object-contain" src="' + esc(f.imageData) + '"/>';
                 fHtml += '</div>';
                 fHtml += '</div>';
             }
