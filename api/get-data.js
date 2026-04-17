@@ -34,12 +34,14 @@ module.exports = async function handler(req, res) {
             if (zmanimRows.length > 0) {
                 var z = zmanimRows[0];
                 if (!data.zmanim) data.zmanim = {};
-                if (z.parsha) data.zmanim.parshat = z.parsha;
-                if (z.candle_lighting) data.zmanim.candleLighting = z.candle_lighting;
-                if (z.mincha_erev_shabbos) data.zmanim.minchaFriday = z.mincha_erev_shabbos;
-                if (z.shacharit) data.zmanim.shacharit = z.shacharit;
-                if (z.mincha_shabbos) data.zmanim.minchaSaturday = z.mincha_shabbos;
-                if (z.maariv) data.zmanim.havdalah = z.maariv;
+                // Auto-computed shabbos_zmanim only fills in fields the user hasn't manually set.
+                // Manual overrides in screen_data.data.zmanim always win.
+                if (z.parsha && !data.zmanim.parshat) data.zmanim.parshat = z.parsha;
+                if (z.candle_lighting && !data.zmanim.candleLighting) data.zmanim.candleLighting = z.candle_lighting;
+                if (z.mincha_erev_shabbos && !data.zmanim.minchaFriday) data.zmanim.minchaFriday = z.mincha_erev_shabbos;
+                if (z.shacharit && !data.zmanim.shacharit) data.zmanim.shacharit = z.shacharit;
+                if (z.mincha_shabbos && !data.zmanim.minchaSaturday) data.zmanim.minchaSaturday = z.mincha_shabbos;
+                if (z.maariv && !data.zmanim.havdalah) data.zmanim.havdalah = z.maariv;
             }
         } catch (e) { console.error('shabbos_zmanim error:', e.message); }
 

@@ -409,8 +409,8 @@ async function loadScreenData() {
         data.sponsors.forEach(function(s, i) {
             if (i >= 3) return;
             sHtml += '<div class="text-center">';
-            sHtml += '<p class="' + sz.label + ' text-on-primary uppercase tracking-[0.3em] font-bold opacity-80">' + esc(s.label) + '</p>';
-            sHtml += '<h3 class="font-headline ' + sz.name + ' text-on-primary font-bold tracking-[0.05em] overflow-hidden text-ellipsis drop-shadow-sm">' + esc(s.name) + '</h3>';
+            sHtml += '<p class="' + sz.label + ' text-on-primary uppercase tracking-[0.2em] font-bold opacity-80 break-words leading-snug">' + esc(s.label) + '</p>';
+            sHtml += '<h3 class="font-headline ' + sz.name + ' text-on-primary font-bold tracking-[0.05em] break-words leading-snug drop-shadow-sm">' + esc(s.name) + '</h3>';
             sHtml += '</div>';
             if (i < count - 1) sHtml += '<div class="h-px bg-on-primary/20 w-3/4 mx-auto"></div>';
         });
