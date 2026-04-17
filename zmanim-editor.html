@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Bulk Zmanim Editor — Shul Screen Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+    theme: { extend: { colors: { gold: "#e9c349", dark: "#1a1a1a" }, fontFamily: { body: ["Work Sans", "sans-serif"] } } }
+}
+</script>
+<style>
+    input { font-size: 14px; }
+    .cell-input {
+        width: 100%;
+        background: transparent;
+        border: 1px solid transparent;
+        padding: 6px 8px;
+        border-radius: 4px;
+        color: #f3f4f6;
+        outline: none;
+    }
+    .cell-input:hover { background: rgba(233, 195, 73, 0.04); border-color: rgba(233, 195, 73, 0.15); }
+    .cell-input:focus { background: rgba(233, 195, 73, 0.08); border-color: rgba(233, 195, 73, 0.5); }
+    .cell-input.dirty { background: rgba(250, 204, 21, 0.12); border-color: rgba(250, 204, 21, 0.4); }
+    .row-new { background: rgba(16, 185, 129, 0.06); }
+    .row-deleted { background: rgba(239, 68, 68, 0.08); text-decoration: line-through; opacity: 0.5; }
+    .row-past { opacity: 0.55; }
+    th { position: sticky; top: 0; z-index: 5; }
+    .col-date { min-width: 120px; }
+    .col-parsha { min-width: 160px; }
+    .col-time { min-width: 90px; }
+    .table-wrap { max-height: calc(100vh - 220px); }
+</style>
+</head>
+<body class="bg-gray-950 text-gray-100 font-body min-h-screen">
+
+<!-- Header -->
+<header class="bg-gray-900 border-b border-gold/30 py-3 px-4 sm:px-6 sticky top-0 z-20">
+    <div class="flex items-center justify-between gap-4 flex-wrap">
+        <div class="flex items-center gap-3">
+            <a href="backend.html" class="text-gray-400 hover:text-gold transition flex items-center gap-1 text-sm">
+                <span class="material-symbols-outlined text-lg">arrow_back</span> Admin
+            </a>
+            <div class="h-6 w-px bg-gray-700"></div>
+            <span class="material-symbols-outlined text-gold text-2xl" style="font-variation-settings: 'FILL' 1;">table_view</span>
+            <div>
+                <h1 class="text-base sm:text-lg font-bold text-gold tracking-wide">Bulk Shabbos Zmanim Editor</h1>
+                <p class="text-[11px] text-gray-500">Edit any cell. Save writes every changed row to the database.</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+            <label class="flex items-center gap-1.5 text-xs text-gray-400 cursor-pointer select-none">
+                <input type="checkbox" id="showPastToggle" class="w-4 h-4 accent-yellow-500"/>
+                Show past weeks
+            </label>
+            <button id="importCsvBtn" class="bg-gray-800 text-gray-200 font-semibold px-3 py-2 rounded text-xs sm:text-sm hover:bg-gray-700 transition flex items-center gap-1">
+                <span class="material-symbols-outlined text-base">upload_file</span> Import CSV
+            </button>
+            <input type="file" id="csvFileInput" accept=".csv,text/csv" class="hidden"/>
+            <button id="addRowBtn" class="bg-gray-800 text-gray-200 font-semibold px-3 py-2 rounded text-xs sm:text-sm hover:bg-gray-700 transition flex items-center gap-1">
+                <span class="material-symbols-outlined text-base">add</span> Add Row
+            </button>
+            <button id="saveBtn" class="bg-gold text-black font-bold px-4 py-2 rounded text-xs sm:text-sm hover:bg-yellow-400 transition flex items-center gap-1">
+                <span class="material-symbols-outlined text-base">save</span> Save All
+            </button>
+        </div>
+    </div>
+    <div class="mt-2 flex items-center gap-4 text-[11px] text-gray-500 flex-wrap">
+        <span>Token:</span>
+        <input id="adminToken" type="password" class="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs w-48" placeholder="Admin token"/>
+        <span id="dirtyBadge" class="text-yellow-400 font-semibold hidden">● <span id="dirtyCount">0</span> unsaved</span>
+        <span id="statusMsg" class="text-gray-400"></span>
+    </div>
+</header>
+
+<!-- Toasts -->
+<div id="toast" class="fixed top-20 right-4 bg-green-600 text-white px-4 py-3 rounded shadow-lg font-bold text-sm hidden z-50 flex items-center gap-2">
+    <span class="material-symbols-outlined text-lg">check_circle</span> <span id="toastMsg">Saved!</span>
+</div>
+<div id="toastError" class="fixed top-20 right-4 bg-red-600 text-white px-4 py-3 rounded shadow-lg font-bold text-sm hidden z-50 flex items-center gap-2 max-w-md">
+    <span class="material-symbols-outlined text-lg">error</span> <span id="toastErrorMsg">Error</span>
+</div>
+
+<main class="max-w-[1400px] mx-auto px-3 sm:px-6 py-4">
+    <div class="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
+        <div class="table-wrap overflow-auto">
+            <table class="w-full border-collapse">
+                <thead>
+                    <tr class="bg-gray-800 text-gold text-xs uppercase tracking-wider">
+                        <th class="text-left px-3 py-2 border-b border-gray-700 col-date">Shabbos Date</th>
+                        <th class="text-left px-3 py-2 border-b border-gray-700 col-parsha">Parsha</th>
+                        <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Candle Lighting</th>
+                        <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Mincha (Fri)</th>
+                        <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Shacharit</th>
+                        <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Mincha (Sat)</th>
+                        <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Maariv</th>
+                        <th class="text-center px-2 py-2 border-b border-gray-700 w-10"></th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr><td colspan="8" class="px-4 py-10 text-center text-gray-500">Loading…</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <p class="text-[11px] text-gray-500 mt-3 leading-relaxed">
+        Times are free-form text ("7:13", "6:51", "8:30 AM" all work). Leave a cell blank to clear it. Deleted rows are removed on save.
+        Dates must be Saturdays (the shabbos date). Once saved, the live screen automatically picks up times for each week.
+    </p>
+</main>
+
+<script>
+const FIELD_KEYS = ['parsha', 'candle_lighting', 'mincha_erev_shabbos', 'shacharit', 'mincha_shabbos', 'maariv'];
+
+// In-memory row state:
+//   original: server-truth snapshot (null if newly added locally)
+//   current:  latest user-edited values
+//   deleted:  true if user clicked delete; still render so they can undo
+let rows = []; // [{ key, original, current, deleted, isNew }]
+let rowSeq = 0;
+
+function nowTodayIso() {
+    const d = new Date();
+    return d.toISOString().split('T')[0];
+}
+function nextSaturdayIso(fromDateStr) {
+    // If fromDateStr given and a saturday, add 7 days. Else find next saturday from today.
+    let d;
+    if (fromDateStr && /^\d{4}-\d{2}-\d{2}$/.test(fromDateStr)) {
+        d = new Date(fromDateStr + 'T00:00:00');
+        d.setUTCDate(d.getUTCDate() + 7);
+    } else {
+        d = new Date();
+        const dow = d.getUTCDay(); // 0 Sun ... 6 Sat
+        const add = dow === 6 ? 7 : (6 - dow);
+        d.setUTCDate(d.getUTCDate() + add);
+    }
+    return d.toISOString().split('T')[0];
+}
+function isSaturdayIso(iso) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return false;
+    const d = new Date(iso + 'T00:00:00Z');
+    return d.getUTCDay() === 6;
+}
+function formatIsoForDisplay(iso) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso || '';
+    const d = new Date(iso + 'T00:00:00Z');
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return days[d.getUTCDay()] + ' ' + months[d.getUTCMonth()] + ' ' + d.getUTCDate() + ', ' + d.getUTCFullYear();
+}
+
+function rowIsDirty(r) {
+    if (r.isNew) return true;
+    if (r.deleted) return true;
+    if (!r.original) return true;
+    if (r.current.shabbos_date !== r.original.shabbos_date) return true;
+    for (const k of FIELD_KEYS) {
+        if ((r.current[k] || '') !== (r.original[k] || '')) return true;
+    }
+    return false;
+}
+
+function updateDirtyBadge() {
+    const count = rows.filter(rowIsDirty).length;
+    const badge = document.getElementById('dirtyBadge');
+    document.getElementById('dirtyCount').textContent = count;
+    badge.classList.toggle('hidden', count === 0);
+}
+
+function showToast(kind, msg) {
+    const id = kind === 'error' ? 'toastError' : 'toast';
+    const msgId = kind === 'error' ? 'toastErrorMsg' : 'toastMsg';
+    document.getElementById(msgId).textContent = msg;
+    const t = document.getElementById(id);
+    t.classList.remove('hidden');
+    setTimeout(() => t.classList.add('hidden'), kind === 'error' ? 4000 : 2000);
+}
+
+async function loadRows() {
+    try {
+        const res = await fetch('/api/shabbos-schedule');
+        if (!res.ok) throw new Error('Load failed (' + res.status + ')');
+        const data = await res.json();
+        rows = (data.rows || []).map(function(r) {
+            const current = {
+                shabbos_date: r.shabbos_date,
+                parsha: r.parsha, candle_lighting: r.candle_lighting,
+                mincha_erev_shabbos: r.mincha_erev_shabbos, shacharit: r.shacharit,
+                mincha_shabbos: r.mincha_shabbos, maariv: r.maariv
+            };
+            return {
+                key: 'k' + (rowSeq++),
+                original: JSON.parse(JSON.stringify(current)),
+                current: current,
+                deleted: false,
+                isNew: false
+            };
+        });
+        render();
+        document.getElementById('statusMsg').textContent = rows.length + ' weeks loaded.';
+    } catch (err) {
+        showToast('error', err.message);
+        document.getElementById('statusMsg').textContent = 'Failed to load.';
+        document.getElementById('tableBody').innerHTML = '<tr><td colspan="8" class="px-4 py-10 text-center text-red-400">' + err.message + '</td></tr>';
+    }
+}
+
+function render() {
+    const showPast = document.getElementById('showPastToggle').checked;
+    const today = nowTodayIso();
+    const tbody = document.getElementById('tableBody');
+
+    // Sort rows by date asc (invalid dates last)
+    rows.sort(function(a, b) {
+        const da = a.current.shabbos_date || '9999-12-31';
+        const db = b.current.shabbos_date || '9999-12-31';
+        return da < db ? -1 : da > db ? 1 : 0;
+    });
+
+    if (rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-10 text-center text-gray-500">No weeks yet. Click "Add Row" to create one, or "Import CSV" to bulk-load.</td></tr>';
+        updateDirtyBadge();
+        return;
+    }
+
+    let html = '';
+    for (const r of rows) {
+        const isPast = r.current.shabbos_date && r.current.shabbos_date < today;
+        if (isPast && !showPast && !rowIsDirty(r)) continue;
+
+        const rowClasses = ['border-b', 'border-gray-800', 'transition-colors'];
+        if (r.deleted) rowClasses.push('row-deleted');
+        else if (r.isNew) rowClasses.push('row-new');
+        else if (isPast) rowClasses.push('row-past');
+
+        const dateDisplay = r.current.shabbos_date ? formatIsoForDisplay(r.current.shabbos_date) : '';
+        const dateWarn = r.current.shabbos_date && !isSaturdayIso(r.current.shabbos_date)
+            ? '<span title="Not a Saturday" class="material-symbols-outlined text-[14px] text-yellow-500 ml-1">warning</span>'
+            : '';
+
+        html += '<tr class="' + rowClasses.join(' ') + '" data-key="' + r.key + '">';
+        html += '<td class="px-2 py-1 align-middle">';
+        html += '<input type="date" value="' + (r.current.shabbos_date || '') + '" data-field="shabbos_date" class="cell-input' + (isDirtyField(r, 'shabbos_date') ? ' dirty' : '') + '"/>';
+        html += '<div class="text-[10px] text-gray-500 px-2 mt-0.5 leading-none flex items-center">' + dateDisplay + dateWarn + '</div>';
+        html += '</td>';
+
+        for (const k of FIELD_KEYS) {
+            const val = r.current[k] || '';
+            const dirty = isDirtyField(r, k) ? ' dirty' : '';
+            const dir = k === 'parsha' ? 'rtl' : 'ltr';
+            const placeholder = k === 'parsha' ? 'e.g. שמיני' : (k === 'candle_lighting' ? '7:13' : '—');
+            html += '<td class="px-2 py-1"><input type="text" value="' + escAttr(val) + '" dir="' + dir + '" data-field="' + k + '" class="cell-input' + dirty + '" placeholder="' + placeholder + '"/></td>';
+        }
+
+        html += '<td class="px-2 py-1 text-center">';
+        if (r.deleted) {
+            html += '<button data-act="undelete" class="text-green-400 hover:text-green-300 p-1" title="Restore row"><span class="material-symbols-outlined text-lg">undo</span></button>';
+        } else {
+            html += '<button data-act="delete" class="text-gray-500 hover:text-red-400 p-1" title="Delete row"><span class="material-symbols-outlined text-lg">delete</span></button>';
+        }
+        html += '</td></tr>';
+    }
+
+    if (!html) {
+        html = '<tr><td colspan="8" class="px-4 py-10 text-center text-gray-500">No upcoming weeks. Toggle "Show past weeks" or add a new row.</td></tr>';
+    }
+
+    tbody.innerHTML = html;
+    updateDirtyBadge();
+}
+
+function isDirtyField(r, field) {
+    if (r.isNew) return true;
+    if (!r.original) return true;
+    return (r.current[field] || '') !== (r.original[field] || '');
+}
+
+function escAttr(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function findRowByKey(key) {
+    return rows.find(function(r) { return r.key === key; });
+}
+
+// Event delegation on table body
+document.getElementById('tableBody').addEventListener('input', function(e) {
+    const input = e.target.closest('.cell-input');
+    if (!input) return;
+    const tr = input.closest('tr[data-key]');
+    if (!tr) return;
+    const r = findRowByKey(tr.getAttribute('data-key'));
+    if (!r) return;
+    const field = input.getAttribute('data-field');
+    r.current[field] = input.value;
+    // Update dirty styling on just this input
+    input.classList.toggle('dirty', isDirtyField(r, field));
+    updateDirtyBadge();
+});
+
+document.getElementById('tableBody').addEventListener('click', function(e) {
+    const btn = e.target.closest('button[data-act]');
+    if (!btn) return;
+    const tr = btn.closest('tr[data-key]');
+    if (!tr) return;
+    const r = findRowByKey(tr.getAttribute('data-key'));
+    if (!r) return;
+    const act = btn.getAttribute('data-act');
+    if (act === 'delete') {
+        if (r.isNew) {
+            // Drop unsaved new rows entirely rather than marking them deleted
+            rows = rows.filter(function(x) { return x.key !== r.key; });
+        } else {
+            r.deleted = true;
+        }
+    } else if (act === 'undelete') {
+        r.deleted = false;
+    }
+    render();
+});
+
+document.getElementById('addRowBtn').addEventListener('click', function() {
+    // Seed new row's date as 7 days after the latest existing row, or next Saturday
+    let seedDate = null;
+    for (let i = rows.length - 1; i >= 0; i--) {
+        if (!rows[i].deleted && rows[i].current.shabbos_date) { seedDate = rows[i].current.shabbos_date; break; }
+    }
+    const newDate = nextSaturdayIso(seedDate);
+    const empty = {
+        shabbos_date: newDate,
+        parsha: '', candle_lighting: '', mincha_erev_shabbos: '',
+        shacharit: '', mincha_shabbos: '', maariv: ''
+    };
+    rows.push({
+        key: 'k' + (rowSeq++),
+        original: null,
+        current: empty,
+        deleted: false,
+        isNew: true
+    });
+    render();
+});
+
+document.getElementById('showPastToggle').addEventListener('change', render);
+
+// ── CSV Import ──
+// Expected format: any CSV where ONE column is a date in M/D/YY or M/D/YYYY form.
+// We try to auto-detect the date column and map remaining columns by Hebrew/English header names.
+document.getElementById('importCsvBtn').addEventListener('click', function() {
+    document.getElementById('csvFileInput').click();
+});
+document.getElementById('csvFileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+        try {
+            importCsv(ev.target.result);
+        } catch (err) {
+            showToast('error', 'CSV import failed: ' + err.message);
+        }
+        e.target.value = '';
+    };
+    reader.readAsText(file);
+});
+
+function parseCsv(text) {
+    // Simple RFC-4180-ish CSV parser: respects quoted fields (including embedded commas, newlines, "" escapes).
+    const out = [];
+    let row = [];
+    let cur = '';
+    let inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (inQuotes) {
+            if (c === '"') {
+                if (text[i+1] === '"') { cur += '"'; i++; }
+                else { inQuotes = false; }
+            } else { cur += c; }
+        } else {
+            if (c === '"') { inQuotes = true; }
+            else if (c === ',') { row.push(cur); cur = ''; }
+            else if (c === '\n' || c === '\r') {
+                if (c === '\r' && text[i+1] === '\n') i++;
+                row.push(cur); cur = '';
+                out.push(row); row = [];
+            } else { cur += c; }
+        }
+    }
+    if (cur.length || row.length) { row.push(cur); out.push(row); }
+    return out.filter(r => r.some(cell => (cell || '').trim().length));
+}
+
+function parseUsDate(s) {
+    // "M/D/YY" or "M/D/YYYY" -> YYYY-MM-DD
+    if (!s) return null;
+    const m = s.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+    if (!m) return null;
+    let yr = parseInt(m[3], 10);
+    if (yr < 100) yr += 2000;
+    const mo = parseInt(m[1], 10);
+    const dy = parseInt(m[2], 10);
+    if (mo < 1 || mo > 12 || dy < 1 || dy > 31) return null;
+    return yr + '-' + String(mo).padStart(2, '0') + '-' + String(dy).padStart(2, '0');
+}
+
+// Hebrew/English header hints -> our field keys.
+// Order matters: we resolve more-specific fields first so bare "מנחה" is not grabbed by a
+// more-specific sibling before the saturday-mincha pass runs.
+const HEADER_RULES = [
+    { field: 'parsha', hints: ['parsha', 'פרשה', 'פרשת', 'weekly'] },
+    { field: 'candle_lighting', hints: ['candle', 'הדלקת', 'נרות'] },
+    { field: 'mincha_erev_shabbos', hints: ['mincha erev', 'mincha friday', 'mincha fri', 'ערב שבת', 'מנחה ערב'] },
+    { field: 'shacharit', hints: ['shacharit', 'shacharis', 'שחרית'] },
+    { field: 'maariv', hints: ['maariv', 'havdalah', 'מעריב', 'הבדלה'] },
+    // Saturday mincha last — includes the bare "מנחה" fallback so it can grab whatever's left.
+    { field: 'mincha_shabbos', hints: ['mincha shabbos', 'mincha shabbat', 'mincha sat', 'mincha saturday', 'מנחה שבת', 'מנחה של שבת', 'מנחה'] }
+];
+
+function matchHeader(h, hints) {
+    const s = (h || '').toLowerCase().trim();
+    if (!s) return false;
+    return hints.some(function(k) { return s.includes(k.toLowerCase()); });
+}
+
+function addDays(iso, n) {
+    const d = new Date(iso + 'T00:00:00Z');
+    d.setUTCDate(d.getUTCDate() + n);
+    return d.toISOString().split('T')[0];
+}
+
+function importCsv(text) {
+    const parsed = parseCsv(text);
+    if (!parsed.length) throw new Error('CSV is empty');
+
+    // 1) Find the header row: the row with the most non-empty cells that contain a date-field hint.
+    // 2) Find the date column: column where most cells parse as a US date (or ISO date).
+    //    Do this on all rows (including header) — header cells won't parse so it self-corrects.
+    const nCols = Math.max.apply(null, parsed.map(r => r.length));
+    const dateColScore = new Array(nCols).fill(0);
+    for (const row of parsed) {
+        for (let c = 0; c < nCols; c++) {
+            const v = (row[c] || '').trim();
+            if (parseUsDate(v) || /^\d{4}-\d{2}-\d{2}$/.test(v)) dateColScore[c]++;
+        }
+    }
+    const dateCol = dateColScore.indexOf(Math.max.apply(null, dateColScore));
+    if (dateColScore[dateCol] === 0) throw new Error('No date column found (need M/D/YYYY)');
+
+    // Header row: the row ABOVE the first data row with a date in dateCol.
+    let firstDataIdx = -1;
+    for (let i = 0; i < parsed.length; i++) {
+        const v = (parsed[i][dateCol] || '').trim();
+        if (parseUsDate(v) || /^\d{4}-\d{2}-\d{2}$/.test(v)) { firstDataIdx = i; break; }
+    }
+    if (firstDataIdx === -1) throw new Error('No data rows found');
+    const headerRow = firstDataIdx > 0 ? parsed[firstDataIdx - 1] : [];
+
+    // Detect if the CSV dates are Fridays (candle lighting convention) — if so, we need to +1 day
+    // to store against Saturday (shabbos_date). Check the first few data rows.
+    let friCount = 0, satCount = 0, otherCount = 0;
+    for (let i = firstDataIdx; i < Math.min(firstDataIdx + 10, parsed.length); i++) {
+        const v = (parsed[i][dateCol] || '').trim();
+        const iso = parseUsDate(v) || (/^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null);
+        if (!iso) continue;
+        const dow = new Date(iso + 'T00:00:00Z').getUTCDay();
+        if (dow === 5) friCount++;
+        else if (dow === 6) satCount++;
+        else otherCount++;
+    }
+    const shiftFridayToSaturday = friCount > satCount && friCount > otherCount;
+    if (shiftFridayToSaturday) {
+        if (!confirm('The CSV dates appear to be Fridays (candle-lighting dates). Shift them forward one day to save against Shabbos (Saturday)?')) {
+            // User declined — import as-is even though dates won't match get-data's Saturday query
+        }
+    }
+
+    // Build column map by header match. Walk rules in order; each column can only be assigned once.
+    const colMap = {}; // field -> columnIndex
+    const usedCols = new Set([dateCol]);
+    for (const rule of HEADER_RULES) {
+        for (let c = 0; c < nCols; c++) {
+            if (usedCols.has(c)) continue;
+            if (matchHeader(headerRow[c], rule.hints)) { colMap[rule.field] = c; usedCols.add(c); break; }
+        }
+    }
+
+    // Fallback for parsha when the CSV didn't label its parsha column:
+    // scan unmapped columns and pick the one whose data looks like parsha names
+    // (Hebrew letters, not times, not numeric).  Prefer the column adjacent to the date.
+    if (colMap.parsha === undefined) {
+        const timeLike = /^\s*\d{1,2}[:\.]\d{2}/;
+        const scores = [];
+        for (let c = 0; c < nCols; c++) {
+            if (usedCols.has(c)) { scores.push(-1); continue; }
+            let hebrewCount = 0, sampled = 0;
+            for (let i = firstDataIdx; i < parsed.length; i++) {
+                const v = (parsed[i][c] || '').trim();
+                if (!v) continue;
+                sampled++;
+                if (timeLike.test(v)) continue;
+                if (/^\d/.test(v)) continue;
+                if (/[\u0590-\u05FF]/.test(v)) hebrewCount++;
+            }
+            // Closer-to-date column wins ties
+            const distancePenalty = Math.abs(c - dateCol) * 0.01;
+            scores.push(sampled > 0 ? (hebrewCount / sampled) - distancePenalty : -1);
+        }
+        let best = -1, bestScore = 0.5; // require at least 50% Hebrew content
+        for (let c = 0; c < nCols; c++) {
+            if (scores[c] > bestScore) { bestScore = scores[c]; best = c; }
+        }
+        if (best !== -1) { colMap.parsha = best; usedCols.add(best); }
+    }
+
+    // Count how many we mapped
+    const mappedFields = Object.keys(colMap);
+
+    // Iterate data rows
+    let imported = 0, merged = 0, added = 0, shifted = 0;
+    for (let i = firstDataIdx; i < parsed.length; i++) {
+        const raw = parsed[i];
+        const dv = (raw[dateCol] || '').trim();
+        let iso = parseUsDate(dv) || (/^\d{4}-\d{2}-\d{2}$/.test(dv) ? dv : null);
+        if (!iso) continue;
+        if (shiftFridayToSaturday && new Date(iso + 'T00:00:00Z').getUTCDay() === 5) {
+            iso = addDays(iso, 1);
+            shifted++;
+        }
+
+        const incoming = { shabbos_date: iso };
+        for (const field of mappedFields) {
+            incoming[field] = (raw[colMap[field]] || '').trim();
+        }
+
+        // Find existing row by date (only live rows — do not merge into deleted rows)
+        const existing = rows.find(function(r) { return !r.deleted && r.current.shabbos_date === iso; });
+        if (existing) {
+            for (const field of mappedFields) {
+                if (incoming[field]) existing.current[field] = incoming[field];
+            }
+            merged++;
+        } else {
+            const newRow = {
+                key: 'k' + (rowSeq++),
+                original: null,
+                current: {
+                    shabbos_date: iso,
+                    parsha: incoming.parsha || '',
+                    candle_lighting: incoming.candle_lighting || '',
+                    mincha_erev_shabbos: incoming.mincha_erev_shabbos || '',
+                    shacharit: incoming.shacharit || '',
+                    mincha_shabbos: incoming.mincha_shabbos || '',
+                    maariv: incoming.maariv || ''
+                },
+                deleted: false,
+                isNew: true
+            };
+            rows.push(newRow);
+            added++;
+        }
+        imported++;
+    }
+
+    render();
+    let msg = 'Imported ' + imported + ' rows (' + added + ' new, ' + merged + ' merged).';
+    if (shifted > 0) msg += ' Shifted ' + shifted + ' date(s) Fri→Sat.';
+    if (mappedFields.length === 0) msg += ' No header match — only dates imported.';
+    else msg += ' Mapped: ' + mappedFields.map(f => f.replace(/_/g,' ')).join(', ') + '.';
+    showToast('ok', 'CSV imported — review then Save');
+    document.getElementById('statusMsg').textContent = msg + ' Not saved yet.';
+}
+
+// ── Save ──
+document.getElementById('saveBtn').addEventListener('click', async function() {
+    // Validate: every non-deleted row needs a valid saturday-ish date
+    const toSave = [];
+    const toDelete = [];
+    const badRows = [];
+    for (const r of rows) {
+        if (r.deleted) {
+            if (!r.isNew && r.original) toDelete.push(r.original.shabbos_date);
+            continue;
+        }
+        if (!r.current.shabbos_date || !/^\d{4}-\d{2}-\d{2}$/.test(r.current.shabbos_date)) {
+            badRows.push(r);
+            continue;
+        }
+        toSave.push({
+            shabbos_date: r.current.shabbos_date,
+            parsha: r.current.parsha,
+            candle_lighting: r.current.candle_lighting,
+            mincha_erev_shabbos: r.current.mincha_erev_shabbos,
+            shacharit: r.current.shacharit,
+            mincha_shabbos: r.current.mincha_shabbos,
+            maariv: r.current.maariv
+        });
+    }
+    if (badRows.length) {
+        showToast('error', badRows.length + ' row(s) missing a date');
+        return;
+    }
+    // Warn if duplicate dates
+    const seen = new Set();
+    for (const row of toSave) {
+        if (seen.has(row.shabbos_date)) {
+            showToast('error', 'Duplicate date: ' + row.shabbos_date);
+            return;
+        }
+        seen.add(row.shabbos_date);
+    }
+
+    // Confirm batch deletions (3+) to prevent accidents
+    if (toDelete.length >= 3) {
+        if (!confirm('You are about to permanently delete ' + toDelete.length + ' week(s) from the database. Continue?')) {
+            return;
+        }
+    }
+
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = true;
+    const origHtml = btn.innerHTML;
+    btn.innerHTML = '<span class="material-symbols-outlined text-base animate-spin">progress_activity</span> Saving…';
+
+    try {
+        const token = document.getElementById('adminToken').value;
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        const payload = { rows: toSave };
+        // Only request deletion if the user has actually deleted rows (avoids wiping DB on an empty save)
+        if (toDelete.length > 0) payload.deleteMissing = true;
+
+        const res = await fetch('/api/shabbos-schedule', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(payload)
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({ error: 'Save failed' }));
+            throw new Error(err.error || 'Save failed (' + res.status + ')');
+        }
+        const result = await res.json();
+        if (token) localStorage.setItem('shulAdminToken', token);
+        showToast('ok', 'Saved ' + (result.written || 0) + ' rows' + (result.deleted ? ' (deleted ' + result.deleted + ')' : ''));
+        // Refresh from server so local snapshot = server truth
+        await loadRows();
+    } catch (err) {
+        showToast('error', err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+    }
+});
+
+// Warn on navigation if unsaved
+window.addEventListener('beforeunload', function(e) {
+    if (rows.some(rowIsDirty)) { e.preventDefault(); e.returnValue = ''; return ''; }
+});
+
+// Restore token from localStorage
+const savedToken = localStorage.getItem('shulAdminToken');
+if (savedToken) document.getElementById('adminToken').value = savedToken;
+
+loadRows();
+</script>
+</body>
+</html>
