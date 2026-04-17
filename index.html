@@ -92,8 +92,8 @@
             </h1>
 </div>
 <div class="ml-auto flex flex-col items-end shrink-0">
-<span id="secularDate" class="text-base font-headline font-bold text-primary tracking-widest uppercase"></span>
-<span id="hebrewDate" class="text-base font-headline opacity-80 italic tracking-wider text-secondary" dir="rtl"></span>
+<span id="secularDate" class="text-lg font-headline font-bold text-primary tracking-widest uppercase"></span>
+<span id="hebrewDate" class="text-lg font-headline opacity-80 italic tracking-wider text-secondary" dir="rtl"></span>
 </div>
 </nav>
 <!-- Main Grid -->
@@ -147,7 +147,7 @@
 <p id="z-shacharit" class="text-primary font-headline font-bold text-4xl text-3d leading-tight">—</p>
 </div>
 <div class="text-center hidden" id="z-shiur-mincha-wrap">
-<p class="text-base font-bold text-secondary" dir="rtl">שיעור הלכה</p>
+<p class="text-lg font-bold text-secondary" dir="rtl">שיעור הלכה</p>
 <p id="z-shiur-mincha" class="text-primary font-headline font-bold text-2xl leading-tight">—</p>
 </div>
 <div class="text-center">
@@ -155,7 +155,7 @@
 <p id="z-mincha-saturday" class="text-primary font-headline font-bold text-4xl text-3d leading-tight">—</p>
 </div>
 <div class="text-center hidden" id="z-shiur-maariv-wrap">
-<p class="text-base font-bold text-secondary" dir="rtl">פרקי אבות</p>
+<p class="text-lg font-bold text-secondary" dir="rtl">פרקי אבות</p>
 <p id="z-shiur-maariv" class="text-primary font-headline font-bold text-2xl leading-tight">—</p>
 </div>
 <div class="text-center">
@@ -164,7 +164,7 @@
 </div>
 </div>
 <div class="bg-black/50 py-1.5 text-center border-t border-white/5 shrink-0">
-<p id="z-parshat" class="text-xl tracking-[0.2em] font-bold text-primary uppercase italic">—</p>
+<p id="z-parshat" class="text-2xl tracking-[0.2em] font-bold text-primary uppercase italic">—</p>
 </div>
 </div>
 <!-- Sponsor Section -->
@@ -181,9 +181,9 @@
 <!-- Info Bar -->
 <div class="bg-[#0a0706] border-y-4 gold-border-3d h-12 flex items-center shadow-xl relative z-40 overflow-hidden shrink-0">
 <div class="px-8 text-primary font-headline w-full grid grid-cols-3 items-center gap-4">
-<span id="infoSefirah" dir="rtl" class="font-bold text-xl glow-text-hebrew truncate text-left"></span>
-<span id="infoWelcome" class="tracking-[0.2em] uppercase font-bold text-xl text-center truncate"></span>
-<span id="infoReminder" class="italic font-semibold text-xl text-secondary text-right truncate"></span>
+<span id="infoSefirah" dir="rtl" class="font-bold text-2xl glow-text-hebrew truncate text-left"></span>
+<span id="infoWelcome" class="tracking-[0.2em] uppercase font-bold text-2xl text-center truncate"></span>
+<span id="infoReminder" class="italic font-semibold text-2xl text-secondary text-right truncate"></span>
 </div>
 </div>
 <!-- Last Updated Indicator -->
@@ -354,8 +354,8 @@ async function loadScreenData() {
         dailyItems.forEach(function(item) {
             if (!item.value) return;
             dzHtml += '<div class="flex justify-center items-baseline gap-3 px-2 py-0.5 min-w-0">';
-            dzHtml += '<span class="text-lg font-bold text-secondary truncate" dir="rtl">' + esc(item.label) + '</span>';
-            dzHtml += '<span class="text-primary font-headline font-bold text-2xl text-3d-light shrink-0">' + esc(item.value) + '</span>';
+            dzHtml += '<span class="text-xl font-bold text-secondary truncate" dir="rtl">' + esc(item.label) + '</span>';
+            dzHtml += '<span class="text-primary font-headline font-bold text-3xl text-3d-light shrink-0">' + esc(item.value) + '</span>';
             dzHtml += '</div>';
         });
         dailyContainer.innerHTML = dzHtml;
@@ -369,7 +369,7 @@ async function loadScreenData() {
         var sCount = data.schedule.length;
         var sPy = sCount <= 4 ? 'py-1.5' : (sCount <= 6 ? 'py-1' : 'py-0.5');
         var sTime = sCount <= 4 ? 'text-3xl' : (sCount <= 6 ? 'text-2xl' : 'text-xl');
-        var sLabel = sCount <= 6 ? 'text-base' : 'text-sm';
+        var sLabel = sCount <= 6 ? 'text-lg' : 'text-base';
         var schedHtml = '';
         data.schedule.forEach(function(s) {
             schedHtml += '<div class="flex justify-between items-baseline gap-2 px-3 ' + sPy + ' min-w-0">';
@@ -388,7 +388,7 @@ async function loadScreenData() {
             var hCount = data.shiurim.length;
             var hPy = hCount <= 4 ? 'py-1' : (hCount <= 6 ? 'py-0.5' : 'py-0');
             var hTime = hCount <= 4 ? 'text-3xl' : (hCount <= 6 ? 'text-2xl' : 'text-xl');
-            var hLabel = hCount <= 6 ? 'text-base' : 'text-sm';
+            var hLabel = hCount <= 6 ? 'text-lg' : 'text-base';
             var shHtml = '';
             data.shiurim.forEach(function(s) {
                 shHtml += '<div class="flex justify-between items-baseline gap-2 px-3 ' + hPy + ' min-w-0">';
