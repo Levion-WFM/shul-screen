@@ -119,15 +119,14 @@
 </div>
 </div>
 </div>
-<!-- Center Column: Announcements Stacked -->
-<div class="col-span-5 flex flex-col min-h-0">
-<div class="bg-[#060504] elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 min-h-0 rounded-sm overflow-hidden">
-<h2 class="text-center font-headline text-xl py-2 border-b border-white/10 font-bold bg-black/40 text-primary shrink-0" dir="rtl">הודעות</h2>
-<div id="announcementSlots" class="flex flex-col flex-1 min-h-0 justify-center overflow-hidden">
-</div>
-<div id="communitySlots" class="p-3 flex-none flex justify-around items-center text-center">
-</div>
-</div>
+<!-- Center Column: Announcements (individually rimmed, no outer container) -->
+<div class="col-span-5 flex flex-col min-h-0 gap-3">
+<!-- Section 1: Shul Announcement (max 1 flier) -->
+<div id="shulAnnSlots" class="flex-1 min-h-0 flex items-stretch justify-center gap-3 hidden"></div>
+<!-- Section 2: Community Fliers (max 3, horizontal) -->
+<div id="commFlierSlots" class="flex-1 min-h-0 flex items-stretch justify-center gap-3 hidden"></div>
+<!-- Section 3: Text Announcements (max 3, horizontal, each with own gold rim) -->
+<div id="communitySlots" class="flex-none flex items-stretch justify-center gap-3 hidden"></div>
 </div>
 <!-- Right Column: Shabbat Zmanim & Sponsor -->
 <div class="col-span-3 flex flex-col gap-4 min-h-0">
@@ -256,15 +255,12 @@ setInterval(updateSecularDate, 60000);
 // ========================================
 // SIZING RULES
 // ========================================
-var annSizes = {
-    1: { img: 'w-72', title: 'text-3xl', desc: 'text-lg',  pad: 'p-4 gap-5', maxW: 'max-w-xl', justify: 'justify-center' },
-    2: { img: 'w-44', title: 'text-2xl', desc: 'text-base', pad: 'p-3 gap-4', maxW: 'max-w-md', justify: 'justify-around' },
-    3: { img: 'w-32', title: 'text-xl',  desc: 'text-sm',  pad: 'p-2 gap-3', maxW: 'max-w-sm', justify: 'justify-around' }
-};
+var flierTitle = { 1: 'text-2xl', 2: 'text-xl', 3: 'text-lg' };
+var flierDesc  = { 1: 'text-base', 2: 'text-sm', 3: 'text-xs' };
 var commSizes = {
-    1: { name: 'text-3xl', label: 'text-sm',  sub: 'text-sm', pad: 'p-4', space: 'space-y-2', divH: 'h-20' },
-    2: { name: 'text-xl',  label: 'text-xs',  sub: 'text-xs', pad: 'p-3', space: 'space-y-1', divH: 'h-20' },
-    3: { name: 'text-xl',  label: 'text-xs',  sub: 'text-xs', pad: 'p-2', space: 'space-y-0.5', divH: 'h-16' }
+    1: { name: 'text-3xl', label: 'text-sm', sub: 'text-sm', pad: 'p-4', space: 'space-y-2' },
+    2: { name: 'text-2xl', label: 'text-xs', sub: 'text-xs', pad: 'p-3', space: 'space-y-1' },
+    3: { name: 'text-xl',  label: 'text-xs', sub: 'text-xs', pad: 'p-2', space: 'space-y-0.5' }
 };
 var sponsorSizes = {
     1: { name: 'text-lg',  label: 'text-xs', gap: 'gap-2', pad: 'p-3' },
@@ -426,45 +422,73 @@ async function loadScreenData() {
         sponsorContainer.innerHTML = sHtml;
     }
 
-    // ── Announcements ──
-    var annContainer = document.getElementById('announcementSlots');
-    annContainer.innerHTML = '';
-    if (!data.announcements || !data.announcements.length) {
-        annContainer.className = 'flex-none'; // Don't take space when empty
-    } else if (data.announcements && data.announcements.length) {
-        var count = Math.min(data.announcements.length, 3);
-        var sz = annSizes[count];
-        annContainer.className = 'flex flex-col flex-1 min-h-0 overflow-hidden ' + sz.justify;
-        var aHtml = '';
-        data.announcements.forEach(function(a, i) {
-            if (i >= 3) return;
-            var hasImg = a.imageData && a.imageData.length > 10 && a.imageData.startsWith('data:');
-            aHtml += '<div class="' + sz.pad + ' flex-1 min-h-0 flex items-center justify-center border-b border-white/5 overflow-hidden">';
-            if (hasImg) {
-                // object-contain so entire flier stays visible (no cropping of text/images)
-                aHtml += '<div class="relative ' + sz.img + ' aspect-[4/5] elevated-3d border-4 border-primary/30 rounded-sm overflow-hidden flex-shrink-0 bg-black flex items-center justify-center">';
-                aHtml += '<img class="w-full h-full object-contain" src="' + esc(a.imageData) + '"/>';
-                aHtml += '</div>';
-            }
-            var hasText = a.title || a.description;
-            if (hasText) {
-                aHtml += '<div class="' + (hasImg ? 'text-left' : 'text-center') + ' flex-1 min-w-0 ' + sz.maxW + '">';
-                if (a.title) aHtml += '<h3 class="font-headline ' + sz.title + ' font-bold text-primary mb-1 text-3d leading-tight">' + esc(a.title) + '</h3>';
-                if (a.description) aHtml += '<p class="' + sz.desc + ' italic text-secondary leading-snug">' + esc(a.description) + '</p>';
-                aHtml += '</div>';
-            }
-            aHtml += '</div>';
-        });
-        annContainer.innerHTML = aHtml;
+    // ── Shul Announcement (max 1 flier, top of center column) ──
+    var shulAnn = document.getElementById('shulAnnSlots');
+    shulAnn.innerHTML = '';
+    var shulItem = (data.announcements && data.announcements.length) ? data.announcements[0] : null;
+    if (shulItem && (shulItem.imageData || shulItem.title || shulItem.description)) {
+        shulAnn.classList.remove('hidden');
+        var hasImg = shulItem.imageData && shulItem.imageData.length > 10 && shulItem.imageData.startsWith('data:');
+        var hasText = shulItem.title || shulItem.description;
+        var sHtml = '';
+        if (hasImg) {
+            sHtml += '<div class="h-full aspect-[4/5] max-w-full elevated-3d border-4 border-primary/60 rounded-sm overflow-hidden bg-black flex items-center justify-center shrink-0">';
+            sHtml += '<img class="w-full h-full object-contain" src="' + esc(shulItem.imageData) + '"/>';
+            sHtml += '</div>';
+        }
+        if (hasText) {
+            sHtml += '<div class="' + (hasImg ? 'text-left flex-1' : 'text-center flex-1') + ' min-w-0 max-w-xl self-center">';
+            if (shulItem.title) sHtml += '<h3 class="font-headline text-3xl font-bold text-primary mb-2 text-3d leading-tight">' + esc(shulItem.title) + '</h3>';
+            if (shulItem.description) sHtml += '<p class="text-lg italic text-secondary leading-snug">' + esc(shulItem.description) + '</p>';
+            sHtml += '</div>';
+        }
+        shulAnn.innerHTML = sHtml;
+    } else {
+        shulAnn.classList.add('hidden');
     }
 
-    // ── Community ──
+    // ── Community Fliers (max 3, horizontal, each with own gold rim) ──
+    var commFlier = document.getElementById('commFlierSlots');
+    commFlier.innerHTML = '';
+    if (data.communityFliers && data.communityFliers.length) {
+        commFlier.classList.remove('hidden');
+        var cfCount = Math.min(data.communityFliers.length, 3);
+        var tSize = flierTitle[cfCount];
+        var dSize = flierDesc[cfCount];
+        var fHtml = '';
+        data.communityFliers.forEach(function(f, i) {
+            if (i >= 3) return;
+            var hasImg = f.imageData && f.imageData.length > 10 && f.imageData.startsWith('data:');
+            var hasText = f.title || f.description;
+            fHtml += '<div class="flex-1 min-w-0 min-h-0 flex flex-col items-center justify-center gap-2 overflow-hidden">';
+            if (hasImg) {
+                // flex-1 wrapper gives the flier a defined height to derive aspect-ratio width from
+                fHtml += '<div class="flex-1 min-h-0 w-full flex items-center justify-center">';
+                fHtml += '<div class="h-full aspect-[4/5] max-w-full elevated-3d border-4 border-primary/60 rounded-sm overflow-hidden bg-black flex items-center justify-center">';
+                fHtml += '<img class="w-full h-full object-contain" src="' + esc(f.imageData) + '"/>';
+                fHtml += '</div>';
+                fHtml += '</div>';
+            }
+            if (hasText) {
+                fHtml += '<div class="text-center w-full px-1 shrink-0">';
+                if (f.title) fHtml += '<h3 class="font-headline ' + tSize + ' font-bold text-primary text-3d leading-tight truncate">' + esc(f.title) + '</h3>';
+                if (f.description) fHtml += '<p class="' + dSize + ' italic text-secondary leading-snug">' + esc(f.description) + '</p>';
+                fHtml += '</div>';
+            }
+            fHtml += '</div>';
+        });
+        commFlier.innerHTML = fHtml;
+    } else {
+        commFlier.classList.add('hidden');
+    }
+
+    // ── Text Announcements (max 3, horizontal, each on black bg with own gold rim) ──
     var commContainer = document.getElementById('communitySlots');
     commContainer.innerHTML = '';
     if (data.community && data.community.length) {
+        commContainer.classList.remove('hidden');
         var count = Math.min(data.community.length, 3);
         var sz = commSizes[count];
-        commContainer.className = sz.pad + ' flex-none flex justify-around items-center text-center border-t border-white/10';
         var cHtml = '';
         data.community.forEach(function(c, i) {
             if (i >= 3) return;
@@ -472,21 +496,20 @@ async function loadScreenData() {
             var maxNames = count === 3 ? 3 : (count === 2 ? 5 : 6);
             var truncated = lines.length > maxNames;
             if (truncated) lines = lines.slice(0, maxNames);
-            cHtml += '<div class="flex-1 min-w-0 ' + sz.space + '">';
-            cHtml += '<p class="' + sz.label + ' uppercase tracking-[0.3em] font-bold text-primary/80 truncate">' + esc(c.label) + '</p>';
-            cHtml += '<div class="flex flex-col gap-0.5">';
+            cHtml += '<div class="flex-1 min-w-0 bg-black/70 border-4 border-primary/60 rounded-sm elevated-3d ' + sz.pad + ' text-center flex flex-col items-center justify-center ' + sz.space + '">';
+            cHtml += '<p class="' + sz.label + ' uppercase tracking-[0.3em] font-bold text-primary/80 truncate w-full">' + esc(c.label) + '</p>';
+            cHtml += '<div class="flex flex-col gap-0.5 w-full">';
             lines.forEach(function(name) {
                 cHtml += '<p class="font-headline ' + sz.name + ' italic font-bold text-primary text-3d leading-tight truncate">' + esc(name) + '</p>';
             });
             if (truncated) cHtml += '<p class="font-headline ' + sz.name + ' italic font-bold text-primary/60 leading-tight">&amp; others</p>';
             cHtml += '</div>';
-            if (c.sub) cHtml += '<p class="' + sz.sub + ' uppercase tracking-widest font-semibold text-secondary truncate">' + esc(c.sub) + '</p>';
+            if (c.sub) cHtml += '<p class="' + sz.sub + ' uppercase tracking-widest font-semibold text-secondary truncate w-full">' + esc(c.sub) + '</p>';
             cHtml += '</div>';
-            if (i < count - 1) cHtml += '<div class="w-px ' + sz.divH + ' bg-white/10 mx-2 shrink-0"></div>';
         });
         commContainer.innerHTML = cHtml;
     } else {
-        commContainer.className = 'hidden';
+        commContainer.classList.add('hidden');
     }
 
     // ── Shkiyah-based switching ──
