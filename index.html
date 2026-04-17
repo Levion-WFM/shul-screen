@@ -122,9 +122,9 @@
 <!-- Center Column: Announcements (individually rimmed, no outer container) -->
 <div class="col-span-5 flex flex-col min-h-0 gap-3">
 <!-- Section 1: Shul Announcement (max 1 flier) -->
-<div id="shulAnnSlots" class="flex-1 min-h-0 flex items-center justify-center gap-3 hidden"></div>
+<div id="shulAnnSlots" class="flex-1 min-h-0 flex items-stretch justify-center gap-3 hidden"></div>
 <!-- Section 2: Community Fliers (max 3, horizontal) -->
-<div id="commFlierSlots" class="flex-1 min-h-0 flex items-center justify-center gap-3 hidden"></div>
+<div id="commFlierSlots" class="flex-1 min-h-0 flex items-stretch justify-center gap-3 hidden"></div>
 <!-- Section 3: Text Announcements (max 3, horizontal, each with own gold rim) -->
 <div id="communitySlots" class="flex-none flex items-stretch justify-center gap-3 hidden"></div>
 </div>
@@ -136,15 +136,15 @@
 <div class="flex-1 min-h-0 p-2 flex flex-col justify-between overflow-hidden">
 <div class="text-center leading-none">
 <p class="text-base font-bold text-secondary" dir="rtl">הדלקת נרות</p>
-<p id="z-candle-lighting" class="text-primary font-headline font-bold text-4xl text-3d leading-tight">—</p>
+<p id="z-candle-lighting" class="text-primary font-headline font-bold text-3xl text-3d leading-tight">—</p>
 </div>
 <div class="text-center leading-none">
 <p class="text-base font-bold text-secondary" dir="rtl">מנחה וקבלת שבת</p>
-<p id="z-mincha-friday" class="text-primary font-headline font-bold text-4xl text-3d leading-tight">—</p>
+<p id="z-mincha-friday" class="text-primary font-headline font-bold text-3xl text-3d leading-tight">—</p>
 </div>
 <div class="text-center leading-none">
 <p class="text-base font-bold text-secondary" dir="rtl">שחרית</p>
-<p id="z-shacharit" class="text-primary font-headline font-bold text-4xl text-3d leading-tight">—</p>
+<p id="z-shacharit" class="text-primary font-headline font-bold text-3xl text-3d leading-tight">—</p>
 </div>
 <div class="text-center hidden leading-none" id="z-shiur-mincha-wrap">
 <p class="text-sm font-bold text-secondary" dir="rtl">שיעור הלכה</p>
@@ -152,7 +152,7 @@
 </div>
 <div class="text-center leading-none">
 <p class="text-base font-bold text-secondary" dir="rtl">מנחה</p>
-<p id="z-mincha-saturday" class="text-primary font-headline font-bold text-4xl text-3d leading-tight">—</p>
+<p id="z-mincha-saturday" class="text-primary font-headline font-bold text-3xl text-3d leading-tight">—</p>
 </div>
 <div class="text-center hidden leading-none" id="z-shiur-maariv-wrap">
 <p class="text-sm font-bold text-secondary" dir="rtl">פרקי אבות</p>
@@ -160,7 +160,7 @@
 </div>
 <div class="text-center leading-none">
 <p class="text-base font-bold text-secondary" dir="rtl">מעריב</p>
-<p id="z-havdalah" class="text-primary font-headline font-bold text-4xl text-3d leading-tight">—</p>
+<p id="z-havdalah" class="text-primary font-headline font-bold text-3xl text-3d leading-tight">—</p>
 </div>
 </div>
 <div class="bg-black/50 py-1 text-center border-t border-white/5 shrink-0">
@@ -435,7 +435,10 @@ async function loadScreenData() {
             // Image is the bordered element itself — no wrapper box, so the gold frame hugs the
             // picture directly with no black letterbox on any side. max-h-full respects the row
             // height; max-w-[60%] keeps wide landscape fliers from crowding out the text.
-            sHtml += '<img class="max-h-full max-w-[60%] object-contain elevated-3d border-4 border-primary/60 rounded-sm shrink-0" src="' + esc(shulItem.imageData) + '"/>';
+            // h-full + w-auto makes the img's BOX take container height and auto-scale width to
+            // its natural aspect. max-w caps landscape fliers. Because the box matches the image's
+            // true aspect, object-contain has nothing to letterbox — the gold border hugs perfectly.
+            sHtml += '<img class="h-full w-auto max-h-full max-w-[60%] object-contain elevated-3d border-4 border-primary/60 rounded-sm shrink-0" src="' + esc(shulItem.imageData) + '"/>';
         }
         if (hasText) {
             sHtml += '<div class="' + (hasImg ? 'text-left flex-1' : 'text-center flex-1') + ' min-w-0 max-w-xl self-center">';
@@ -472,8 +475,9 @@ async function loadScreenData() {
             var hasText = f.title || f.description;
             fHtml += '<div class="flex-1 min-w-0 min-h-0 flex flex-col items-center justify-center gap-2 overflow-hidden">';
             if (hasImg) {
-                // Image is the bordered element itself — gold frame hugs the picture, no black letterbox.
-                fHtml += '<img class="max-h-full max-w-full object-contain elevated-3d border-4 border-primary/60 rounded-sm" src="' + esc(f.imageData) + '"/>';
+                // h-full + w-auto sizes the img's box to the image's natural aspect (bounded by
+                // the column width), so object-contain has no letterbox inside the gold border.
+                fHtml += '<img class="h-full w-auto max-h-full max-w-full object-contain elevated-3d border-4 border-primary/60 rounded-sm" src="' + esc(f.imageData) + '"/>';
             }
             if (hasText) {
                 fHtml += '<div class="text-center w-full px-1 shrink-0">';
