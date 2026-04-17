@@ -653,11 +653,13 @@ async function loadData() {
 
     if (data.sponsors) data.sponsors.forEach(function(s) { addSponsor(s.label, s.name); });
     // Migration: pre-split data had up to 3 items in `announcements`. Now cap is 1.
-    // First -> Shul; overflow auto-migrates into Community Fliers only if that field didn't exist yet.
-    var hasCommFliersField = Array.isArray(data.communityFliers);
+    // First -> Shul; overflow auto-migrates into Community Fliers whenever that field is
+    // empty OR missing (an empty array means the migration never actually ran, so we must
+    // still perform it — otherwise the second flier is silently dropped).
+    var hasCommFliers = Array.isArray(data.communityFliers) && data.communityFliers.length > 0;
     if (data.announcements) data.announcements.forEach(function(a, i) {
         if (i === 0) addAnnouncement(a.title, a.description, a.imageData);
-        else if (!hasCommFliersField) addCommFlier(a.title, a.description, a.imageData);
+        else if (!hasCommFliers) addCommFlier(a.title, a.description, a.imageData);
     });
     if (data.communityFliers) data.communityFliers.forEach(function(f) { addCommFlier(f.title, f.description, f.imageData); });
     if (data.community) data.community.forEach(function(c) { addCommunity(c.label, c.names, c.sub); });
