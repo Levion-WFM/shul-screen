@@ -121,10 +121,10 @@
 </div>
 <!-- Center Column: Announcements (individually rimmed, no outer container) -->
 <div class="col-span-5 flex flex-col min-h-0 gap-3">
-<!-- Section 1: Shul Announcement (max 1 flier) -->
-<div id="shulAnnSlots" class="flex-1 min-h-0 flex items-stretch justify-center gap-3 hidden"></div>
-<!-- Section 2: Community Fliers (max 3, horizontal) -->
-<div id="commFlierSlots" class="flex-1 min-h-0 flex items-stretch justify-center gap-3 hidden"></div>
+<!-- Section 1: Shul Announcement (max 1 flier, takes most of the column) -->
+<div id="shulAnnSlots" class="flex-1 min-h-0 flex items-center justify-center gap-4 hidden"></div>
+<!-- Section 2: Community Fliers (max 3, horizontal, capped height so shul stays dominant) -->
+<div id="commFlierSlots" class="flex-none h-[28vh] flex items-stretch justify-center gap-3 hidden"></div>
 <!-- Section 3: Text Announcements (max 3, horizontal, each with own gold rim) -->
 <div id="communitySlots" class="flex-none flex items-stretch justify-center gap-3 hidden"></div>
 </div>
@@ -422,22 +422,29 @@ async function loadScreenData() {
         sponsorContainer.innerHTML = sHtml;
     }
 
-    // ── Shul Announcement (max 1 flier, top of center column) ──
+    // Auto-migrate old-format data: if `communityFliers` field is absent, any
+    // announcements beyond the first are displayed as community fliers so the
+    // public screen doesn't drop them before an admin re-saves.
+    var anns = data.announcements || [];
+    var shulItem = anns[0] || null;
+    var hasCommFliersField = Array.isArray(data.communityFliers);
+    var commFliersToRender = hasCommFliersField ? data.communityFliers : anns.slice(1);
+
+    // ── Shul Announcement (max 1 flier, sits at the top, rim hugs image) ──
     var shulAnn = document.getElementById('shulAnnSlots');
     shulAnn.innerHTML = '';
-    var shulItem = (data.announcements && data.announcements.length) ? data.announcements[0] : null;
     if (shulItem && (shulItem.imageData || shulItem.title || shulItem.description)) {
         shulAnn.classList.remove('hidden');
         var hasImg = shulItem.imageData && shulItem.imageData.length > 10 && shulItem.imageData.startsWith('data:');
         var hasText = shulItem.title || shulItem.description;
         var sHtml = '';
         if (hasImg) {
-            sHtml += '<div class="h-full aspect-[4/5] max-w-full elevated-3d border-4 border-primary/60 rounded-sm overflow-hidden bg-black flex items-center justify-center shrink-0">';
-            sHtml += '<img class="w-full h-full object-contain" src="' + esc(shulItem.imageData) + '"/>';
-            sHtml += '</div>';
+            // Rim applied directly to the <img> so it hugs the image's natural
+            // aspect ratio — no black letterbox bars around landscape fliers.
+            sHtml += '<img class="max-h-full max-w-full w-auto h-auto block elevated-3d border-4 border-primary/60 rounded-sm bg-black" src="' + esc(shulItem.imageData) + '"/>';
         }
         if (hasText) {
-            sHtml += '<div class="' + (hasImg ? 'text-left flex-1' : 'text-center flex-1') + ' min-w-0 max-w-xl self-center">';
+            sHtml += '<div class="' + (hasImg ? 'text-left' : 'text-center') + ' min-w-0 max-w-xl flex-1">';
             if (shulItem.title) sHtml += '<h3 class="font-headline text-3xl font-bold text-primary mb-2 text-3d leading-tight">' + esc(shulItem.title) + '</h3>';
             if (shulItem.description) sHtml += '<p class="text-lg italic text-secondary leading-snug">' + esc(shulItem.description) + '</p>';
             sHtml += '</div>';
@@ -447,26 +454,25 @@ async function loadScreenData() {
         shulAnn.classList.add('hidden');
     }
 
-    // ── Community Fliers (max 3, horizontal, each with own gold rim) ──
+    // ── Community Fliers (max 3, horizontal, each flier's rim hugs its image) ──
     var commFlier = document.getElementById('commFlierSlots');
     commFlier.innerHTML = '';
-    if (data.communityFliers && data.communityFliers.length) {
+    if (commFliersToRender && commFliersToRender.length) {
         commFlier.classList.remove('hidden');
-        var cfCount = Math.min(data.communityFliers.length, 3);
+        var cfCount = Math.min(commFliersToRender.length, 3);
         var tSize = flierTitle[cfCount];
         var dSize = flierDesc[cfCount];
         var fHtml = '';
-        data.communityFliers.forEach(function(f, i) {
+        commFliersToRender.forEach(function(f, i) {
             if (i >= 3) return;
             var hasImg = f.imageData && f.imageData.length > 10 && f.imageData.startsWith('data:');
             var hasText = f.title || f.description;
             fHtml += '<div class="flex-1 min-w-0 min-h-0 flex flex-col items-center justify-center gap-2 overflow-hidden">';
             if (hasImg) {
-                // flex-1 wrapper gives the flier a defined height to derive aspect-ratio width from
+                // flex-1 wrapper bounds the image so max-h-full hugs the row height;
+                // img itself carries the rim so there is no black letterbox.
                 fHtml += '<div class="flex-1 min-h-0 w-full flex items-center justify-center">';
-                fHtml += '<div class="h-full aspect-[4/5] max-w-full elevated-3d border-4 border-primary/60 rounded-sm overflow-hidden bg-black flex items-center justify-center">';
-                fHtml += '<img class="w-full h-full object-contain" src="' + esc(f.imageData) + '"/>';
-                fHtml += '</div>';
+                fHtml += '<img class="max-h-full max-w-full w-auto h-auto block elevated-3d border-4 border-primary/60 rounded-sm bg-black" src="' + esc(f.imageData) + '"/>';
                 fHtml += '</div>';
             }
             if (hasText) {
