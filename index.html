@@ -83,24 +83,30 @@
 <body class="bg-[#0a0706] text-white font-body h-screen flex flex-col overflow-hidden">
 <!-- Header -->
 <nav class="bg-[#0a0706] border-b-4 gold-border-3d py-2 px-8 flex items-center relative z-50 shrink-0">
-<div class="flex justify-start shrink-0">
+<!-- Left: icon + dates -->
+<div class="flex items-center gap-3 shrink-0">
 <span class="material-symbols-outlined text-4xl gold-inlay" style="font-variation-settings: 'FILL' 1;">auto_stories</span>
+<div class="flex flex-col leading-tight">
+<span id="secularDate" class="text-base font-headline font-bold text-primary tracking-widest uppercase"></span>
+<span id="hebrewDate" class="text-base font-headline opacity-80 italic tracking-wider text-secondary" dir="rtl"></span>
 </div>
+</div>
+<!-- Center: shul name -->
 <div class="absolute inset-x-0 flex justify-center pointer-events-none">
 <h1 class="text-4xl font-headline font-bold gold-inlay tracking-[0.08em] text-center leading-tight whitespace-nowrap pointer-events-auto">
                 BEIS MEDRASH D JACKSON 21
             </h1>
 </div>
-<div class="ml-auto flex flex-col items-end shrink-0">
-<span id="secularDate" class="text-base font-headline font-bold text-primary tracking-widest uppercase"></span>
-<span id="hebrewDate" class="text-base font-headline opacity-80 italic tracking-wider text-secondary" dir="rtl"></span>
+<!-- Right: precision clock. Used for time-sensitive religious decisions; must stay accurate. -->
+<div class="ml-auto flex items-center shrink-0">
+<span id="liveClock" class="font-mono font-bold text-primary tracking-tight tabular-nums text-3xl text-3d leading-none">--:--:--</span>
 </div>
 </nav>
 <!-- Main Grid -->
 <main class="flex-1 min-h-0 wood-grain p-4 grid grid-cols-12 gap-4 overflow-hidden">
 <!-- Left Column: Weekly Schedule & Daily Zmanim -->
 <div class="col-span-4 flex flex-col gap-4 min-h-0">
-<!-- Weekly Schedule + Shiurim -->
+<!-- Weekly Schedule + Shiurim + Seder Limud -->
 <div class="bg-surface-container-high elevated-3d border-t-4 gold-border-3d flex flex-col flex-none rounded-sm overflow-hidden">
 <h2 class="text-primary font-headline text-center py-2 text-3xl font-bold border-b border-white/10 bg-black/40" dir="rtl">זמני חול</h2>
 <div id="scheduleSlots" class="px-3 py-2 flex flex-col">
@@ -111,11 +117,24 @@
 <h3 class="text-primary font-headline text-center pt-2 pb-0.5 text-2xl font-bold tracking-wider" dir="rtl">שיעורים</h3>
 <div id="shiurimSlots" class="px-3 pb-2 flex flex-col">
 </div>
+<!-- Gold divider -->
+<div class="mx-4 h-0.5 bg-gradient-to-r from-transparent via-primary/70 to-transparent"></div>
+<!-- Seder Limud (Kollel Boker / Seder Layla / other learning sessions) -->
+<h3 class="text-primary font-headline text-center pt-2 pb-0.5 text-2xl font-bold tracking-wider" dir="rtl">סדרי לימוד</h3>
+<div id="sederLimudSlots" class="px-3 pb-2 flex flex-col">
+</div>
 </div>
 <!-- Daily Zmanim -->
 <div class="bg-surface-container-high elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 min-h-0 rounded-sm overflow-hidden">
 <h2 class="text-primary font-headline text-center py-2 text-3xl tracking-[0.2em] font-bold border-b border-white/10 bg-black/40 shrink-0" dir="rtl">זמני היום</h2>
-<div class="flex-1 min-h-0 p-2 grid grid-cols-2 auto-rows-fr gap-x-3 gap-y-0.5" id="dailyZmanimSlots">
+<!-- grid-flow-col + grid-rows-6 makes items flow top-to-bottom in column 1, then column 2 -->
+<div class="flex-1 min-h-0 p-2 grid grid-cols-2 grid-rows-6 grid-flow-col auto-rows-fr gap-x-3 gap-y-0.5" id="dailyZmanimSlots">
+</div>
+<!-- Countdown to next zman — gold-lined footer strip -->
+<div class="shrink-0 border-t border-white/10 bg-black/50 px-3 py-1 flex items-baseline justify-between gap-2" id="nextZmanFooter">
+<span class="text-sm font-bold text-secondary tracking-wide uppercase">Next</span>
+<span class="text-base font-bold text-secondary truncate" id="nextZmanLabel" dir="rtl">—</span>
+<span class="text-primary font-headline font-bold text-2xl text-3d-light tabular-nums shrink-0" id="nextZmanCountdown">—</span>
 </div>
 </div>
 </div>
@@ -130,41 +149,55 @@
 </div>
 <!-- Right Column: Shabbat Zmanim & Sponsor -->
 <div class="col-span-3 flex flex-col gap-4 min-h-0">
-<!-- Shabbat Zmanim -->
+<!-- Shabbat Zmanim — inline design (label on right, time on left) to match Weekly Schedule -->
 <div class="bg-surface-container-high elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 min-h-0 rounded-sm overflow-hidden">
-<h2 class="text-primary font-headline text-center py-1.5 text-2xl tracking-[0.2em] font-bold border-b border-white/10 bg-black/40 shrink-0" dir="rtl">זמני שבת</h2>
-<div class="flex-1 min-h-0 p-2 flex flex-col justify-between overflow-hidden">
-<div class="text-center leading-none">
-<p class="text-base font-bold text-secondary" dir="rtl">הדלקת נרות</p>
-<p id="z-candle-lighting" class="text-primary font-headline font-bold text-3xl text-3d leading-tight">—</p>
+<!-- Header: "שבת [Parsha]" — parsha lives in the header now, no bottom band -->
+<div class="text-center py-1.5 border-b border-white/10 bg-black/40 shrink-0">
+<h2 class="text-primary font-headline text-2xl tracking-[0.2em] font-bold leading-none" dir="rtl">
+<span>שבת</span>
+<span id="z-parshat" class="text-primary/90 italic tracking-wide ml-2">—</span>
+</h2>
 </div>
-<div class="text-center leading-none">
-<p class="text-base font-bold text-secondary" dir="rtl">מנחה וקבלת שבת</p>
-<p id="z-mincha-friday" class="text-primary font-headline font-bold text-3xl text-3d leading-tight">—</p>
+<!-- Main Shabbat tefillos — inline rows -->
+<div class="px-3 py-2 flex flex-col" id="shabbatZmanimSlots">
+<div class="flex justify-between items-baseline gap-2 py-1 min-w-0">
+<span class="text-base font-bold text-secondary truncate" dir="rtl">הדלקת נרות</span>
+<span id="z-candle-lighting" class="text-primary font-headline font-bold text-3xl text-3d-light shrink-0">—</span>
 </div>
-<div class="text-center leading-none">
-<p class="text-base font-bold text-secondary" dir="rtl">שחרית</p>
-<p id="z-shacharit" class="text-primary font-headline font-bold text-3xl text-3d leading-tight">—</p>
+<div class="flex justify-between items-baseline gap-2 py-1 min-w-0">
+<span class="text-base font-bold text-secondary truncate" dir="rtl">מנחה וקבלת שבת</span>
+<span id="z-mincha-friday" class="text-primary font-headline font-bold text-3xl text-3d-light shrink-0">—</span>
 </div>
-<div class="text-center hidden leading-none" id="z-shiur-mincha-wrap">
-<p class="text-sm font-bold text-secondary" dir="rtl">שיעור הלכה</p>
-<p id="z-shiur-mincha" class="text-primary font-headline font-bold text-xl leading-tight">—</p>
+<div class="flex justify-between items-baseline gap-2 py-1 min-w-0">
+<span class="text-base font-bold text-secondary truncate" dir="rtl">שחרית</span>
+<span id="z-shacharit" class="text-primary font-headline font-bold text-3xl text-3d-light shrink-0">—</span>
 </div>
-<div class="text-center leading-none">
-<p class="text-base font-bold text-secondary" dir="rtl">מנחה</p>
-<p id="z-mincha-saturday" class="text-primary font-headline font-bold text-3xl text-3d leading-tight">—</p>
+<div class="flex justify-between items-baseline gap-2 py-1 min-w-0">
+<span class="text-base font-bold text-secondary truncate" dir="rtl">מנחה</span>
+<span id="z-mincha-saturday" class="text-primary font-headline font-bold text-3xl text-3d-light shrink-0">—</span>
 </div>
-<div class="text-center hidden leading-none" id="z-shiur-maariv-wrap">
-<p class="text-sm font-bold text-secondary" dir="rtl">פרקי אבות</p>
-<p id="z-shiur-maariv" class="text-primary font-headline font-bold text-xl leading-tight">—</p>
-</div>
-<div class="text-center leading-none">
-<p class="text-base font-bold text-secondary" dir="rtl">מעריב</p>
-<p id="z-havdalah" class="text-primary font-headline font-bold text-3xl text-3d leading-tight">—</p>
+<div class="flex justify-between items-baseline gap-2 py-1 min-w-0">
+<span class="text-base font-bold text-secondary truncate" dir="rtl">מעריב</span>
+<span id="z-havdalah" class="text-primary font-headline font-bold text-3xl text-3d-light shrink-0">—</span>
 </div>
 </div>
-<div class="bg-black/50 py-1 text-center border-t border-white/5 shrink-0">
-<p id="z-parshat" class="text-lg tracking-[0.2em] font-bold text-primary uppercase italic">—</p>
+<!-- Gold divider -->
+<div class="mx-4 h-0.5 bg-gradient-to-r from-transparent via-primary/70 to-transparent"></div>
+<!-- Shabbat Shiurim subsection -->
+<h3 class="text-primary font-headline text-center pt-2 pb-0.5 text-xl font-bold tracking-wider" dir="rtl">שיעורים</h3>
+<div class="px-3 pb-2 flex flex-col" id="shabbatShiurimSlots">
+<div class="flex justify-between items-baseline gap-2 py-0.5 min-w-0 hidden" id="z-shiur-mincha-wrap">
+<span class="text-sm font-bold text-secondary truncate" dir="rtl">שיעור הלכה</span>
+<span id="z-shiur-mincha" class="text-primary font-headline font-bold text-xl text-3d-light shrink-0">—</span>
+</div>
+<div class="flex justify-between items-baseline gap-2 py-0.5 min-w-0 hidden" id="z-shiur-maariv-wrap">
+<span class="text-sm font-bold text-secondary truncate" dir="rtl">פרקי אבות</span>
+<span id="z-shiur-maariv" class="text-primary font-headline font-bold text-xl text-3d-light shrink-0">—</span>
+</div>
+<div class="flex justify-between items-baseline gap-2 py-0.5 min-w-0 hidden" id="z-shiur-chumash-wrap">
+<span class="text-sm font-bold text-secondary truncate" dir="rtl">שיעור חומש – הרב אברהם מאיר ווייס</span>
+<span id="z-shiur-chumash" class="text-primary font-headline font-bold text-base text-3d-light shrink-0" dir="rtl">אחר הקידוש</span>
+</div>
 </div>
 </div>
 <!-- Sponsor Section -->
@@ -329,7 +362,16 @@ async function loadScreenData() {
             }
         }
 
-        // Hebrew date is now handled by shkiyah-based switching below
+        // Shiur Chumash — Rav Avraham Meir Weiss, "acher hakidush" (text, not a time).
+        // Toggle-gated from backend via z.shabbosShiurChumash so CEO can hide when the
+        // maggid shiur isn't meeting (e.g., travelling, yom tov).
+        var shiurChumashWrap = document.getElementById('z-shiur-chumash-wrap');
+        if (shiurChumashWrap) {
+            if (z.shabbosShiurChumash) shiurChumashWrap.classList.remove('hidden');
+            else shiurChumashWrap.classList.add('hidden');
+        }
+
+        // Hebrew date is now handled by tzeis-based switching below
     }
 
     // ── Daily Zmanim (from daily_zmanim table) ──
@@ -351,12 +393,16 @@ async function loadScreenData() {
             { label: 'ר״ת (72 דק׳)', value: dz.tzes72fix },
         ];
         var dzHtml = '';
+        // Populate the countdown source as we iterate (same order, so the grid-flow-col
+        // layout still reads chronologically down each column).
+        window.__zmanimForCountdown = [];
         dailyItems.forEach(function(item) {
             if (!item.value) return;
             dzHtml += '<div class="flex justify-center items-baseline gap-3 px-2 py-0.5 min-w-0">';
             dzHtml += '<span class="text-lg font-bold text-secondary truncate" dir="rtl">' + esc(item.label) + '</span>';
             dzHtml += '<span class="text-primary font-headline font-bold text-2xl text-3d-light shrink-0">' + esc(item.value) + '</span>';
             dzHtml += '</div>';
+            window.__zmanimForCountdown.push({ label: item.label, timeStr: item.value });
         });
         dailyContainer.innerHTML = dzHtml;
     }
@@ -397,6 +443,26 @@ async function loadScreenData() {
                 shHtml += '</div>';
             });
             shiurimContainer.innerHTML = shHtml;
+        }
+    }
+
+    // ── Seder Limud (Kollel Boker / Seder Layla / etc.) ──
+    var sederContainer = document.getElementById('sederLimudSlots');
+    if (sederContainer) {
+        sederContainer.innerHTML = '';
+        if (data.sederLimud && data.sederLimud.length) {
+            var lCount = data.sederLimud.length;
+            var lPy = lCount <= 4 ? 'py-1' : (lCount <= 6 ? 'py-0.5' : 'py-0');
+            var lTime = lCount <= 4 ? 'text-3xl' : (lCount <= 6 ? 'text-2xl' : 'text-xl');
+            var lLabel = lCount <= 6 ? 'text-base' : 'text-sm';
+            var lHtml = '';
+            data.sederLimud.forEach(function(s) {
+                lHtml += '<div class="flex justify-between items-baseline gap-2 px-3 ' + lPy + ' min-w-0">';
+                lHtml += '<span class="' + lLabel + ' font-bold text-secondary truncate" dir="rtl">' + esc(s.label) + '</span>';
+                lHtml += '<span class="text-primary font-headline font-bold ' + lTime + ' text-3d-light shrink-0">' + esc(s.time) + '</span>';
+                lHtml += '</div>';
+            });
+            sederContainer.innerHTML = lHtml;
         }
     }
 
@@ -577,5 +643,84 @@ async function refreshLoop() {
     setTimeout(refreshLoop, 30000);
 }
 refreshLoop();
+
+// ── Precision wall clock ──
+// Used for time-sensitive religious decisions (sof zman tefillah, candle lighting,
+// etc.), so accuracy matters. The Pi stays within a few ms of true time via NTP
+// (timesyncd on Pi OS), so system Date is the right source. We render every second
+// on the boundary: schedule the next tick for exactly (1000 - Date.now() % 1000) ms
+// so "seconds" updates land on the actual second, not drifting between them.
+(function startClock() {
+    var el = document.getElementById('liveClock');
+    if (!el) return;
+    function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+    function tick() {
+        var d = new Date();
+        var h = d.getHours();
+        var ampm = h >= 12 ? 'PM' : 'AM';
+        var h12 = h % 12; if (h12 === 0) h12 = 12;
+        el.textContent = pad2(h12) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds()) + ' ' + ampm;
+        // Fire next tick at the very start of the next second
+        setTimeout(tick, 1000 - (Date.now() % 1000) + 2);
+    }
+    tick();
+})();
+
+// ── Secular date in header ──
+// The nav secularDate element was previously set by the old data loop; set it once
+// per minute from local system time (date only changes at midnight, cheap).
+(function startDate() {
+    var el = document.getElementById('secularDate');
+    if (!el) return;
+    function render() {
+        var d = new Date();
+        el.textContent = d.toLocaleDateString('en-US', {
+            weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
+        }).toUpperCase();
+    }
+    render();
+    setInterval(render, 60000);
+})();
+
+// ── Next-zman countdown (bottom of Daily Zmanim card) ──
+// window.__zmanimForCountdown is populated by the data render loop. Each entry:
+// { label, timeStr }. We parse timeStr via parseTimeToMin, scan forward from now,
+// and display remaining minutes (or seconds once under a minute).
+(function startCountdown() {
+    var labelEl = document.getElementById('nextZmanLabel');
+    var cdEl = document.getElementById('nextZmanCountdown');
+    if (!labelEl || !cdEl) return;
+    function tick() {
+        var list = window.__zmanimForCountdown || [];
+        var now = new Date();
+        var nowSecs = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+        var next = null;
+        for (var i = 0; i < list.length; i++) {
+            var mins = parseTimeToMin(list[i].timeStr); // minutes since midnight
+            if (!mins) continue;
+            var zmanSecs = mins * 60;
+            if (zmanSecs > nowSecs) { next = { label: list[i].label, zmanSecs: zmanSecs }; break; }
+        }
+        if (!next) {
+            labelEl.textContent = '—';
+            cdEl.textContent = '—';
+            setTimeout(tick, 1000 - (Date.now() % 1000) + 2);
+            return;
+        }
+        var remaining = next.zmanSecs - nowSecs;
+        labelEl.textContent = next.label;
+        if (remaining >= 60) {
+            var m = Math.floor(remaining / 60);
+            cdEl.textContent = 'in ' + m + 'm';
+        } else if (remaining > 0) {
+            cdEl.textContent = 'in ' + remaining + 's';
+        } else {
+            cdEl.textContent = 'now';
+        }
+        // Fire on second boundary so the seconds render stays flush.
+        setTimeout(tick, 1000 - (Date.now() % 1000) + 2);
+    }
+    tick();
+})();
 </script>
 </body></html>

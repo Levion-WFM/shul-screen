@@ -111,6 +111,13 @@ tailwind.config = {
                         <p class="text-[11px] text-gray-500">~15 min before Maariv, rounded to nearest 5 — time auto-calculated</p>
                     </div>
                 </label>
+                <label class="flex items-center gap-3 bg-gray-800/50 rounded-lg p-3 cursor-pointer hover:bg-gray-800/70 transition">
+                    <input type="checkbox" id="shabbosShiurChumashToggle" class="w-5 h-5 accent-yellow-500 rounded shrink-0"/>
+                    <div>
+                        <p class="text-sm text-gray-200 font-medium">שיעור חומש – הרב אברהם מאיר ווייס</p>
+                        <p class="text-[11px] text-gray-500">אחר הקידוש (fixed text, no auto-calculated time)</p>
+                    </div>
+                </label>
             </div>
             <div class="bg-green-900/30 border border-green-800/50 rounded-lg p-3 mt-3 flex items-start gap-2">
                 <span class="material-symbols-outlined text-green-400 text-lg mt-0.5">auto_awesome</span>
@@ -146,6 +153,20 @@ tailwind.config = {
         <div class="px-4 sm:px-6 pb-4 sm:pb-6">
             <button onclick="addShiur()" class="text-sm text-gold hover:text-yellow-300 flex items-center gap-1 transition active:scale-95">
                 <span class="material-symbols-outlined text-lg">add_circle</span> Add Shiur
+            </button>
+        </div>
+    </section>
+
+    <!-- Seder Limud (Kollel Boker, Seder Layla, etc.) -->
+    <section class="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
+        <div class="bg-gray-800/50 px-4 sm:px-6 py-3 flex items-center gap-2 border-b border-gray-800">
+            <span class="material-symbols-outlined text-gold">auto_stories</span>
+            <h2 class="text-base sm:text-lg font-bold text-gold">סדרי לימוד / Seder Limud</h2>
+        </div>
+        <div id="sederLimudContainer" class="p-4 sm:p-6 space-y-3"></div>
+        <div class="px-4 sm:px-6 pb-4 sm:pb-6">
+            <button onclick="addSederLimud()" class="text-sm text-gold hover:text-yellow-300 flex items-center gap-1 transition active:scale-95">
+                <span class="material-symbols-outlined text-lg">add_circle</span> Add Learning Session
             </button>
         </div>
     </section>
@@ -363,6 +384,31 @@ function addShiur(label, time, beforeEl) {
         <div class="flex-1 grid grid-cols-2 gap-3 min-w-0">
             <input type="text" value="${esc(label || '')}" class="shiur-label bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. שיעור יום ג׳ — הלכה" dir="rtl"/>
             <input type="text" value="${esc(time || '')}" class="shiur-time bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. 10:15"/>
+        </div>
+        <button onclick="this.closest('[data-row]').remove()" class="text-gray-500 hover:text-red-400 transition p-1 shrink-0">
+            <span class="material-symbols-outlined">delete</span>
+        </button>`;
+    if (beforeEl && beforeEl.parentNode === container) {
+        container.insertBefore(div, beforeEl);
+    } else {
+        container.appendChild(div);
+    }
+}
+
+// ========================================
+// DYNAMIC SEDER LIMUD (Kollel Boker, Seder Layla, etc.)
+// ========================================
+function addSederLimud(label, time, beforeEl) {
+    const container = document.getElementById('sederLimudContainer');
+    const div = document.createElement('div');
+    div.setAttribute('data-row', 'seder');
+    div.className = 'flex gap-2 items-center bg-gray-800/50 rounded-lg p-3';
+    div.innerHTML = `
+        ${insertAboveControl()}
+        ${reorderControls()}
+        <div class="flex-1 grid grid-cols-2 gap-3 min-w-0">
+            <input type="text" value="${esc(label || '')}" class="seder-label bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. כולל בוקר / Seder Layla" dir="rtl"/>
+            <input type="text" value="${esc(time || '')}" class="seder-time bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. 9:30 AM"/>
         </div>
         <button onclick="this.closest('[data-row]').remove()" class="text-gray-500 hover:text-red-400 transition p-1 shrink-0">
             <span class="material-symbols-outlined">delete</span>
@@ -645,6 +691,8 @@ async function loadData() {
         addScheduleItem('Shacharit Sun', '8:00 AM');
         addScheduleItem('Shacharit M-F', '6:45 AM');
         addScheduleItem('Mincha / Maariv', '5:45 PM');
+        addSederLimud('כולל בוקר', '9:30 AM');
+        addSederLimud('סדר לילה', '8:00 PM');
         document.getElementById('infoHebrew').value = 'משיב הרוח ומוריד הגשם';
         document.getElementById('infoWelcome').value = 'Beis Medrash D Jackson 21 • Welcome!';
         document.getElementById('infoReminder').value = '';
@@ -665,6 +713,7 @@ async function loadData() {
     if (data.community) data.community.forEach(function(c) { addCommunity(c.label, c.names, c.sub); });
     if (data.schedule) data.schedule.forEach(function(s) { addScheduleItem(s.label, s.time); });
     if (data.shiurim) data.shiurim.forEach(function(s) { addShiur(s.label, s.time); });
+    if (data.sederLimud) data.sederLimud.forEach(function(s) { addSederLimud(s.label, s.time); });
     if (data.infoBar) {
         document.getElementById('infoHebrew').value = data.infoBar.hebrew || '';
         document.getElementById('infoWelcome').value = data.infoBar.welcome || '';
@@ -682,6 +731,7 @@ async function loadData() {
         // Daily zmanim are now auto-populated from DB — no manual fields
         document.getElementById('shabbosShiurMinchaToggle').checked = !!z.shabbosShiurMincha;
         document.getElementById('shabbosShiurMaarivToggle').checked = !!z.shabbosShiurMaariv;
+        document.getElementById('shabbosShiurChumashToggle').checked = !!z.shabbosShiurChumash;
     }
     // Restore admin token from localStorage
     var savedToken = localStorage.getItem('shulAdminToken');
@@ -735,6 +785,13 @@ async function saveAll() {
         if (!label && !time) return; // skip empty inserted rows
         shiurim.push({ label: label, time: time });
     });
+    const sederLimud = [];
+    document.querySelectorAll('#sederLimudContainer > div').forEach(function(el) {
+        var label = el.querySelector('.seder-label').value.trim();
+        var time = el.querySelector('.seder-time').value.trim();
+        if (!label && !time) return;
+        sederLimud.push({ label: label, time: time });
+    });
     const zmanim = {
         parshat: document.getElementById('zParshat').value,
         hebrewDate: document.getElementById('zHebrewDate').value,
@@ -746,9 +803,10 @@ async function saveAll() {
         // Daily zmanim auto-populated from DB — not saved here
         shabbosShiurMincha: document.getElementById('shabbosShiurMinchaToggle').checked,
         shabbosShiurMaariv: document.getElementById('shabbosShiurMaarivToggle').checked,
+        shabbosShiurChumash: document.getElementById('shabbosShiurChumashToggle').checked,
     };
     const data = {
-        sponsors, announcements, communityFliers, community, schedule, shiurim, zmanim,
+        sponsors, announcements, communityFliers, community, schedule, shiurim, sederLimud, zmanim,
         infoBar: { hebrew: document.getElementById('infoHebrew').value, welcome: document.getElementById('infoWelcome').value, reminder: document.getElementById('infoReminder').value },
         updatedAt: new Date().toISOString()
     };
