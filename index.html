@@ -149,14 +149,14 @@
 <div class="shrink-0 text-center leading-none pt-0.5 pb-0">
 <span class="font-cursive text-primary text-3xl leading-none text-3d-light" style="display:inline-block;line-height:0.9">Shul</span>
 </div>
-<div id="shulAnnSlots" class="flex-1 min-h-0 flex items-stretch justify-center gap-3"></div>
+<div id="shulAnnSlots" class="flex-1 min-h-0 flex items-center justify-center gap-3"></div>
 </div>
 <!-- Section 2: Community Fliers — cursive "Community" title + flier row -->
 <div id="commFlierSection" class="flex-1 min-h-0 flex flex-col hidden">
 <div class="shrink-0 text-center leading-none pt-0.5 pb-0">
 <span class="font-cursive text-primary text-3xl leading-none text-3d-light" style="display:inline-block;line-height:0.9">Community</span>
 </div>
-<div id="commFlierSlots" class="flex-1 min-h-0 flex items-stretch justify-center gap-3"></div>
+<div id="commFlierSlots" class="flex-1 min-h-0 flex items-center justify-center gap-3"></div>
 </div>
 <!-- Section 3: Text Announcements (max 3, horizontal, each with own gold rim) -->
 <div id="communitySlots" class="flex-none flex items-stretch justify-center gap-3 hidden"></div>
@@ -568,13 +568,12 @@ async function loadScreenData() {
         var hasText = shulItem.title || shulItem.description;
         var sHtml = '';
         if (hasImg) {
-            // Image is the bordered element itself — no wrapper box, so the gold frame hugs the
-            // picture directly with no black letterbox on any side. h-full + w-auto makes the
-            // img's BOX take container height and auto-scale width to its natural aspect. When
-            // there's side text, cap at 60% so the image doesn't crowd it out; with no text,
-            // let it fill almost the whole row width so the gold frame sits near the column edge.
+            // Intrinsic sizing (no h-full / w-auto forcing the box to fill the row) so the gold
+            // frame hugs the picture's actual aspect with no interior letterbox. max-h-full caps
+            // vertical, max-w caps horizontal: with side text we leave room (60%); without text,
+            // let it sprawl (92%) so the frame sits near the column edge.
             var imgMaxW = hasText ? 'max-w-[60%]' : 'max-w-[92%]';
-            sHtml += '<img class="h-full w-auto max-h-full ' + imgMaxW + ' object-contain elevated-3d border-4 border-primary/60 rounded-sm shrink-0" src="' + esc(shulItem.imageData) + '"/>';
+            sHtml += '<img class="max-h-full ' + imgMaxW + ' object-contain elevated-3d border-4 border-primary/60 rounded-sm shrink-0" src="' + esc(shulItem.imageData) + '"/>';
         }
         if (hasText) {
             sHtml += '<div class="' + (hasImg ? 'text-left flex-1' : 'text-center flex-1') + ' min-w-0 max-w-xl self-center">';
@@ -612,9 +611,9 @@ async function loadScreenData() {
             var hasText = f.title || f.description;
             fHtml += '<div class="flex-1 min-w-0 min-h-0 flex flex-col items-center justify-center gap-2 overflow-hidden">';
             if (hasImg) {
-                // h-full + w-auto sizes the img's box to the image's natural aspect (bounded by
-                // the column width), so object-contain has no letterbox inside the gold border.
-                fHtml += '<img class="h-full w-auto max-h-full max-w-full object-contain elevated-3d border-4 border-primary/60 rounded-sm" src="' + esc(f.imageData) + '"/>';
+                // Intrinsic sizing bounded by max-h-full / max-w-full so the gold border hugs
+                // the picture's aspect tightly — no interior letterbox on landscape fliers.
+                fHtml += '<img class="max-h-full max-w-full object-contain elevated-3d border-4 border-primary/60 rounded-sm" src="' + esc(f.imageData) + '"/>';
             }
             if (hasText) {
                 fHtml += '<div class="text-center w-full px-1 shrink-0">';
