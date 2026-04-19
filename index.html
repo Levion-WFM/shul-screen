@@ -5,7 +5,7 @@
 <title>Beis Medrash D Jackson 21</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;500;600;700&amp;family=Work_Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;500;600;700&amp;family=Work_Sans:wght@300;400;500;600;700&amp;family=Great+Vibes&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script id="tailwind-config">
@@ -66,6 +66,11 @@
         }
         .text-3d-light {
             text-shadow: 1px 1px 0px #000, 2px 2px 3px rgba(0,0,0,0.4);
+        }
+        /* Elegant script for center-column section titles ("Shul", "Community") */
+        .font-cursive {
+            font-family: 'Great Vibes', cursive;
+            letter-spacing: 0.02em;
         }
         .brass-plaque {
             background: linear-gradient(135deg, #a67c00 0%, #bf9b30 40%, #ffcf40 50%, #bf9b30 60%, #a67c00 100%);
@@ -139,11 +144,21 @@
 </div>
 </div>
 <!-- Center Column: Announcements (individually rimmed, no outer container) -->
-<div class="col-span-5 flex flex-col min-h-0 gap-3">
-<!-- Section 1: Shul Announcement (max 1 flier) -->
-<div id="shulAnnSlots" class="flex-1 min-h-0 flex items-stretch justify-center gap-3 hidden"></div>
-<!-- Section 2: Community Fliers (max 3, horizontal) -->
-<div id="commFlierSlots" class="flex-1 min-h-0 flex items-stretch justify-center gap-3 hidden"></div>
+<div class="col-span-5 flex flex-col min-h-0 gap-2">
+<!-- Section 1: Shul Announcement — cursive "Shul" title + flier row -->
+<div id="shulAnnSection" class="flex-1 min-h-0 flex flex-col hidden">
+<div class="shrink-0 text-center leading-none pt-1 pb-0.5">
+<span class="font-cursive text-primary text-3xl leading-none text-3d-light" style="display:inline-block;line-height:0.9">Shul</span>
+</div>
+<div id="shulAnnSlots" class="flex-1 min-h-0 flex items-stretch justify-center gap-3"></div>
+</div>
+<!-- Section 2: Community Fliers — cursive "Community" title + flier row -->
+<div id="commFlierSection" class="flex-1 min-h-0 flex flex-col hidden">
+<div class="shrink-0 text-center leading-none pt-1 pb-0.5">
+<span class="font-cursive text-primary text-3xl leading-none text-3d-light" style="display:inline-block;line-height:0.9">Community</span>
+</div>
+<div id="commFlierSlots" class="flex-1 min-h-0 flex items-stretch justify-center gap-3"></div>
+</div>
 <!-- Section 3: Text Announcements (max 3, horizontal, each with own gold rim) -->
 <div id="communitySlots" class="flex-none flex items-stretch justify-center gap-3 hidden"></div>
 </div>
@@ -489,11 +504,13 @@ async function loadScreenData() {
     }
 
     // ── Shul Announcement (max 1 flier, top of center column) ──
+    // Hidden state now lives on the wrapping section so the "Shul" cursive title hides too.
     var shulAnn = document.getElementById('shulAnnSlots');
+    var shulAnnSection = document.getElementById('shulAnnSection');
     shulAnn.innerHTML = '';
     var shulItem = (data.announcements && data.announcements.length) ? data.announcements[0] : null;
     if (shulItem && (shulItem.imageData || shulItem.title || shulItem.description)) {
-        shulAnn.classList.remove('hidden');
+        if (shulAnnSection) shulAnnSection.classList.remove('hidden');
         var hasImg = shulItem.imageData && shulItem.imageData.length > 10 && shulItem.imageData.startsWith('data:');
         var hasText = shulItem.title || shulItem.description;
         var sHtml = '';
@@ -514,7 +531,7 @@ async function loadScreenData() {
         }
         shulAnn.innerHTML = sHtml;
     } else {
-        shulAnn.classList.add('hidden');
+        if (shulAnnSection) shulAnnSection.classList.add('hidden');
     }
 
     // ── Community Fliers (max 3, horizontal, each with own gold rim) ──
@@ -522,6 +539,7 @@ async function loadScreenData() {
     // first shul item) and `communityFliers` is empty or missing, treat those as community
     // fliers so no flier is lost when the backend migration didn't fire.
     var commFlier = document.getElementById('commFlierSlots');
+    var commFlierSection = document.getElementById('commFlierSection');
     commFlier.innerHTML = '';
     var flierList = [];
     if (data.communityFliers && data.communityFliers.length) {
@@ -530,7 +548,7 @@ async function loadScreenData() {
         flierList = data.announcements.slice(1, 4);
     }
     if (flierList.length) {
-        commFlier.classList.remove('hidden');
+        if (commFlierSection) commFlierSection.classList.remove('hidden');
         var cfCount = Math.min(flierList.length, 3);
         var tSize = flierTitle[cfCount];
         var dSize = flierDesc[cfCount];
@@ -555,7 +573,7 @@ async function loadScreenData() {
         });
         commFlier.innerHTML = fHtml;
     } else {
-        commFlier.classList.add('hidden');
+        if (commFlierSection) commFlierSection.classList.add('hidden');
     }
 
     // ── Text Announcements (max 3, horizontal, each on black bg with own gold rim) ──
