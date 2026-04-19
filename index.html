@@ -401,19 +401,19 @@ async function loadScreenData() {
             else shiurChumashWrap.classList.add('hidden');
         }
 
-        // Pirchei + Avos uBanim — children's learning. Show each row only when its time
-        // is set in the backend; when a session is cancelled, admin just blanks the field.
+        // Pirchei + Avos uBanim — children's learning. Rows always visible; empty time
+        // renders as "—" placeholder so the layout shows even before admin fills them in.
         var pircheiWrap = document.getElementById('z-pirchei-wrap');
         var pircheiEl = document.getElementById('z-pirchei');
         if (pircheiWrap && pircheiEl) {
-            if (z.pircheiTime) { pircheiEl.textContent = z.pircheiTime; pircheiWrap.classList.remove('hidden'); }
-            else pircheiWrap.classList.add('hidden');
+            pircheiEl.textContent = z.pircheiTime || '—';
+            pircheiWrap.classList.remove('hidden');
         }
         var avosWrap = document.getElementById('z-avosubanim-wrap');
         var avosEl = document.getElementById('z-avosubanim');
         if (avosWrap && avosEl) {
-            if (z.avosUbanimTime) { avosEl.textContent = z.avosUbanimTime; avosWrap.classList.remove('hidden'); }
-            else avosWrap.classList.add('hidden');
+            avosEl.textContent = z.avosUbanimTime || '—';
+            avosWrap.classList.remove('hidden');
         }
 
         // Hebrew date is now handled by tzeis-based switching below
@@ -516,23 +516,27 @@ async function loadScreenData() {
     }
 
     // ── Seder Limud (Kollel Boker / Seder Layla / etc.) ──
+    // If admin hasn't saved any yet, render Kollel Boker + Seder Layla with dash
+    // placeholders so the layout is visible. As soon as admin adds rows via backend,
+    // those replace the placeholders.
     var sederContainer = document.getElementById('sederLimudSlots');
     if (sederContainer) {
         sederContainer.innerHTML = '';
-        if (data.sederLimud && data.sederLimud.length) {
-            var lCount = data.sederLimud.length;
-            var lPy = lCount <= 4 ? 'py-1' : (lCount <= 6 ? 'py-0.5' : 'py-0');
-            var lTime = lCount <= 4 ? 'text-3xl' : (lCount <= 6 ? 'text-2xl' : 'text-xl');
-            var lLabel = lCount <= 6 ? 'text-base' : 'text-sm';
-            var lHtml = '';
-            data.sederLimud.forEach(function(s) {
-                lHtml += '<div class="flex justify-between items-baseline gap-2 px-3 ' + lPy + ' min-w-0">';
-                lHtml += '<span class="' + lLabel + ' font-bold text-secondary truncate" dir="rtl">' + esc(s.label) + '</span>';
-                lHtml += '<span class="text-primary font-headline font-bold ' + lTime + ' text-3d-light shrink-0">' + esc(s.time) + '</span>';
-                lHtml += '</div>';
-            });
-            sederContainer.innerHTML = lHtml;
-        }
+        var sederList = (data.sederLimud && data.sederLimud.length)
+            ? data.sederLimud
+            : [ { label: 'כולל בוקר', time: '—' }, { label: 'סדר לילה', time: '—' } ];
+        var lCount = sederList.length;
+        var lPy = lCount <= 4 ? 'py-1' : (lCount <= 6 ? 'py-0.5' : 'py-0');
+        var lTime = lCount <= 4 ? 'text-3xl' : (lCount <= 6 ? 'text-2xl' : 'text-xl');
+        var lLabel = lCount <= 6 ? 'text-base' : 'text-sm';
+        var lHtml = '';
+        sederList.forEach(function(s) {
+            lHtml += '<div class="flex justify-between items-baseline gap-2 px-3 ' + lPy + ' min-w-0">';
+            lHtml += '<span class="' + lLabel + ' font-bold text-secondary truncate" dir="rtl">' + esc(s.label) + '</span>';
+            lHtml += '<span class="text-primary font-headline font-bold ' + lTime + ' text-3d-light shrink-0">' + esc(s.time) + '</span>';
+            lHtml += '</div>';
+        });
+        sederContainer.innerHTML = lHtml;
     }
 
     // ── Sponsors ──
