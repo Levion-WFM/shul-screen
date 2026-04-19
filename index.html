@@ -87,7 +87,7 @@
 </head>
 <body class="bg-[#0a0706] text-white font-body h-screen flex flex-col overflow-hidden">
 <!-- Header -->
-<nav class="bg-[#0a0706] border-b-4 gold-border-3d py-2 px-8 flex items-center relative z-50 shrink-0">
+<nav class="bg-[#0a0706] border-b-4 gold-border-3d py-1.5 px-8 flex items-center relative z-50 shrink-0">
 <!-- Left: dates -->
 <div class="flex items-center shrink-0">
 <div class="flex flex-col leading-tight">
@@ -95,11 +95,11 @@
 <span id="hebrewDate" class="text-base font-headline opacity-80 italic tracking-wider text-secondary" dir="rtl"></span>
 </div>
 </div>
-<!-- Center: shul name -->
+<!-- Center: shul logo, framed -->
 <div class="absolute inset-x-0 flex justify-center pointer-events-none">
-<h1 class="text-4xl font-headline font-bold gold-inlay tracking-[0.08em] text-center leading-tight whitespace-nowrap pointer-events-auto">
-                BEIS MEDRASH D'JACKSON 21
-            </h1>
+<div class="gold-border-3d rounded-sm bg-[#f7efd9] px-4 py-1 pointer-events-auto">
+<img src="logo.png" alt="בית מדרש הגיקסון 21" class="h-16 w-auto object-contain block"/>
+</div>
 </div>
 <!-- Right: precision clock. Used for time-sensitive religious decisions; must stay accurate. -->
 <div class="ml-auto flex items-center shrink-0">
