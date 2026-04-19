@@ -419,9 +419,33 @@ async function loadScreenData() {
             dzHtml += '<span class="text-lg font-bold text-secondary truncate" dir="rtl">' + esc(item.label) + '</span>';
             dzHtml += '<span class="text-primary font-headline font-bold text-2xl text-3d-light shrink-0">' + esc(item.value) + '</span>';
             dzHtml += '</div>';
-            window.__zmanimForCountdown.push({ label: item.label, timeStr: item.value });
+            window.__zmanimForCountdown.push({ label: item.label, timeStr: item.value, day: 'today' });
         });
         dailyContainer.innerHTML = dzHtml;
+    }
+
+    // Tomorrow's zmanim feed the countdown overnight (alos ~5am is "next" at 11pm).
+    if (data.dailyZmanimTomorrow) {
+        var dzt = data.dailyZmanimTomorrow;
+        var tomorrowItems = [
+            { label: 'עלות השחר', value: dzt.alos72 },
+            { label: 'טלית ותפילין', value: dzt.talis },
+            { label: 'הנץ החמה', value: dzt.sunrise },
+            { label: 'סזק״ש מ״א', value: dzt.shemaMa },
+            { label: 'סזק״ש גר״א', value: dzt.shemaGra },
+            { label: 'סוף זמן תפילה', value: dzt.shachrisGra },
+            { label: 'חצות', value: dzt.midday },
+            { label: 'מנחה גדולה', value: dzt.minchaGedola },
+            { label: 'פלג המנחה', value: dzt.plag },
+            { label: 'שקיעה', value: dzt.sunset },
+            { label: 'צאת הכוכבים', value: dzt.tzes3stars },
+            { label: 'ר״ת (72 דק׳)', value: dzt.tzes72fix },
+        ];
+        window.__zmanimForCountdownTomorrow = [];
+        tomorrowItems.forEach(function(item) {
+            if (!item.value) return;
+            window.__zmanimForCountdownTomorrow.push({ label: item.label, timeStr: item.value, day: 'tomorrow' });
+        });
     }
 
     // ── Weekly Schedule ──
@@ -703,41 +727,52 @@ refreshLoop();
 })();
 
 // ── Next-zman countdown (bottom of Daily Zmanim card) ──
-// window.__zmanimForCountdown is populated by the data render loop. Each entry:
-// { label, timeStr }. We parse timeStr via parseTimeToMin, scan forward from now,
-// and display remaining minutes (or seconds once under a minute).
+// Two sources: __zmanimForCountdown (today) and __zmanimForCountdownTomorrow (for the
+// overnight dead zone between tzes-72 ~8:50pm and alos ~5am). We scan today first; if
+// every today-zman is past, we roll into tomorrow's list — the seconds-away for those
+// are (seconds-till-midnight) + (seconds-from-midnight-to-that-zman).
 (function startCountdown() {
     var labelEl = document.getElementById('nextZmanLabel');
     var cdEl = document.getElementById('nextZmanCountdown');
     if (!labelEl || !cdEl) return;
+    function fmtRemaining(sec) {
+        if (sec <= 0) return 'now';
+        if (sec < 60) return 'in ' + sec + 's';
+        var totalMin = Math.floor(sec / 60);
+        if (totalMin < 60) return 'in ' + totalMin + 'm';
+        var h = Math.floor(totalMin / 60);
+        var m = totalMin % 60;
+        return 'in ' + h + 'h ' + m + 'm';
+    }
     function tick() {
-        var list = window.__zmanimForCountdown || [];
+        var today = window.__zmanimForCountdown || [];
+        var tomorrow = window.__zmanimForCountdownTomorrow || [];
         var now = new Date();
         var nowSecs = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
         var next = null;
-        for (var i = 0; i < list.length; i++) {
-            var mins = parseTimeToMin(list[i].timeStr); // minutes since midnight
+        for (var i = 0; i < today.length; i++) {
+            var mins = parseTimeToMin(today[i].timeStr);
             if (!mins) continue;
             var zmanSecs = mins * 60;
-            if (zmanSecs > nowSecs) { next = { label: list[i].label, zmanSecs: zmanSecs }; break; }
+            if (zmanSecs > nowSecs) { next = { label: today[i].label, remaining: zmanSecs - nowSecs }; break; }
+        }
+        if (!next) {
+            // All of today's zmanim passed. Roll into tomorrow — add seconds-until-midnight.
+            var secsTillMidnight = 86400 - nowSecs;
+            for (var j = 0; j < tomorrow.length; j++) {
+                var tMins = parseTimeToMin(tomorrow[j].timeStr);
+                if (!tMins) continue;
+                next = { label: tomorrow[j].label + ' (tomorrow)', remaining: secsTillMidnight + tMins * 60 };
+                break;
+            }
         }
         if (!next) {
             labelEl.textContent = '—';
             cdEl.textContent = '—';
-            setTimeout(tick, 1000 - (Date.now() % 1000) + 2);
-            return;
-        }
-        var remaining = next.zmanSecs - nowSecs;
-        labelEl.textContent = next.label;
-        if (remaining >= 60) {
-            var m = Math.floor(remaining / 60);
-            cdEl.textContent = 'in ' + m + 'm';
-        } else if (remaining > 0) {
-            cdEl.textContent = 'in ' + remaining + 's';
         } else {
-            cdEl.textContent = 'now';
+            labelEl.textContent = next.label;
+            cdEl.textContent = fmtRemaining(next.remaining);
         }
-        // Fire on second boundary so the seconds render stays flush.
         setTimeout(tick, 1000 - (Date.now() % 1000) + 2);
     }
     tick();

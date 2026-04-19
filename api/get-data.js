@@ -53,18 +53,25 @@ module.exports = async function handler(req, res) {
             }
         } catch (e) { console.error('shabbos_zmanim error:', e.message); }
 
-        // ── Daily Zmanim ──
+        // ── Daily Zmanim (today + tomorrow for end-of-day countdown rollover) ──
         try {
-            var dailyRows = await sql`SELECT * FROM daily_zmanim WHERE civil_date = ${todayStr} LIMIT 1`;
-            if (dailyRows.length > 0) {
-                var d = dailyRows[0];
-                data.dailyZmanim = {
+            var dailyRows = await sql`
+                SELECT * FROM daily_zmanim
+                WHERE civil_date IN (${todayStr}, ${tomorrowStr})
+                ORDER BY civil_date ASC`;
+            function rowToDz(d) {
+                return {
                     alos72: d.alos72, talis: d.talis, sunrise: d.sunrise,
                     shemaMa: d.shema_ma, shemaGra: d.shema_gra, shachrisGra: d.shachris_gra,
                     midday: d.midday, minchaGedola: d.mincha_gedola, plag: d.plag,
                     sunset: d.sunset, tzes3stars: d.tzes_3stars, tzes72fix: d.tzes72fix
                 };
             }
+            dailyRows.forEach(function(d) {
+                var key = d.civil_date.toISOString().split('T')[0];
+                if (key === todayStr) data.dailyZmanim = rowToDz(d);
+                if (key === tomorrowStr) data.dailyZmanimTomorrow = rowToDz(d);
+            });
         } catch (e) { console.error('daily_zmanim error:', e.message); }
 
         // ── Hebrew Date (today + tomorrow for shkiyah switching) ──
