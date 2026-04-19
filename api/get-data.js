@@ -42,14 +42,18 @@ module.exports = async function handler(req, res) {
             if (zmanimRows.length > 0) {
                 var z = zmanimRows[0];
                 if (!data.zmanim) data.zmanim = {};
-                // Auto-computed shabbos_zmanim only fills in fields the user hasn't manually set.
-                // Manual overrides in screen_data.data.zmanim always win.
-                if (z.parsha && !data.zmanim.parshat) data.zmanim.parshat = z.parsha;
-                if (z.candle_lighting && !data.zmanim.candleLighting) data.zmanim.candleLighting = z.candle_lighting;
-                if (z.mincha_erev_shabbos && !data.zmanim.minchaFriday) data.zmanim.minchaFriday = z.mincha_erev_shabbos;
-                if (z.shacharit && !data.zmanim.shacharit) data.zmanim.shacharit = z.shacharit;
-                if (z.mincha_shabbos && !data.zmanim.minchaSaturday) data.zmanim.minchaSaturday = z.mincha_shabbos;
-                if (z.maariv && !data.zmanim.havdalah) data.zmanim.havdalah = z.maariv;
+                // shabbos_zmanim (edited via zmanim-editor.html) is the source of truth.
+                // Previously we guarded with `!data.zmanim.X` to let manual overrides win,
+                // but backend.html saves its pre-filled form values back into
+                // screen_data.data.zmanim, turning last week's auto-populated values into
+                // sticky "overrides" — so the card stayed frozen on last week's times after
+                // the Sat→Sun rollover. Always prefer the DB row when present.
+                if (z.parsha) data.zmanim.parshat = z.parsha;
+                if (z.candle_lighting) data.zmanim.candleLighting = z.candle_lighting;
+                if (z.mincha_erev_shabbos) data.zmanim.minchaFriday = z.mincha_erev_shabbos;
+                if (z.shacharit) data.zmanim.shacharit = z.shacharit;
+                if (z.mincha_shabbos) data.zmanim.minchaSaturday = z.mincha_shabbos;
+                if (z.maariv) data.zmanim.havdalah = z.maariv;
             }
         } catch (e) { console.error('shabbos_zmanim error:', e.message); }
 

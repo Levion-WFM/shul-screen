@@ -304,6 +304,37 @@ async function saveScreenData(data) {
     localStorage.setItem('shulScreenData', JSON.stringify(data));
 }
 
+// Upcoming Saturday's ISO date in kiosk tz (America/New_York). Same day-of-week math
+// as /api/get-data so admin edits land on the row the kiosk will read next.
+function upcomingShabbosIso() {
+    const tz = 'America/New_York';
+    const ymd = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' });
+    const dowFmt = new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'short' });
+    const dowMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+    const now = new Date();
+    const dow = dowMap[dowFmt.format(now)];
+    const daysUntil = (6 - dow + 7) % 7; // 0 on Saturday
+    return ymd.format(new Date(now.getTime() + daysUntil * 86400000));
+}
+
+// Write the Shabbos zmanim directly into the shabbos_zmanim row for the upcoming
+// Saturday. Keeps admin edits scoped to one week — next week's row isn't touched,
+// so the kiosk naturally rolls over after Sat→Sun midnight.
+async function saveShabbosZmanimRow(row) {
+    const token = document.getElementById('adminToken').value;
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    const res = await fetch('/api/shabbos-schedule', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ rows: [row] })
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Shabbos zmanim save failed' }));
+        throw new Error(err.error || 'Shabbos zmanim save failed');
+    }
+}
+
 // ========================================
 // ROW REORDER HELPERS
 // ========================================
@@ -809,15 +840,22 @@ async function saveAll() {
         if (!label && !time) return;
         sederLimud.push({ label: label, time: time });
     });
+    // Shabbos zmanim live in the shabbos_zmanim table (per-Saturday row), not in
+    // screen_data. Edits here apply to the upcoming Saturday's row only, so next
+    // week's entry stays whatever the bulk editor (or a future save) set it to.
+    const shabbosRow = {
+        shabbos_date: upcomingShabbosIso(),
+        parsha: document.getElementById('zParshat').value.trim(),
+        candle_lighting: document.getElementById('zCandleLighting').value.trim(),
+        mincha_erev_shabbos: document.getElementById('zMinchaFriday').value.trim(),
+        shacharit: document.getElementById('zShacharit').value.trim(),
+        mincha_shabbos: document.getElementById('zMinchaSaturday').value.trim(),
+        maariv: document.getElementById('zHavdalah').value.trim(),
+    };
     const zmanim = {
-        parshat: document.getElementById('zParshat').value,
+        // hebrewDate is always overwritten from hebrew_dates on read; keep for back-compat.
         hebrewDate: document.getElementById('zHebrewDate').value,
-        candleLighting: document.getElementById('zCandleLighting').value,
-        minchaFriday: document.getElementById('zMinchaFriday').value,
-        shacharit: document.getElementById('zShacharit').value,
-        minchaSaturday: document.getElementById('zMinchaSaturday').value,
-        havdalah: document.getElementById('zHavdalah').value,
-        // Daily zmanim auto-populated from DB — not saved here
+        // Toggles + children's times have no dedicated DB table — live in screen_data.
         shabbosShiurMincha: document.getElementById('shabbosShiurMinchaToggle').checked,
         shabbosShiurMaariv: document.getElementById('shabbosShiurMaarivToggle').checked,
         shabbosShiurChumash: document.getElementById('shabbosShiurChumashToggle').checked,
@@ -832,7 +870,10 @@ async function saveAll() {
     };
     // Save admin token to localStorage for convenience
     localStorage.setItem('shulAdminToken', document.getElementById('adminToken').value);
-    try { await saveScreenData(data); showToast(true); }
+    try {
+        await Promise.all([saveScreenData(data), saveShabbosZmanimRow(shabbosRow)]);
+        showToast(true);
+    }
     catch (e) { showToast(false, e.message); }
     finally { saving = false; setSaveLoading(false); }
 }
