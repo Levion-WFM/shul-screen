@@ -147,14 +147,14 @@
 <div class="col-span-5 flex flex-col min-h-0 gap-2">
 <!-- Section 1: Shul Announcement — cursive "Shul" title + flier row -->
 <div id="shulAnnSection" class="flex-1 min-h-0 flex flex-col hidden">
-<div class="shrink-0 text-center leading-none pt-1 pb-0.5">
+<div class="shrink-0 text-center leading-none pt-0.5 pb-0">
 <span class="font-cursive text-primary text-3xl leading-none text-3d-light" style="display:inline-block;line-height:0.9">Shul</span>
 </div>
 <div id="shulAnnSlots" class="flex-1 min-h-0 flex items-stretch justify-center gap-3"></div>
 </div>
 <!-- Section 2: Community Fliers — cursive "Community" title + flier row -->
 <div id="commFlierSection" class="flex-1 min-h-0 flex flex-col hidden">
-<div class="shrink-0 text-center leading-none pt-1 pb-0.5">
+<div class="shrink-0 text-center leading-none pt-0.5 pb-0">
 <span class="font-cursive text-primary text-3xl leading-none text-3d-light" style="display:inline-block;line-height:0.9">Community</span>
 </div>
 <div id="commFlierSlots" class="flex-1 min-h-0 flex items-stretch justify-center gap-3"></div>
@@ -574,12 +574,12 @@ async function loadScreenData() {
         var sHtml = '';
         if (hasImg) {
             // Image is the bordered element itself — no wrapper box, so the gold frame hugs the
-            // picture directly with no black letterbox on any side. max-h-full respects the row
-            // height; max-w-[60%] keeps wide landscape fliers from crowding out the text.
-            // h-full + w-auto makes the img's BOX take container height and auto-scale width to
-            // its natural aspect. max-w caps landscape fliers. Because the box matches the image's
-            // true aspect, object-contain has nothing to letterbox — the gold border hugs perfectly.
-            sHtml += '<img class="h-full w-auto max-h-full max-w-[60%] object-contain elevated-3d border-4 border-primary/60 rounded-sm shrink-0" src="' + esc(shulItem.imageData) + '"/>';
+            // picture directly with no black letterbox on any side. h-full + w-auto makes the
+            // img's BOX take container height and auto-scale width to its natural aspect. When
+            // there's side text, cap at 60% so the image doesn't crowd it out; with no text,
+            // let it fill almost the whole row width so the gold frame sits near the column edge.
+            var imgMaxW = hasText ? 'max-w-[60%]' : 'max-w-[92%]';
+            sHtml += '<img class="h-full w-auto max-h-full ' + imgMaxW + ' object-contain elevated-3d border-4 border-primary/60 rounded-sm shrink-0" src="' + esc(shulItem.imageData) + '"/>';
         }
         if (hasText) {
             sHtml += '<div class="' + (hasImg ? 'text-left flex-1' : 'text-center flex-1') + ' min-w-0 max-w-xl self-center">';

@@ -718,7 +718,14 @@ async function loadData() {
     if (data.community) data.community.forEach(function(c) { addCommunity(c.label, c.names, c.sub); });
     if (data.schedule) data.schedule.forEach(function(s) { addScheduleItem(s.label, s.time); });
     if (data.shiurim) data.shiurim.forEach(function(s) { addShiur(s.label, s.time); });
-    if (data.sederLimud) data.sederLimud.forEach(function(s) { addSederLimud(s.label, s.time); });
+    // Pre-populate Seder Limud with the two standard rows if nothing saved yet so admin
+    // sees editable Kollel Boker / Seder Layla rows instead of an empty container.
+    if (data.sederLimud && data.sederLimud.length) {
+        data.sederLimud.forEach(function(s) { addSederLimud(s.label, s.time); });
+    } else {
+        addSederLimud('כולל בוקר', '');
+        addSederLimud('סדר לילה', '');
+    }
     if (data.infoBar) {
         document.getElementById('infoHebrew').value = data.infoBar.hebrew || '';
         document.getElementById('infoWelcome').value = data.infoBar.welcome || '';
