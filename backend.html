@@ -258,13 +258,19 @@ tailwind.config = {
 </main>
 
 <!-- Sticky Save Button (mobile) -->
-<div class="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur border-t border-gray-800 p-3 sm:hidden z-40">
-    <button id="saveBtnMobile" onclick="saveAll()" class="w-full bg-gold text-black font-bold py-3 rounded text-sm active:scale-[0.98] transition flex items-center gap-2 justify-center">
+<div class="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur border-t border-gray-800 p-3 sm:hidden z-40 flex gap-2">
+    <button id="forceReloadBtnMobile" onclick="forceScreenReload()" title="Hard-reload the kiosk screen" class="shrink-0 bg-gray-800 border border-gray-700 text-gold font-semibold px-3 py-3 rounded text-sm active:scale-[0.98] transition flex items-center justify-center">
+        <span class="material-symbols-outlined text-lg">restart_alt</span>
+    </button>
+    <button id="saveBtnMobile" onclick="saveAll()" class="flex-1 bg-gold text-black font-bold py-3 rounded text-sm active:scale-[0.98] transition flex items-center gap-2 justify-center">
         <span class="material-symbols-outlined text-lg">save</span> Save All Changes
     </button>
 </div>
 <!-- Desktop Save Button -->
-<div class="hidden sm:flex max-w-5xl mx-auto px-6 justify-end pb-8">
+<div class="hidden sm:flex max-w-5xl mx-auto px-6 justify-end gap-3 pb-8">
+    <button id="forceReloadBtnDesktop" onclick="forceScreenReload()" title="Hard-reload the kiosk screen (Pi)" class="bg-gray-800 border border-gray-700 text-gold font-semibold px-5 py-3 rounded text-sm hover:bg-gray-700 transition flex items-center gap-2">
+        <span class="material-symbols-outlined text-lg">restart_alt</span> Force Screen Refresh
+    </button>
     <button id="saveBtnDesktop" onclick="saveAll()" class="bg-gold text-black font-bold px-8 py-3 rounded text-sm hover:bg-yellow-400 transition flex items-center gap-2">
         <span class="material-symbols-outlined text-lg">save</span> Save All Changes
     </button>
@@ -784,6 +790,40 @@ async function loadData() {
     // Restore admin token from localStorage
     var savedToken = localStorage.getItem('shulAdminToken');
     if (savedToken) document.getElementById('adminToken').value = savedToken;
+}
+
+// Admin-triggered force reload: bumps screen_data.data.forceReloadAt, which
+// the kiosk watches via /api/get-data's buildId nonce and hard-reloads on.
+async function forceScreenReload() {
+    var btns = [document.getElementById('forceReloadBtnDesktop'), document.getElementById('forceReloadBtnMobile')].filter(Boolean);
+    var originals = btns.map(function(b) { return b.innerHTML; });
+    function restore() {
+        btns.forEach(function(b, i) { b.disabled = false; b.innerHTML = originals[i]; });
+    }
+    btns.forEach(function(b) { b.disabled = true; b.innerHTML = '<span class="material-symbols-outlined text-lg animate-spin">progress_activity</span>'; });
+    try {
+        var token = document.getElementById('adminToken').value.trim();
+        var headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+        var res = await fetch('/api/force-reload', { method: 'POST', headers: headers });
+        if (!res.ok) {
+            var msg = 'Force refresh failed (' + res.status + ')';
+            if (res.status === 401) msg += ' — check the admin token.';
+            alert(msg);
+            restore();
+            return;
+        }
+        // Brief "Sent" confirmation on the desktop button; mobile button is icon-only
+        // so just re-enable it.
+        var desktopBtn = document.getElementById('forceReloadBtnDesktop');
+        if (desktopBtn) desktopBtn.innerHTML = '<span class="material-symbols-outlined text-lg">check</span> Sent';
+        var mobileBtn = document.getElementById('forceReloadBtnMobile');
+        if (mobileBtn) mobileBtn.innerHTML = '<span class="material-symbols-outlined text-lg">check</span>';
+        setTimeout(restore, 2000);
+    } catch (e) {
+        alert('Force refresh failed: ' + (e && e.message ? e.message : 'network error'));
+        restore();
+    }
 }
 
 var saving = false;

@@ -2,6 +2,8 @@ const { neon } = require('@neondatabase/serverless');
 
 module.exports = async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
+    // Never cache: the kiosk polls this to detect new deploys (buildId below).
+    res.setHeader('Cache-Control', 'no-store, max-age=0');
 
     if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
     if (!process.env.DATABASE_URL) return res.status(500).json({ error: 'Server configuration error' });
@@ -121,6 +123,14 @@ module.exports = async function handler(req, res) {
         // We publish both so the client can choose; current client reads tzeisTime.
         data.tzeisTime = (data.dailyZmanim && data.dailyZmanim.tzes3stars) || null;
         data.sunsetTime = (data.dailyZmanim && data.dailyZmanim.sunset) || null;
+
+        // Reload nonce — the kiosk hard-reloads when this changes. It combines
+        // the Vercel deploy SHA (so new code ships automatically) with an admin
+        // -bumped `forceReloadAt` timestamp (set by POST /api/force-reload),
+        // so the admin's "Force Screen Refresh" button also triggers a reload
+        // without waiting for a deploy.
+        var deployTag = process.env.VERCEL_GIT_COMMIT_SHA || process.env.VERCEL_DEPLOYMENT_ID || 'dev';
+        data.buildId = deployTag + ':' + (data.forceReloadAt || 0);
 
         res.json(data);
     } catch (err) {

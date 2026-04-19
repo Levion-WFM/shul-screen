@@ -1,5 +1,9 @@
 const { neon } = require('@neondatabase/serverless');
 
+// Bumps screen_data.data.forceReloadAt to the current epoch ms. The kiosk
+// includes this value in its `buildId` nonce (see api/get-data.js) and
+// hard-reloads on change, so admins can push new HTML/data to the screen
+// without physically touching the Pi.
 module.exports = async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -9,7 +13,7 @@ module.exports = async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
     if (!process.env.DATABASE_URL) return res.status(500).json({ error: 'Server configuration error' });
 
-    // Auth check — if ADMIN_TOKEN is set, require it
+    // Same auth model as save-data: bearer ADMIN_TOKEN if configured.
     const adminToken = process.env.ADMIN_TOKEN;
     if (adminToken) {
         const auth = req.headers.authorization;
@@ -18,34 +22,23 @@ module.exports = async function handler(req, res) {
         }
     }
 
-    // Payload size check (500KB max)
-    const payload = JSON.stringify(req.body);
-    if (payload.length > 500000) {
-        return res.status(413).json({ error: 'Payload too large — max 500KB' });
-    }
-
     try {
         const sql = neon(process.env.DATABASE_URL);
-        const data = req.body;
-
-        // Preserve `forceReloadAt` across saves — it's the admin's manual
-        // kiosk-reload nonce, not part of the editable form. The admin form
-        // doesn't round-trip it, so without this we'd wipe it on every save
-        // (which would itself trigger a spurious reload).
-        const existing = await sql`SELECT data FROM screen_data WHERE id = 1`;
-        if (existing.length > 0 && existing[0].data && existing[0].data.forceReloadAt != null) {
-            data.forceReloadAt = existing[0].data.forceReloadAt;
-        }
-
+        const now = Date.now();
         await sql`
             INSERT INTO screen_data (id, data, updated_at)
-            VALUES (1, ${JSON.stringify(data)}::jsonb, NOW())
+            VALUES (1, jsonb_build_object('forceReloadAt', ${now}::bigint), NOW())
             ON CONFLICT (id) DO UPDATE
-            SET data = EXCLUDED.data, updated_at = NOW()
+            SET data = jsonb_set(
+                    COALESCE(screen_data.data, '{}'::jsonb),
+                    '{forceReloadAt}',
+                    to_jsonb(${now}::bigint)
+                ),
+                updated_at = NOW()
         `;
-        res.json({ success: true });
+        res.json({ success: true, forceReloadAt: now });
     } catch (err) {
-        console.error('save-data error:', err);
+        console.error('force-reload error:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
 };

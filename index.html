@@ -333,9 +333,20 @@ var sponsorSizes = {
 // ========================================
 // RENDER
 // ========================================
+// First buildId we ever saw from the server. If a later poll returns a different
+// value — either a new Vercel deploy or an admin "Force Screen Refresh" bump —
+// we hard-reload so the Pi picks up the new HTML/JS.
+var seenBuildId = null;
+function checkBuildNonce(data) {
+    if (!data || !data.buildId) return;
+    if (seenBuildId === null) { seenBuildId = data.buildId; return; }
+    if (data.buildId !== seenBuildId) location.reload();
+}
+
 async function loadScreenData() {
     var data = await fetchScreenData();
     if (!data) return;
+    checkBuildNonce(data);
 
     // ── Zecher Nishmas dedication ──
     // Editable text field on the backend; rendered bottom-right of the kiosk.
