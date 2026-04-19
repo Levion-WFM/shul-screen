@@ -246,8 +246,8 @@
 <span id="infoReminder" class="italic font-semibold text-xl text-secondary text-right truncate"></span>
 </div>
 </div>
-<!-- Last Updated Indicator -->
-<div id="lastUpdated" class="fixed bottom-1 right-2 text-[10px] text-green-500/60 font-mono z-50"></div>
+<!-- Zecher Nishmas dedication (editable via backend) -->
+<div id="zecherNishmas" dir="rtl" class="fixed bottom-1 right-3 text-lg font-headline italic font-bold text-primary/90 z-50 text-3d-light"></div>
 <script>
 // ========================================
 // DATA LAYER
@@ -335,18 +335,12 @@ var sponsorSizes = {
 // ========================================
 async function loadScreenData() {
     var data = await fetchScreenData();
-
-    // Update stale indicator
-    var indicator = document.getElementById('lastUpdated');
-    if (lastFetchOk) {
-        indicator.textContent = 'Updated ' + new Date().toLocaleTimeString();
-        indicator.className = 'fixed bottom-1 right-2 text-[10px] text-green-500/60 font-mono z-50';
-    } else {
-        indicator.textContent = 'Offline — ' + new Date().toLocaleTimeString();
-        indicator.className = 'fixed bottom-1 right-2 text-[10px] text-red-400/80 font-mono z-50';
-    }
-
     if (!data) return;
+
+    // ── Zecher Nishmas dedication ──
+    // Editable text field on the backend; rendered bottom-right of the kiosk.
+    var zecherEl = document.getElementById('zecherNishmas');
+    if (zecherEl) zecherEl.textContent = data.zecherNishmas || '';
 
     // ── Zmanim ──
     if (data.zmanim) {

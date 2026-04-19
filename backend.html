@@ -251,6 +251,8 @@ tailwind.config = {
             <input id="infoWelcome" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none"/></div>
             <div><label class="block text-xs text-gray-500 mb-1">Reminder / Note (right)</label>
             <input id="infoReminder" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none"/></div>
+            <div><label class="block text-xs text-gray-500 mb-1">זכר נשמת / Zecher Nishmas <span class="text-gray-500">(bottom-right corner)</span></label>
+            <input id="zecherNishmas" type="text" dir="rtl" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. לזכר נשמת הרב יוסף בן אברהם ז״ל"/></div>
         </div>
     </section>
 </main>
@@ -731,6 +733,7 @@ async function loadData() {
         document.getElementById('infoWelcome').value = data.infoBar.welcome || '';
         document.getElementById('infoReminder').value = data.infoBar.reminder || '';
     }
+    document.getElementById('zecherNishmas').value = data.zecherNishmas || '';
     if (data.zmanim) {
         var z = data.zmanim;
         document.getElementById('zParshat').value = z.parshat || '';
@@ -824,6 +827,7 @@ async function saveAll() {
     const data = {
         sponsors, announcements, communityFliers, community, schedule, shiurim, sederLimud, zmanim,
         infoBar: { hebrew: document.getElementById('infoHebrew').value, welcome: document.getElementById('infoWelcome').value, reminder: document.getElementById('infoReminder').value },
+        zecherNishmas: document.getElementById('zecherNishmas').value.trim(),
         updatedAt: new Date().toISOString()
     };
     // Save admin token to localStorage for convenience
