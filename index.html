@@ -522,19 +522,23 @@ async function loadScreenData() {
         commContainer.classList.add('hidden');
     }
 
-    // ── Shkiyah-based switching ──
-    // After sunset: show tomorrow's Hebrew date and tomorrow's sefirah
-    var isAfterSunset = false;
-    if (data.sunsetTime) {
-        var sunsetMin = parseTimeToMin(data.sunsetTime);
+    // ── Tzeis-hachochavim day-flip ──
+    // The Hebrew day transitions at tzeis (nightfall, 3 stars), NOT at shkiyah/sunset.
+    // Gap is ~40-50 min; flipping at shkiyah made the kiosk show tomorrow's Hebrew date and
+    // sefirah during that window, which was the reported bug. We now gate on data.tzeisTime
+    // (dailyZmanim.tzes_3stars) with a sunsetTime fallback for safety.
+    var isAfterTzeis = false;
+    var tzeisSrc = data.tzeisTime || data.sunsetTime;
+    if (tzeisSrc) {
+        var tzeisMin = parseTimeToMin(tzeisSrc);
         var nowLocal = new Date();
         var nowMin = nowLocal.getHours() * 60 + nowLocal.getMinutes();
-        isAfterSunset = nowMin >= sunsetMin;
+        isAfterTzeis = nowMin >= tzeisMin;
     }
 
-    // Hebrew date: switch at shkiyah
+    // Hebrew date: switch at tzeis
     if (data.hebrewDates) {
-        var hebrewToShow = isAfterSunset
+        var hebrewToShow = isAfterTzeis
             ? (data.hebrewDates.tomorrow || data.hebrewDates.today)
             : (data.hebrewDates.today || '');
         var hdEl = document.getElementById('hebrewDate');
@@ -546,7 +550,7 @@ async function loadScreenData() {
     if (sefirahEl) {
         var sefirahToShow = null;
         if (data.sefirah) {
-            sefirahToShow = isAfterSunset
+            sefirahToShow = isAfterTzeis
                 ? (data.sefirah.tomorrow || data.sefirah.today)
                 : (data.sefirah.today || null);
         }

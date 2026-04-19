@@ -13,18 +13,26 @@ module.exports = async function handler(req, res) {
         var rows = await sql`SELECT data FROM screen_data WHERE id = 1`;
         var data = (rows.length > 0 && rows[0].data) ? rows[0].data : {};
 
-        // Dates: today and tomorrow (UTC)
+        // Dates: today and tomorrow in the kiosk's civil timezone.
+        // The kiosk is in Jackson NJ (America/New_York). Using UTC here was a silent bug:
+        // between ~8pm and midnight local, UTC is already the next civil day, so `todayStr`
+        // returned tomorrow's Hebrew date / sefirah / zmanim as "today".
+        var KIOSK_TZ = 'America/New_York';
         var now = new Date();
-        var todayStr = now.toISOString().split('T')[0];
-        var tomorrow = new Date(now.getTime() + 86400000);
-        var tomorrowStr = tomorrow.toISOString().split('T')[0];
+        var ymdFmt = new Intl.DateTimeFormat('en-CA', {
+            timeZone: KIOSK_TZ, year: 'numeric', month: '2-digit', day: '2-digit'
+        });
+        var todayStr = ymdFmt.format(now); // en-CA gives YYYY-MM-DD
+        var tomorrowStr = ymdFmt.format(new Date(now.getTime() + 86400000));
 
         // ── Shabbos Zmanim ──
         // Find this week's Shabbos (upcoming Saturday, or today if Saturday)
-        var dayOfWeek = now.getUTCDay();
+        // Day-of-week must be computed in kiosk tz, not UTC, for the same reason as todayStr.
+        var dowFmt = new Intl.DateTimeFormat('en-US', { timeZone: KIOSK_TZ, weekday: 'short' });
+        var dowMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+        var dayOfWeek = dowMap[dowFmt.format(now)];
         var daysUntilShabbos = dayOfWeek === 6 ? 0 : ((6 - dayOfWeek + 7) % 7);
-        var shabbosDate = new Date(now.getTime() + daysUntilShabbos * 86400000);
-        var shabbosStr = shabbosDate.toISOString().split('T')[0];
+        var shabbosStr = ymdFmt.format(new Date(now.getTime() + daysUntilShabbos * 86400000));
 
         try {
             var zmanimRows = await sql`SELECT * FROM shabbos_zmanim WHERE shabbos_date = ${shabbosStr} LIMIT 1`;
@@ -96,7 +104,11 @@ module.exports = async function handler(req, res) {
             });
         } catch (e) { console.error('sefirah error:', e.message); }
 
-        // ── Sunset time for client-side shkiyah switching ──
+        // ── Tzeis hachochavim for client-side day-flip ──
+        // The halachic day transitions at tzeis (3 stars visible), NOT at shkiyah (sunset).
+        // Kiosk uses this to flip Hebrew date + Sefirah to tomorrow's values.
+        // We publish both so the client can choose; current client reads tzeisTime.
+        data.tzeisTime = (data.dailyZmanim && data.dailyZmanim.tzes3stars) || null;
         data.sunsetTime = (data.dailyZmanim && data.dailyZmanim.sunset) || null;
 
         res.json(data);
