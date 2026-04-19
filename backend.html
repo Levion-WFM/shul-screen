@@ -119,6 +119,11 @@ tailwind.config = {
                     </div>
                 </label>
             </div>
+            <p class="text-xs text-gold font-semibold mt-4 mb-2">לימוד ילדים <span class="text-gray-500 font-normal">(leave blank to hide)</span></p>
+            <div class="grid grid-cols-2 gap-3">
+                <div><label class="block text-xs text-gray-500 mb-1">פרחי / Pirchei</label><input id="zPirchei" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. 4:30 PM"/></div>
+                <div><label class="block text-xs text-gray-500 mb-1">אבות ובנים / Avos uBanim</label><input id="zAvosUbanim" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. 7:45 PM"/></div>
+            </div>
             <div class="bg-green-900/30 border border-green-800/50 rounded-lg p-3 mt-3 flex items-start gap-2">
                 <span class="material-symbols-outlined text-green-400 text-lg mt-0.5">auto_awesome</span>
                 <div>
@@ -732,6 +737,8 @@ async function loadData() {
         document.getElementById('shabbosShiurMinchaToggle').checked = !!z.shabbosShiurMincha;
         document.getElementById('shabbosShiurMaarivToggle').checked = !!z.shabbosShiurMaariv;
         document.getElementById('shabbosShiurChumashToggle').checked = !!z.shabbosShiurChumash;
+        document.getElementById('zPirchei').value = z.pircheiTime || '';
+        document.getElementById('zAvosUbanim').value = z.avosUbanimTime || '';
     }
     // Restore admin token from localStorage
     var savedToken = localStorage.getItem('shulAdminToken');
@@ -804,6 +811,8 @@ async function saveAll() {
         shabbosShiurMincha: document.getElementById('shabbosShiurMinchaToggle').checked,
         shabbosShiurMaariv: document.getElementById('shabbosShiurMaarivToggle').checked,
         shabbosShiurChumash: document.getElementById('shabbosShiurChumashToggle').checked,
+        pircheiTime: document.getElementById('zPirchei').value.trim(),
+        avosUbanimTime: document.getElementById('zAvosUbanim').value.trim(),
     };
     const data = {
         sponsors, announcements, communityFliers, community, schedule, shiurim, sederLimud, zmanim,

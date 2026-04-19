@@ -198,9 +198,9 @@
 </div>
 <!-- Gold divider -->
 <div class="mx-4 h-0.5 bg-gradient-to-r from-transparent via-primary/70 to-transparent shrink-0"></div>
-<!-- Shabbat Shiurim subsection — also breathe out to distribute across its own space -->
-<h3 class="text-primary font-headline text-center pt-2 pb-1 text-2xl font-bold tracking-wider shrink-0" dir="rtl">שיעורים</h3>
-<div class="flex-1 min-h-0 px-4 pb-3 flex flex-col justify-around" id="shabbatShiurimSlots">
+<!-- Shabbat Shiurim subsection — shrink-0 so it sizes to content, no giant gaps with few items -->
+<h3 class="text-primary font-headline text-center pt-1.5 pb-0.5 text-xl font-bold tracking-wider shrink-0" dir="rtl">שיעורים</h3>
+<div class="px-4 pb-1 flex flex-col gap-1 shrink-0" id="shabbatShiurimSlots">
 <div class="flex justify-between items-baseline gap-2 min-w-0 hidden" id="z-shiur-mincha-wrap">
 <span class="text-base font-bold text-secondary truncate" dir="rtl">שיעור הלכה</span>
 <span id="z-shiur-mincha" class="text-primary font-headline font-bold text-2xl text-3d-light shrink-0">—</span>
@@ -212,6 +212,20 @@
 <div class="flex justify-between items-baseline gap-2 min-w-0 hidden" id="z-shiur-chumash-wrap">
 <span class="text-sm font-bold text-secondary truncate" dir="rtl">שיעור חומש – הרב אברהם מאיר ווייס</span>
 <span id="z-shiur-chumash" class="text-primary font-headline font-bold text-lg text-3d-light shrink-0" dir="rtl">אחר הקידוש</span>
+</div>
+</div>
+<!-- Gold divider -->
+<div class="mx-4 h-0.5 bg-gradient-to-r from-transparent via-primary/70 to-transparent shrink-0"></div>
+<!-- Children's learning: Pirchei + Avos uBanim — shows only when a time is set in backend -->
+<h3 class="text-primary font-headline text-center pt-1.5 pb-0.5 text-xl font-bold tracking-wider shrink-0" dir="rtl">לימוד ילדים</h3>
+<div class="px-4 pb-2 flex flex-col gap-1 shrink-0" id="shabbatChildrenSlots">
+<div class="flex justify-between items-baseline gap-2 min-w-0 hidden" id="z-pirchei-wrap">
+<span class="text-base font-bold text-secondary truncate" dir="rtl">פרחי</span>
+<span id="z-pirchei" class="text-primary font-headline font-bold text-2xl text-3d-light shrink-0">—</span>
+</div>
+<div class="flex justify-between items-baseline gap-2 min-w-0 hidden" id="z-avosubanim-wrap">
+<span class="text-base font-bold text-secondary truncate" dir="rtl">אבות ובנים</span>
+<span id="z-avosubanim" class="text-primary font-headline font-bold text-2xl text-3d-light shrink-0">—</span>
 </div>
 </div>
 </div>
@@ -386,6 +400,21 @@ async function loadScreenData() {
         if (shiurChumashWrap) {
             if (z.shabbosShiurChumash) shiurChumashWrap.classList.remove('hidden');
             else shiurChumashWrap.classList.add('hidden');
+        }
+
+        // Pirchei + Avos uBanim — children's learning. Show each row only when its time
+        // is set in the backend; when a session is cancelled, admin just blanks the field.
+        var pircheiWrap = document.getElementById('z-pirchei-wrap');
+        var pircheiEl = document.getElementById('z-pirchei');
+        if (pircheiWrap && pircheiEl) {
+            if (z.pircheiTime) { pircheiEl.textContent = z.pircheiTime; pircheiWrap.classList.remove('hidden'); }
+            else pircheiWrap.classList.add('hidden');
+        }
+        var avosWrap = document.getElementById('z-avosubanim-wrap');
+        var avosEl = document.getElementById('z-avosubanim');
+        if (avosWrap && avosEl) {
+            if (z.avosUbanimTime) { avosEl.textContent = z.avosUbanimTime; avosWrap.classList.remove('hidden'); }
+            else avosWrap.classList.add('hidden');
         }
 
         // Hebrew date is now handled by tzeis-based switching below
