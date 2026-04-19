@@ -433,12 +433,14 @@ async function loadScreenData() {
         var dzHtml = '';
         // Populate the countdown source as we iterate (same order, so the grid-flow-col
         // layout still reads chronologically down each column).
+        // Layout: justify-between pins the label to the left edge of the grid cell and the
+        // time to the right edge, so all times within a column line up vertically.
         window.__zmanimForCountdown = [];
         dailyItems.forEach(function(item) {
             if (!item.value) return;
-            dzHtml += '<div class="flex justify-center items-baseline gap-3 px-2 py-0.5 min-w-0">';
+            dzHtml += '<div class="flex justify-between items-baseline gap-3 px-2 py-0.5 min-w-0">';
             dzHtml += '<span class="text-lg font-bold text-secondary truncate" dir="rtl">' + esc(item.label) + '</span>';
-            dzHtml += '<span class="text-primary font-headline font-bold text-2xl text-3d-light shrink-0">' + esc(item.value) + '</span>';
+            dzHtml += '<span class="text-primary font-headline font-bold text-2xl text-3d-light tabular-nums shrink-0">' + esc(item.value) + '</span>';
             dzHtml += '</div>';
             window.__zmanimForCountdown.push({ label: item.label, timeStr: item.value, day: 'today' });
         });
