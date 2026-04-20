@@ -147,6 +147,41 @@ module.exports = async function handler(req, res) {
             ? computeMinchaKetana(dailyRow.sunrise, dailyRow.sunset)
             : null;
 
+        // Manifest (screen_data.data.zmanim) carries kids-learning times + the
+        // rav-shiur toggles that the admin edits via the kiosk backend.
+        let manifestZmanim = {};
+        try {
+            const mrow = await sql`SELECT data FROM screen_data WHERE id = 1 LIMIT 1`;
+            manifestZmanim = ((mrow[0] && mrow[0].data) || {}).zmanim || {};
+        } catch (err) {
+            console.error('screen_data read failed:', err);
+        }
+
+        // Shiur time helpers:
+        //   halacha shiur  = Shabbos Mincha - 20 min
+        //   pirkei avos    = Maariv - 15 min, rounded to nearest 5
+        // Matches the admin copy: "20 min before Mincha" / "~15 min before Maariv
+        // rounded to nearest 5". Pull the source times from shabbosRow.
+        function minusMinutes(timeStr, deltaMin, roundToNearest = null) {
+            const t = parseClockToMin(timeStr);
+            if (t == null) return null;
+            let out = t - deltaMin;
+            if (roundToNearest) out = Math.round(out / roundToNearest) * roundToNearest;
+            return fmtHMM(out);
+        }
+        const minchaShabbosRaw = shabbosRow ? (shabbosRow.mincha_shabbos || null) : null;
+        const maarivRaw = shabbosRow ? (shabbosRow.maariv || null) : null;
+        const halachaShiurTime = manifestZmanim.shabbosShiurMincha
+            ? minusMinutes(minchaShabbosRaw, 20)
+            : null;
+        const pirkeiAvosTime = manifestZmanim.shabbosShiurMaariv
+            ? minusMinutes(maarivRaw, 15, 5)
+            : null;
+
+        // Kids learning times (entered as free text in the admin, e.g. "4:30 PM").
+        const pircheiTime = clockNoAmPm((manifestZmanim.pircheiTime || '').trim());
+        const avosUbanimTime = clockNoAmPm((manifestZmanim.avosUbanimTime || '').trim());
+
         return res.json({
             ok: true,
             date: targetDate,
@@ -163,11 +198,27 @@ module.exports = async function handler(req, res) {
                 // Astronomical (daily_zmanim, seeded from MyZmanim)
                 plag,
                 shkia,
-                minchaKetana
+                minchaKetana,
+                // Kids learning (admin free-text in screen_data.zmanim)
+                pircheiTime: pircheiTime || null,
+                avosUbanimTime: avosUbanimTime || null,
+                // Rav shiurim (driven by admin toggles, time computed from Mincha/Maariv).
+                // Each is null when the toggle is off — frontend uses that to omit the row.
+                shiurim: [
+                    halachaShiurTime && {
+                        label: 'שיעור הלכה',
+                        time: halachaShiurTime
+                    },
+                    pirkeiAvosTime && {
+                        label: 'פרקי אבות',
+                        time: pirkeiAvosTime
+                    }
+                ].filter(Boolean)
             },
             sources: {
                 shabbos_zmanim_found: !!shabbosRow,
-                daily_zmanim_found: !!dailyRow
+                daily_zmanim_found: !!dailyRow,
+                manifest_found: Object.keys(manifestZmanim).length > 0
             }
         });
     } catch (err) {

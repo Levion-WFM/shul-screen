@@ -137,38 +137,124 @@
   }
 
   .list-friday { top: 38%; }
-  .list-shabbos { top: 61%; }
+  .list-shabbos { top: 66%; }
 
-  .shiur-box {
+  /* Inline rabbinic shiurim — rendered dynamically from API data. Each row
+     only appears if the admin toggled that shiur on. Spacing distributes
+     evenly so the block looks balanced with 1, 2, or more entries. */
+  .shiurim-inline {
     position: absolute;
-    top: 51%; left: 22%; right: 22%;
+    top: 54%; left: 17%; right: 17%;
+    display: flex;
+    flex-direction: column;
+    gap: 1%;
+    color: var(--parchment-ink);
+  }
+  .shiurim-inline .row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 0.5em;
+    align-items: baseline;
+    font-size: 2.5cqw;
+    line-height: 1.55;
+    font-weight: 500;
+  }
+  .shiurim-inline .row .label { text-align: right; }
+  .shiurim-inline .row .dots {
+    color: #8c8169;
+    letter-spacing: 1px;
+    overflow: hidden;
+    white-space: nowrap;
+    opacity: 0.7;
+  }
+  .shiurim-inline .row .time {
+    text-align: left;
+    direction: ltr;
+    min-width: 4em;
+    font-feature-settings: 'tnum' on, 'lnum' on;
+    font-weight: 600;
+  }
+
+  /* Children-learning box — replaces the old static shiur box. Shows Pirchei
+     + Avos uBanim times. Ornate double-border and a subtle gold corner
+     flourish for a more formal feel. Hidden entirely when neither time is
+     set by the admin. */
+  .kids-box {
+    position: absolute;
+    top: 49%; left: 26%; right: 26%;
     text-align: center;
     color: var(--parchment-ink);
-    padding: 1.2% 2%;
-    border: 1px solid #aa9455;
-    background: rgba(255,255,255,0.07);
-    border-radius: 2px;
+    padding: 2% 3%;
+    background:
+      linear-gradient(rgba(255,253,245,0.18), rgba(255,253,245,0.08));
+    border: 1px solid rgba(138,106,42,0.55);
+    box-shadow:
+      inset 0 0 0 3px rgba(255,253,245,0.35),
+      inset 0 0 0 4px rgba(138,106,42,0.35),
+      0 1px 0 rgba(255,253,245,0.15);
+    border-radius: 3px;
+  }
+  .kids-box.hidden { display: none; }
+  .kids-box .heading {
+    font-size: 1.7cqw;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    color: var(--parchment-accent);
+    opacity: 0.85;
+    margin-bottom: 1%;
+  }
+  .kids-box .heading::before,
+  .kids-box .heading::after {
+    content: '•';
+    margin: 0 0.8em;
+    opacity: 0.6;
+  }
+  .kids-box .kids-rows {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 0.6em 1em;
+    font-size: 2.6cqw;
     line-height: 1.35;
+    align-items: baseline;
   }
-  .shiur-box .main {
-    font-size: 2.6cqw; font-weight: 600;
-    direction: rtl;
+  .kids-box .kids-rows .label { text-align: right; font-weight: 600; }
+  .kids-box .kids-rows .dots {
+    color: #8c8169;
+    opacity: 0.55;
+    overflow: hidden;
+    white-space: nowrap;
   }
-  .shiur-box .sub {
-    font-size: 1.9cqw; font-weight: 400;
-    margin-top: 0.6%;
-    opacity: 0.8;
-    letter-spacing: 0.02em;
+  .kids-box .kids-rows .time {
+    text-align: left;
+    direction: ltr;
+    min-width: 4em;
+    font-weight: 600;
+    font-feature-settings: 'tnum' on, 'lnum' on;
   }
 
   .footer-note {
     position: absolute;
-    top: 82%; left: 0; right: 0;
+    top: 84%; left: 0; right: 0;
     text-align: center;
     font-size: 2.1cqw;
     color: var(--parchment-ink);
     opacity: 0.75;
     font-weight: 400;
+  }
+  /* Rav name — sits just below the address inside the decorative footer
+     strip. Same serif font + same ink color as the address for visual
+     continuity; smaller weight + slightly smaller size so the address
+     still reads as the primary line. */
+  .rav-name {
+    position: absolute;
+    top: 88%; left: 0; right: 0;
+    text-align: center;
+    font-family: 'Frank Ruhl Libre', 'David Libre', serif;
+    font-size: 1.9cqw;
+    color: var(--parchment-ink);
+    opacity: 0.7;
+    font-weight: 400;
+    letter-spacing: 0.02em;
   }
 
   .loading {
@@ -221,11 +307,17 @@
         <div class="row"><span class="label">מנחה ערב שבת</span><span class="dots"></span><span class="time" id="t-mincha-erev">—</span></div>
       </div>
 
-      <!-- Shiur box (static — shul-specific, rarely changes) -->
-      <div class="shiur-box">
-        <div class="main" id="shiur-main">פרק אבות עלידי שליט״א ביעודי ארב שלט״א בשעה 8:30</div>
-        <div class="sub" id="shiur-sub">שיעור בסדר אבות</div>
+      <!-- Children's learning box — Pirchei + Avos uBanim times. Only renders
+           when admin has set one or both; hidden entirely otherwise. -->
+      <div class="kids-box hidden" id="kids-box">
+        <div class="heading">לימוד ילדים</div>
+        <div class="kids-rows" id="kids-rows"></div>
       </div>
+
+      <!-- Inline shiurim (rabbis' shiurim). Rendered dynamically from the API.
+           Shiurim that aren't toggled on (e.g., a week the maggid shiur isn't
+           meeting) are simply omitted — spacing stays balanced via flex. -->
+      <div class="shiurim-inline" id="shiurim-inline"></div>
 
       <!-- Shabbos -->
       <div class="list-group list-shabbos">
@@ -236,7 +328,11 @@
         <div class="row"><span class="label">מעריב</span><span class="dots"></span><span class="time" id="t-maariv">—</span></div>
       </div>
 
-      <div class="footer-note" id="footer-note">לא בריישבת אבא</div>
+      <!-- Address line — printed over the ornate footer strip of the template. -->
+      <div class="footer-note" id="footer-note">15 Avalon Lane, Jackson N.J. 08527</div>
+      <!-- Rav's name in Hebrew, below the address. Currently a placeholder;
+           swap the literal text once the user confirms. -->
+      <div class="rav-name">הרב שליט״א</div>
     </div>
   </div>
 
@@ -299,6 +395,42 @@
       set('t-mincha-shabbos', z.minchaShabbos);
       set('t-shkia', z.shkia);
       set('t-maariv', z.maariv);
+
+      // Kids' learning box — populate row-by-row, hide entire box when empty
+      // so there's no floating empty frame on a week with no kids learning.
+      const kidsRowsEl = $('kids-rows');
+      const kidsBoxEl = $('kids-box');
+      if (kidsRowsEl && kidsBoxEl) {
+        kidsRowsEl.innerHTML = '';
+        const kids = [];
+        if (z.pircheiTime)    kids.push({ label: 'פרחי',        time: z.pircheiTime });
+        if (z.avosUbanimTime) kids.push({ label: 'אבות ובנים', time: z.avosUbanimTime });
+        if (kids.length) {
+          kidsBoxEl.classList.remove('hidden');
+          kidsRowsEl.innerHTML = kids.map(k =>
+            '<span class="label">' + k.label + '</span>' +
+            '<span class="dots">····································</span>' +
+            '<span class="time">' + k.time + '</span>'
+          ).join('');
+        } else {
+          kidsBoxEl.classList.add('hidden');
+        }
+      }
+
+      // Inline rabbinic shiurim — render only the ones the admin toggled on.
+      // API returns a pre-filtered array so we don't need to re-check toggles.
+      const shiurimEl = $('shiurim-inline');
+      if (shiurimEl) {
+        shiurimEl.innerHTML = '';
+        const shiurim = Array.isArray(z.shiurim) ? z.shiurim : [];
+        shiurimEl.innerHTML = shiurim.map(s =>
+          '<div class="row">' +
+            '<span class="label">' + s.label + '</span>' +
+            '<span class="dots">····································</span>' +
+            '<span class="time">' + s.time + '</span>' +
+          '</div>'
+        ).join('');
+      }
 
       $('loading').classList.add('hidden');
 
