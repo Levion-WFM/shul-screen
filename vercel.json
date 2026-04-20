@@ -8,7 +8,7 @@
         { "key": "Access-Control-Allow-Methods", "value": "GET, OPTIONS" },
         {
           "key": "Content-Security-Policy",
-          "value": "frame-ancestors 'self' https://beismedrashdjackson21.com https://www.beismedrashdjackson21.com https://shul-website.vercel.app https://*.vercel.app"
+          "value": "frame-ancestors 'self' https://bmj21.com https://www.bmj21.com https://beismedrashdjackson21.com https://www.beismedrashdjackson21.com https://shul-website.vercel.app https://*.vercel.app"
         }
       ]
     },

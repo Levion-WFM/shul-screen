@@ -80,6 +80,11 @@
     direction: rtl;
     font-family: 'Frank Ruhl Libre', 'David Libre', serif;
     color: var(--parchment-ink);
+    /* Container-query context so children can size text with cqw (percentage
+       of the poster's actual width). Without this, font-size: 3.4% resolved
+       against the parent's 16px root and collapsed to 0.5px — hence the
+       microscopic text in the first downloaded render. */
+    container-type: inline-size;
   }
 
   .parsha {
@@ -87,7 +92,7 @@
     top: 30%; left: 10%; right: 10%;
     text-align: center;
     font-weight: 500;
-    font-size: 3.4%;
+    font-size: 3.4cqw;
     line-height: 1.25;
     color: var(--parchment-ink);
     white-space: nowrap;
@@ -111,7 +116,7 @@
     grid-template-columns: 1fr auto 1fr;
     gap: 0.5em;
     align-items: baseline;
-    font-size: 3.1%;
+    font-size: 3.1cqw;
     line-height: 1.55;
     font-weight: 500;
   }
@@ -146,11 +151,11 @@
     line-height: 1.35;
   }
   .shiur-box .main {
-    font-size: 2.6%; font-weight: 600;
+    font-size: 2.6cqw; font-weight: 600;
     direction: rtl;
   }
   .shiur-box .sub {
-    font-size: 1.9%; font-weight: 400;
+    font-size: 1.9cqw; font-weight: 400;
     margin-top: 0.6%;
     opacity: 0.8;
     letter-spacing: 0.02em;
@@ -160,7 +165,7 @@
     position: absolute;
     top: 82%; left: 0; right: 0;
     text-align: center;
-    font-size: 2.1%;
+    font-size: 2.1cqw;
     color: var(--parchment-ink);
     opacity: 0.75;
     font-weight: 400;
@@ -196,7 +201,7 @@
        stays visible via the data-embed-keep attribute. Detection happens in
        script below on `?embed=1` query param OR window.self !== window.top. -->
   <div class="top-bar" id="top-bar">
-    <a href="https://beismedrashdjackson21.com/schedules.html" id="back-link">← Back to Schedules</a>
+    <a href="https://www.bmj21.com/schedules.html" id="back-link">← Back to Schedules</a>
     <div class="actions">
       <button class="btn" id="copy-link">Copy Link</button>
       <button class="btn btn-accent" id="download-png" data-embed-keep>Download as Image</button>
@@ -236,8 +241,10 @@
   </div>
 
   <p style="color:#8e96ae; font-size:0.75rem; text-align:center; max-width: 36rem;">
-    Shul-specific times come from the kiosk database (edit in the zmanim editor).
-    Astronomical zmanim (plag, shkia, mincha ketana) pulled from Hebcal.
+    All times sourced from the kiosk database. Shul-specific times (candles,
+    mincha, shacharis, maariv) are gabbai-entered; astronomical zmanim
+    (plag, shkia) come from the 2-year MyZmanim-seeded schedule; mincha
+    ketana is computed from sunrise + sunset (GRA proportional hours).
   </p>
 </div>
 
