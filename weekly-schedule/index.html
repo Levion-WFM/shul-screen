@@ -294,6 +294,13 @@
       set('t-maariv', z.maariv);
 
       $('loading').classList.add('hidden');
+
+      // If ?autodownload=1 was passed (from the admin "Download Image" button),
+      // fire the download now that zmanim are populated. Wait a tick so
+      // @fontface'd fonts settle before html2canvas snapshots.
+      if (new URLSearchParams(location.search).has('autodownload')) {
+        setTimeout(() => $('download-png').click(), 400);
+      }
     } catch (err) {
       $('loading').innerHTML = '<span style="color:#ff9a9a;">' + err.message + '</span>';
     }
