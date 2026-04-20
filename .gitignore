@@ -4,3 +4,9 @@
 .env*
 node_modules
 .next
+
+.vercel
+.env*.local
+
+# Pi SSH helper — contains Pi password + hostkey
+pi/deploy-to-pi.sh

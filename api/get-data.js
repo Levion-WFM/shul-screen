@@ -64,7 +64,13 @@ module.exports = async function handler(req, res) {
                     alos72: d.alos72, talis: d.talis, sunrise: d.sunrise,
                     shemaMa: d.shema_ma, shemaGra: d.shema_gra, shachrisGra: d.shachris_gra,
                     midday: d.midday, minchaGedola: d.mincha_gedola, plag: d.plag,
-                    sunset: d.sunset, tzes3stars: d.tzes_3stars, tzes72fix: d.tzes72fix
+                    sunset: d.sunset, tzes3stars: d.tzes_3stars, tzes72fix: d.tzes72fix,
+                    holidayHebrew: d.holiday_hebrew || null,
+                    holidayEnglish: d.holiday_english || null,
+                    parshaHebrew: d.parsha_hebrew || null,
+                    parshaEnglish: d.parsha_english || null,
+                    dafYomi: d.daf_yomi || null,
+                    candleLighting: d.candle_lighting || null
                 };
             }
             dailyRows.forEach(function(d) {
@@ -110,6 +116,22 @@ module.exports = async function handler(req, res) {
                 }
             });
         } catch (e) { console.error('sefirah error:', e.message); }
+
+        // ── Expire past community fliers ──
+        // Event-dated fliers auto-disappear after their date passes (in kiosk TZ).
+        // Fliers with no eventDate are evergreen and always shown. todayStr is already
+        // the kiosk-local YYYY-MM-DD, so string comparison works correctly.
+        if (Array.isArray(data.communityFliers)) {
+            data.communityFliers = data.communityFliers.filter(function(f) {
+                if (!f || !f.eventDate) return true;
+                return String(f.eventDate) >= todayStr;
+            });
+        }
+
+        // ── Remote-reload nonce ──
+        // Admin bumps screen_data.data.reloadNonce (via /api/force-reload) to tell all
+        // running kiosks to reload and pick up the latest deploy. Pass through as-is.
+        if (typeof data.reloadNonce === 'undefined') data.reloadNonce = null;
 
         // ── Tzeis hachochavim for client-side day-flip ──
         // The halachic day transitions at tzeis (3 stars visible), NOT at shkiyah (sunset).

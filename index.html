@@ -131,6 +131,11 @@
 <!-- Daily Zmanim -->
 <div class="bg-surface-container-high elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 min-h-0 rounded-sm overflow-hidden">
 <h2 class="text-primary font-headline text-center py-2 text-3xl tracking-[0.2em] font-bold border-b border-white/10 bg-black/40 shrink-0" dir="rtl">זמני היום</h2>
+<!-- Holiday banner — only shown when today has a holiday (from xlsx col D HolidayHebrew) -->
+<div id="holidayBanner" class="shrink-0 hidden bg-black/40 border-b border-primary/30 px-3 py-1 flex items-baseline justify-center gap-2" dir="rtl">
+<span class="font-headline text-xl font-bold text-primary text-3d-light" id="holidayHebrew"></span>
+<span class="text-sm italic text-secondary/80" id="holidayEnglish"></span>
+</div>
 <!-- grid-flow-col + grid-rows-6 makes items flow top-to-bottom in column 1, then column 2 -->
 <div class="flex-1 min-h-0 p-2 grid grid-cols-2 grid-rows-6 grid-flow-col auto-rows-fr gap-x-3 gap-y-0.5" id="dailyZmanimSlots">
 </div>
@@ -337,6 +342,18 @@ async function loadScreenData() {
     var data = await fetchScreenData();
     if (!data) return;
 
+    // Remote reload: backend bumps data.reloadNonce to force kiosks to pick up the
+    // latest deploy without anyone being on local wifi. First payload seeds the nonce;
+    // any later change triggers a hard reload with a cache-busting query param.
+    if (typeof data.reloadNonce !== 'undefined' && data.reloadNonce !== null) {
+        if (window.__reloadNonce === undefined) {
+            window.__reloadNonce = data.reloadNonce;
+        } else if (window.__reloadNonce !== data.reloadNonce) {
+            location.replace(location.pathname + '?v=' + encodeURIComponent(data.reloadNonce));
+            return;
+        }
+    }
+
     // ── Zecher Nishmas dedication ──
     // Editable text field on the backend; rendered bottom-right of the kiosk.
     var zecherEl = document.getElementById('zecherNishmas');
@@ -414,6 +431,21 @@ async function loadScreenData() {
 
     // ── Daily Zmanim (from daily_zmanim table) ──
     var dailyContainer = document.getElementById('dailyZmanimSlots');
+    // Holiday banner: show HolidayHebrew (+ optional English subtitle) when today has one.
+    var holidayBanner = document.getElementById('holidayBanner');
+    if (holidayBanner) {
+        var holHe = data.dailyZmanim && data.dailyZmanim.holidayHebrew;
+        var holEn = data.dailyZmanim && data.dailyZmanim.holidayEnglish;
+        if (holHe) {
+            document.getElementById('holidayHebrew').textContent = holHe;
+            var enEl = document.getElementById('holidayEnglish');
+            if (holEn) { enEl.textContent = holEn; enEl.classList.remove('hidden'); }
+            else       { enEl.textContent = '';    enEl.classList.add('hidden'); }
+            holidayBanner.classList.remove('hidden');
+        } else {
+            holidayBanner.classList.add('hidden');
+        }
+    }
     if (dailyContainer && data.dailyZmanim) {
         var dz = data.dailyZmanim;
         var dailyItems = [
@@ -556,6 +588,15 @@ async function loadScreenData() {
         sponsorContainer.innerHTML = sHtml;
     }
 
+    // Pre-compute flier list so we know if shul will be alone when we render it.
+    var preFlierList = [];
+    if (data.communityFliers && data.communityFliers.length) {
+        preFlierList = data.communityFliers.slice(0, 3);
+    } else if (data.announcements && data.announcements.length > 1) {
+        preFlierList = data.announcements.slice(1, 4);
+    }
+    var shulAlone = preFlierList.length === 0;
+
     // ── Shul Announcement (max 1 flier, top of center column) ──
     // Hidden state now lives on the wrapping section so the "Shul" cursive title hides too.
     var shulAnn = document.getElementById('shulAnnSlots');
@@ -564,17 +605,41 @@ async function loadScreenData() {
     var shulItem = (data.announcements && data.announcements.length) ? data.announcements[0] : null;
     if (shulItem && (shulItem.imageData || shulItem.title || shulItem.description)) {
         if (shulAnnSection) shulAnnSection.classList.remove('hidden');
+        // When alone: shrink-to-fit AND add my-auto so flex-col distributes leftover
+        // vertical space equally above+below the flier. Because communitySlots is
+        // flex-none at the bottom of the column, the bottom auto-margin stops at
+        // communitySlots, pinning announcements to the bottom with the flier floating
+        // centered above. When paired with commFlier, use flex-1 + no auto margin.
+        if (shulAnnSection) {
+            shulAnnSection.classList.toggle('flex-1', !shulAlone);
+            shulAnnSection.classList.toggle('min-h-0', !shulAlone);
+            shulAnnSection.classList.toggle('flex-none', shulAlone);
+            shulAnnSection.classList.toggle('my-auto', shulAlone);
+        }
+        // Slots container: when alone, don't stretch — just center the image.
+        if (shulAnn) {
+            shulAnn.classList.toggle('flex-1', !shulAlone);
+            shulAnn.classList.toggle('min-h-0', !shulAlone);
+            shulAnn.classList.toggle('items-stretch', !shulAlone);
+            shulAnn.classList.toggle('items-center', shulAlone);
+        }
         var hasImg = shulItem.imageData && shulItem.imageData.length > 10 && shulItem.imageData.startsWith('data:');
         var hasText = shulItem.title || shulItem.description;
         var sHtml = '';
         if (hasImg) {
-            // Image is the bordered element itself — no wrapper box, so the gold frame hugs the
-            // picture directly with no black letterbox on any side. h-full + w-auto makes the
-            // img's BOX take container height and auto-scale width to its natural aspect. When
-            // there's side text, cap at 60% so the image doesn't crowd it out; with no text,
-            // let it fill almost the whole row width so the gold frame sits near the column edge.
-            var imgMaxW = hasText ? 'max-w-[60%]' : 'max-w-[92%]';
-            sHtml += '<img class="h-full w-auto max-h-full ' + imgMaxW + ' object-contain elevated-3d border-4 border-primary/60 rounded-sm shrink-0" src="' + esc(shulItem.imageData) + '"/>';
+            // Image IS the bordered element — gold frame hugs the picture, no letterbox.
+            // With text: force h-full so img aligns with the text block vertically (cap width 60%).
+            // Without text + alone: let section auto-size; image goes natural up to 75vh tall.
+            // Without text + paired: max-h-full bounds to half-column.
+            var imgCls;
+            if (hasText) {
+                imgCls = 'h-full w-auto max-h-full max-w-[60%]';
+            } else if (shulAlone) {
+                imgCls = 'max-h-[75vh] max-w-[98%] w-auto h-auto self-center';
+            } else {
+                imgCls = 'max-h-full max-w-[98%] w-auto h-auto self-center';
+            }
+            sHtml += '<img class="' + imgCls + ' object-contain elevated-3d border-4 border-primary/60 rounded-sm shrink-0" src="' + esc(shulItem.imageData) + '"/>';
         }
         if (hasText) {
             sHtml += '<div class="' + (hasImg ? 'text-left flex-1' : 'text-center flex-1') + ' min-w-0 max-w-xl self-center">';
