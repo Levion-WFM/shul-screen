@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>זמנים לשבת — Beis Medrash DJackson 21</title>
+<meta name="robots" content="noindex, nofollow"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@300;400;500;700;900&family=David+Libre:wght@400;500;700&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
+  :root {
+    --poster-width: 1024px;
+    --poster-height: 1536px;
+    --parchment-ink: #1e2a55;
+    --parchment-accent: #8a6a2a;
+  }
+
+  * { box-sizing: border-box; margin: 0; }
+  html, body {
+    background: #0c1326;
+    color: #fff;
+    font-family: 'Manrope', sans-serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    padding: 1rem 1rem 5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+  }
+  .top-bar {
+    width: 100%;
+    max-width: 1024px;
+    display: flex; justify-content: space-between; align-items: center;
+    color: #bcc3d4;
+    font-size: 0.85rem;
+    padding: 0.5rem 0.25rem;
+  }
+  .top-bar a { color: #bcc3d4; text-decoration: none; border-bottom: 1px solid transparent; }
+  .top-bar a:hover { border-color: currentColor; }
+  .actions { display: flex; gap: 0.75rem; align-items: center; }
+  .btn {
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.8125rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.6rem 1.1rem;
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #fff;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: background .2s ease, border-color .2s ease;
+  }
+  .btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.45); }
+  .btn-accent { background: #8a6a2a; border-color: #8a6a2a; }
+  .btn-accent:hover { background: #a67e33; border-color: #a67e33; }
+
+  .poster-wrap {
+    width: 100%;
+    max-width: var(--poster-width);
+    aspect-ratio: 1024 / 1536;
+    position: relative;
+  }
+  .poster {
+    position: absolute; inset: 0;
+    background-image: url('./template.png');
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-color: #1e2a55;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 4px 10px rgba(0,0,0,0.3);
+    border-radius: 2px;
+    direction: rtl;
+    font-family: 'Frank Ruhl Libre', 'David Libre', serif;
+    color: var(--parchment-ink);
+  }
+
+  .parsha {
+    position: absolute;
+    top: 30%; left: 10%; right: 10%;
+    text-align: center;
+    font-weight: 500;
+    font-size: 3.4%;
+    line-height: 1.25;
+    color: var(--parchment-ink);
+    white-space: nowrap;
+  }
+  .parsha .rule {
+    margin: 2.5% auto 0;
+    width: 22%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #aa9455 40%, #aa9455 60%, transparent);
+    opacity: 0.6;
+  }
+
+  .list-group {
+    position: absolute;
+    left: 17%; right: 17%;
+    font-weight: 400;
+    color: var(--parchment-ink);
+  }
+  .list-group .row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 0.5em;
+    align-items: baseline;
+    font-size: 3.1%;
+    line-height: 1.55;
+    font-weight: 500;
+  }
+  .list-group .row .label { text-align: right; }
+  .list-group .row .dots {
+    color: #8c8169;
+    letter-spacing: 1px;
+    overflow: hidden;
+    white-space: nowrap;
+    opacity: 0.7;
+  }
+  .list-group .row .time {
+    text-align: left;
+    direction: ltr;
+    min-width: 4em;
+    font-feature-settings: 'tnum' on, 'lnum' on;
+    font-weight: 600;
+  }
+
+  .list-friday { top: 38%; }
+  .list-shabbos { top: 61%; }
+
+  .shiur-box {
+    position: absolute;
+    top: 51%; left: 22%; right: 22%;
+    text-align: center;
+    color: var(--parchment-ink);
+    padding: 1.2% 2%;
+    border: 1px solid #aa9455;
+    background: rgba(255,255,255,0.07);
+    border-radius: 2px;
+    line-height: 1.35;
+  }
+  .shiur-box .main {
+    font-size: 2.6%; font-weight: 600;
+    direction: rtl;
+  }
+  .shiur-box .sub {
+    font-size: 1.9%; font-weight: 400;
+    margin-top: 0.6%;
+    opacity: 0.8;
+    letter-spacing: 0.02em;
+  }
+
+  .footer-note {
+    position: absolute;
+    top: 82%; left: 0; right: 0;
+    text-align: center;
+    font-size: 2.1%;
+    color: var(--parchment-ink);
+    opacity: 0.75;
+    font-weight: 400;
+  }
+
+  .loading {
+    position: absolute;
+    inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #bcc3d4; font-size: 1rem; font-family: Manrope, sans-serif;
+    direction: ltr;
+  }
+  .loading.hidden { display: none; }
+  .spin {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.15); border-top-color: #d9c88a;
+    animation: spin 1s linear infinite; margin-left: 0.6rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 640px) {
+    .page { padding: 0.5rem 0.5rem 4rem; }
+    .top-bar { font-size: 0.75rem; flex-wrap: wrap; gap: 0.5rem; }
+    .btn { padding: 0.5rem 0.8rem; font-size: 0.72rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <!-- Top-bar is hidden when the page is iframed (e.g. embedded on
+       beismedrashdjackson21.com/schedules.html). The Download button alone
+       stays visible via the data-embed-keep attribute. Detection happens in
+       script below on `?embed=1` query param OR window.self !== window.top. -->
+  <div class="top-bar" id="top-bar">
+    <a href="https://beismedrashdjackson21.com/schedules.html" id="back-link">← Back to Schedules</a>
+    <div class="actions">
+      <button class="btn" id="copy-link">Copy Link</button>
+      <button class="btn btn-accent" id="download-png" data-embed-keep>Download as Image</button>
+    </div>
+  </div>
+
+  <div class="poster-wrap">
+    <div class="poster" id="poster">
+      <div class="loading" id="loading"><span>Loading zmanim…</span><span class="spin"></span></div>
+
+      <div class="parsha" id="parsha"></div>
+
+      <!-- Erev Shabbos -->
+      <div class="list-group list-friday">
+        <div class="row"><span class="label">הדלקת נרות</span><span class="dots"></span><span class="time" id="t-candles">—</span></div>
+        <div class="row"><span class="label">פלג</span><span class="dots"></span><span class="time" id="t-plag">—</span></div>
+        <div class="row"><span class="label">מנחה ערב שבת</span><span class="dots"></span><span class="time" id="t-mincha-erev">—</span></div>
+      </div>
+
+      <!-- Shiur box (static — shul-specific, rarely changes) -->
+      <div class="shiur-box">
+        <div class="main" id="shiur-main">פרק אבות עלידי שליט״א ביעודי ארב שלט״א בשעה 8:30</div>
+        <div class="sub" id="shiur-sub">שיעור בסדר אבות</div>
+      </div>
+
+      <!-- Shabbos -->
+      <div class="list-group list-shabbos">
+        <div class="row"><span class="label">שחרית</span><span class="dots"></span><span class="time" id="t-shacharis">—</span></div>
+        <div class="row"><span class="label">זמן מנחה קטנה</span><span class="dots"></span><span class="time" id="t-mincha-ketana">—</span></div>
+        <div class="row"><span class="label">מנחה</span><span class="dots"></span><span class="time" id="t-mincha-shabbos">—</span></div>
+        <div class="row"><span class="label">שקיעה</span><span class="dots"></span><span class="time" id="t-shkia">—</span></div>
+        <div class="row"><span class="label">מעריב</span><span class="dots"></span><span class="time" id="t-maariv">—</span></div>
+      </div>
+
+      <div class="footer-note" id="footer-note">לא בריישבת אבא</div>
+    </div>
+  </div>
+
+  <p style="color:#8e96ae; font-size:0.75rem; text-align:center; max-width: 36rem;">
+    Shul-specific times come from the kiosk database (edit in the zmanim editor).
+    Astronomical zmanim (plag, shkia, mincha ketana) pulled from Hebcal.
+  </p>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const set = (id, v) => { const el = $(id); if (el) el.textContent = v || '—'; };
+
+  // Embed mode: when iframed (or explicit ?embed=1), hide page chrome that
+  // doesn't belong outside this origin (Back link, Copy Link). Keep the
+  // Download button so the embedding site still gets image-export capability.
+  const isEmbed = (() => {
+    try { if (window.self !== window.top) return true; } catch { return true; /* cross-origin access throws → iframe */ }
+    return new URLSearchParams(location.search).has('embed');
+  })();
+  if (isEmbed) {
+    document.documentElement.classList.add('embed');
+    const backLink = $('back-link');
+    const copyBtn = $('copy-link');
+    if (backLink) backLink.style.display = 'none';
+    if (copyBtn) copyBtn.style.display = 'none';
+    // Hide the footer tip paragraph (debugging text about data source).
+    const tip = document.querySelector('p[style*="#8e96ae"]');
+    if (tip) tip.style.display = 'none';
+    // Slim the page padding so the iframe has less dead space.
+    const page = document.querySelector('.page');
+    if (page) page.style.padding = '0.5rem';
+  }
+
+  async function load() {
+    try {
+      const res = await fetch('/api/weekly-schedule', { cache: 'no-store' });
+      if (!res.ok) throw new Error('Failed to load zmanim (HTTP ' + res.status + ')');
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || 'Unknown error');
+
+      const z = data.zmanim;
+
+      // Parasha — prefer the DB parsha (matches how the shul writes it),
+      // fall back to Hebcal's Hebrew name.
+      const parshaName = z.parashaDb || z.parashaHebrew || '';
+      const parshaText = parshaName
+        ? 'זמנים לשבת קודש פרשת ' + parshaName
+        : 'זמנים לשבת קודש';
+      $('parsha').innerHTML = parshaText + '<div class="rule"></div>';
+
+      // Populate all time slots.
+      set('t-candles', z.candles);
+      set('t-plag', z.plag);
+      set('t-mincha-erev', z.minchaErevShabbos || z.plag);
+      set('t-shacharis', z.shacharis);
+      set('t-mincha-ketana', z.minchaKetana);
+      set('t-mincha-shabbos', z.minchaShabbos);
+      set('t-shkia', z.shkia);
+      set('t-maariv', z.maariv);
+
+      $('loading').classList.add('hidden');
+    } catch (err) {
+      $('loading').innerHTML = '<span style="color:#ff9a9a;">' + err.message + '</span>';
+    }
+  }
+
+  $('copy-link').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(location.href);
+      $('copy-link').textContent = 'Copied!';
+      setTimeout(() => { $('copy-link').textContent = 'Copy Link'; }, 1500);
+    } catch {}
+  });
+
+  $('download-png').addEventListener('click', async () => {
+    const btn = $('download-png');
+    const orig = btn.textContent;
+    btn.textContent = 'Rendering…';
+    btn.disabled = true;
+    try {
+      const poster = $('poster');
+      const canvas = await html2canvas(poster, {
+        useCORS: true,
+        backgroundColor: null,
+        scale: 2
+      });
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = 'bmj21-schedule-' + new Date().toISOString().slice(0,10) + '.png';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (err) {
+      alert('Export failed: ' + err.message);
+    } finally {
+      btn.textContent = orig;
+      btn.disabled = false;
+    }
+  });
+
+  load();
+</script>
+</body>
+</html>

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PREVIEW: Weekly schedule render</title>
+<meta name="robots" content="noindex, nofollow"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@300;400;500;700;900&family=David+Libre:wght@400;500;700&family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  html, body { background: #0c1326; color: #fff; font-family: 'Manrope', sans-serif; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+  .page { padding: 1.25rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+  .top-bar { color: #bcc3d4; font-size: 0.8rem; max-width: 1024px; width: 100%; display: flex; justify-content: space-between; padding: .5rem; }
+  .top-bar a { color: #d9c88a; text-decoration: none; }
+
+  :root {
+    --ink:        #1b2649;
+    --ink-soft:   #3b4570;
+    --gold:       #8a6a2a;
+    --gold-soft:  #aa8a4d;
+    --gold-dim:   #9a7d3f;
+    --dots:       rgba(107, 93, 60, 0.45);
+  }
+
+  .poster-wrap {
+    width: 100%;
+    max-width: 1024px;
+    aspect-ratio: 1024 / 1536;
+    position: relative;
+  }
+  .poster {
+    position: absolute; inset: 0;
+    background-image: url('./template.png');
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-color: #1e2a55;
+    overflow: hidden;
+    direction: rtl;
+    font-family: 'Frank Ruhl Libre', 'David Libre', serif;
+    color: var(--ink);
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  }
+
+  .bsd {
+    position: absolute;
+    top: 22.5%;
+    left: 0; right: 0;
+    text-align: center;
+    font-size: 1.9%;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--gold);
+    opacity: 0.75;
+  }
+
+  .parsha-block {
+    position: absolute;
+    top: 25%;
+    left: 10%; right: 10%;
+    text-align: center;
+    color: var(--ink);
+  }
+  .parsha-block .parsha {
+    font-weight: 700;
+    font-size: 3.8%;
+    line-height: 1.1;
+    letter-spacing: -0.005em;
+  }
+  .parsha-block .hdate {
+    margin-top: 1.2%;
+    font-family: 'Cormorant Garamond', 'Frank Ruhl Libre', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 2.1%;
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+    opacity: 0.75;
+  }
+  .parsha-block .ornament {
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px;
+    margin: 1.6% auto 0;
+  }
+  .parsha-block .ornament .line {
+    flex: 0 1 28%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-soft) 50%, transparent);
+    opacity: 0.9;
+  }
+  .parsha-block .ornament .dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--gold-soft);
+    opacity: 0.8;
+  }
+
+  .main-list {
+    position: absolute;
+    top: 33.5%;
+    left: 13%; right: 13%;
+  }
+  .main-list .row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    column-gap: 0.5em;
+    align-items: baseline;
+    font-size: 3.65%;
+    line-height: 1.0;
+    padding: 1.3% 0;
+    border-bottom: 1px dotted rgba(107, 93, 60, 0.18);
+  }
+  .main-list .row:last-child { border-bottom: none; }
+  .main-list .row .label {
+    text-align: right;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .main-list .row .dots {
+    color: var(--dots);
+    letter-spacing: 1px;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 0.75em;
+    padding: 0 0.3em;
+  }
+  .main-list .row .time {
+    text-align: left;
+    direction: ltr;
+    min-width: 3.5em;
+    font-feature-settings: 'tnum' on, 'lnum' on;
+    font-weight: 700;
+    color: var(--gold);
+  }
+  .main-list .row.candles .label { color: var(--gold); }
+  .main-list .row.candles .time  { color: var(--gold); font-weight: 800; }
+
+  .section-divider {
+    position: absolute;
+    top: 64%;
+    left: 24%; right: 24%;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .section-divider .line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-soft) 50%, transparent);
+    opacity: 0.85;
+  }
+  .section-divider .cap {
+    color: var(--gold);
+    font-weight: 700;
+    font-size: 2.7%;
+    letter-spacing: 0.08em;
+    font-family: 'Frank Ruhl Libre', serif;
+  }
+
+  .shiurim-list {
+    position: absolute;
+    top: 69%;
+    left: 17%; right: 17%;
+  }
+  .shiurim-list .row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    column-gap: 0.5em;
+    align-items: baseline;
+    font-size: 2.85%;
+    line-height: 1.0;
+    padding: 1.1% 0;
+  }
+  .shiurim-list .row .label {
+    text-align: right;
+    font-weight: 500;
+    color: var(--ink-soft);
+  }
+  .shiurim-list .row .dots {
+    color: var(--dots);
+    letter-spacing: 1px;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 0.8em;
+    padding: 0 0.3em;
+  }
+  .shiurim-list .row .time {
+    text-align: left;
+    direction: ltr;
+    min-width: 3.5em;
+    font-feature-settings: 'tnum' on, 'lnum' on;
+    font-weight: 600;
+    color: var(--gold);
+  }
+  .shiurim-list .row .time.em-dash {
+    color: var(--ink-soft);
+    font-weight: 400;
+    opacity: 0.6;
+  }
+
+  .closing-ornament {
+    position: absolute;
+    top: 84.5%;
+    left: 0; right: 0;
+    display: flex; align-items: center; justify-content: center;
+    gap: 12px;
+    color: var(--gold-soft);
+    opacity: 0.65;
+  }
+  .closing-ornament .fleur {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.4%;
+  }
+  .closing-ornament .line {
+    width: 9%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-soft), transparent);
+  }
+
+  .legend {
+    color: #8e96ae;
+    font-size: 0.78rem;
+    max-width: 1024px;
+    width: 100%;
+    text-align: center;
+    margin-top: 1rem;
+    line-height: 1.6;
+  }
+  .legend code {
+    background: rgba(255,255,255,0.08);
+    padding: 0 .35em;
+    border-radius: 2px;
+    font-family: Manrope, monospace;
+    color: #d9c88a;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="top-bar">
+    <span>PREVIEW — Shabbos Tazria-Metzora (sample zmanim)</span>
+    <a href="./">Open live version →</a>
+  </div>
+
+  <div class="poster-wrap">
+    <div class="poster">
+
+      <div class="bsd">בס״ד</div>
+
+      <div class="parsha-block">
+        <div class="parsha">שבת פרשת תזריע - מצורע</div>
+        <div class="hdate">ט׳ אייר תשפ״ו</div>
+        <div class="ornament">
+          <span class="line"></span>
+          <span class="dot"></span>
+          <span class="line"></span>
+        </div>
+      </div>
+
+      <div class="main-list">
+        <div class="row candles"><span class="label">הדלקת נרות</span><span class="dots">..................................</span><span class="time">7:20</span></div>
+        <div class="row"><span class="label">מנחה וקבלת שבת</span><span class="dots">..................................</span><span class="time">7:04</span></div>
+        <div class="row"><span class="label">שחרית</span><span class="dots">..................................</span><span class="time">8:30</span></div>
+        <div class="row"><span class="label">מנחה</span><span class="dots">..................................</span><span class="time">7:00</span></div>
+        <div class="row"><span class="label">מעריב</span><span class="dots">..................................</span><span class="time">8:40</span></div>
+      </div>
+
+      <div class="section-divider">
+        <span class="line"></span>
+        <span class="cap">שיעורים</span>
+        <span class="line"></span>
+      </div>
+
+      <div class="shiurim-list">
+        <div class="row"><span class="label">שיעור הלכה</span><span class="dots">..................................</span><span class="time">6:40</span></div>
+        <div class="row"><span class="label">פרקי אבות</span><span class="dots">..................................</span><span class="time">8:25</span></div>
+        <div class="row"><span class="label">פרחי</span><span class="dots">..................................</span><span class="time em-dash">—</span></div>
+        <div class="row"><span class="label">אבות ובנים</span><span class="dots">..................................</span><span class="time em-dash">—</span></div>
+      </div>
+
+      <div class="closing-ornament">
+        <span class="line"></span>
+        <span class="fleur">❦</span>
+        <span class="line"></span>
+      </div>
+
+    </div>
+  </div>
+
+  <p class="legend">
+    Static preview of the weekly-schedule poster layout. The live version at
+    <code>/weekly-schedule/</code> pulls real zmanim from the kiosk DB + Hebcal.
+  </p>
+</div>
+</body>
+</html>
