@@ -790,7 +790,9 @@ function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').
 // Build a plain-text summary of this week's Shabbos zmanim (bilingual, line-based,
 // no emojis) and push it to the clipboard so the gabbai can paste into a group chat.
 // Reads directly from the in-memory admin inputs so any un-saved overrides are included.
-function copyZmanimAsText() {
+// Shkia (Fri/Shabbos) + computed shiur times aren't in the DOM — they come from
+// daily_zmanim / shabbos_zmanim via /api/weekly-schedule (same source as the poster).
+async function copyZmanimAsText() {
     var parshat = document.getElementById('zParshat').value.trim();
     var hebrewDate = document.getElementById('zHebrewDate').value.trim();
     var candle = document.getElementById('zCandleLighting').value.trim();
@@ -799,6 +801,24 @@ function copyZmanimAsText() {
     var shacharit = document.getElementById('zShacharit').value.trim();
     var minchaSat = document.getElementById('zMinchaSaturday').value.trim();
     var havdalah = document.getElementById('zHavdalah').value.trim();
+    var shiurMinchaOn = document.getElementById('shabbosShiurMinchaToggle').checked;
+    var shiurMaarivOn = document.getElementById('shabbosShiurMaarivToggle').checked;
+    var shiurChumashOn = document.getElementById('shabbosShiurChumashToggle').checked;
+
+    var shkiaFriday = null, shkiaShabbos = null, halachaTime = null, pirkeiAvosTime = null;
+    try {
+        var resp = await fetch('/api/weekly-schedule', { cache: 'no-store' });
+        if (resp.ok) {
+            var json = await resp.json();
+            var zRemote = (json && json.zmanim) || {};
+            shkiaFriday = zRemote.shkiaFriday || null;
+            shkiaShabbos = zRemote.shkia || null;
+            var byLabel = {};
+            (zRemote.shiurim || []).forEach(function(s) { byLabel[s.label] = s.time; });
+            halachaTime = byLabel['שיעור הלכה'] || null;
+            pirkeiAvosTime = byLabel['פרקי אבות'] || null;
+        }
+    } catch (e) { /* ignore — fall back to DOM-only output */ }
 
     var lines = [];
     var header = 'Beis Medrash D\'Jackson 21';
@@ -813,8 +833,13 @@ function copyZmanimAsText() {
     } else if (minchaFriday) {
         lines.push('Mincha Erev Shabbos: ' + minchaFriday);
     }
+    if (shkiaFriday) lines.push('Shkia (Friday): ' + shkiaFriday);
     if (shacharit) lines.push('Shacharis: ' + shacharit);
+    if (shiurChumashOn) lines.push('שיעור חומש: אחר הקידוש');
+    if (shiurMinchaOn && halachaTime) lines.push('שיעור הלכה: ' + halachaTime);
     if (minchaSat) lines.push('Mincha (Shabbos): ' + minchaSat);
+    if (shkiaShabbos) lines.push('Shkia (Shabbos): ' + shkiaShabbos);
+    if (shiurMaarivOn && pirkeiAvosTime) lines.push('פרקי אבות: ' + pirkeiAvosTime);
     if (havdalah) lines.push('Maariv: ' + havdalah);
 
     var text = lines.join('\n');

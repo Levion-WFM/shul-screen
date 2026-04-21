@@ -121,15 +121,21 @@ module.exports = async function handler(req, res) {
             : (dbDate || shabbosStr);
 
         let dailyRow = null;
+        let fridayRow = null;
         try {
             const rows = await sql`
                 SELECT civil_date, sunrise, plag, sunset,
                        parsha_hebrew, parsha_english, candle_lighting
                 FROM daily_zmanim
-                WHERE civil_date = ${targetDate}::date
-                LIMIT 1
+                WHERE civil_date IN (${targetDate}::date, ${targetDate}::date - INTERVAL '1 day')
             `;
-            if (rows.length) dailyRow = rows[0];
+            rows.forEach(r => {
+                const cd = r.civil_date instanceof Date
+                    ? r.civil_date.toISOString().slice(0, 10)
+                    : String(r.civil_date).slice(0, 10);
+                if (cd === targetDate) dailyRow = r;
+                else fridayRow = r;
+            });
         } catch (err) {
             console.error('daily_zmanim read failed:', err);
         }
@@ -143,6 +149,7 @@ module.exports = async function handler(req, res) {
         const parashaEnglish = (dailyRow && dailyRow.parsha_english) || '';
         const plag = dailyRow ? clockNoAmPm(dailyRow.plag) : null;
         const shkia = dailyRow ? clockNoAmPm(dailyRow.sunset) : null;
+        const shkiaFriday = fridayRow ? clockNoAmPm(fridayRow.sunset) : null;
         const minchaKetana = dailyRow
             ? computeMinchaKetana(dailyRow.sunrise, dailyRow.sunset)
             : null;
@@ -199,6 +206,7 @@ module.exports = async function handler(req, res) {
                 // Astronomical (daily_zmanim, seeded from MyZmanim)
                 plag,
                 shkia,
+                shkiaFriday,
                 minchaKetana,
                 // Kids learning (admin free-text in screen_data.zmanim)
                 pircheiTime: pircheiTime || null,
