@@ -100,7 +100,7 @@ module.exports = async function handler(req, res) {
                 shabbosRow = rows[0];
             } else {
                 const next = await sql`
-                    SELECT shabbos_date, parsha, candle_lighting, mincha_erev_shabbos,
+                    SELECT shabbos_date, parsha, candle_lighting, mincha_a, mincha_erev_shabbos,
                            shacharit, mincha_shabbos, maariv
                     FROM shabbos_zmanim
                     WHERE shabbos_date >= ${shabbosStr}::date
