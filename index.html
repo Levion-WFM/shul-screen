@@ -87,23 +87,43 @@
 </head>
 <body class="bg-[#0a0706] text-white font-body h-screen flex flex-col overflow-hidden">
 <!-- Header -->
-<nav class="bg-[#0a0706] border-b-4 gold-border-3d py-2 px-8 flex items-center relative z-50 shrink-0">
-<!-- Left: dates -->
-<div class="flex items-center shrink-0">
-<div class="flex flex-col leading-tight">
-<span id="secularDate" class="text-base font-headline font-bold text-primary tracking-widest uppercase"></span>
-<span id="hebrewDate" class="text-base font-headline opacity-80 italic tracking-wider text-secondary" dir="rtl"></span>
+<!-- Nav is THIN — sized only to the date/time content. Logo is absolutely positioned
+     over the center column and HANGS DOWN past the nav's bottom border, overlaying
+     the brown wood-grain area below. `overflow-visible` on nav lets the logo spill
+     past the border; main content reserves space for the overhang via pt-20. -->
+<nav class="bg-[#0a0706] border-b-4 gold-border-3d px-8 py-1.5 grid grid-cols-12 gap-4 items-center relative z-50 shrink-0 overflow-visible">
+<!-- Left column (col-span-4): English date on top, Hebrew date below, both centered -->
+<div class="col-span-4 flex flex-col items-center justify-center text-center leading-tight">
+<span id="secularDate" class="text-lg font-headline font-bold text-primary tracking-widest uppercase"></span>
+<span id="hebrewDate" class="text-lg font-headline opacity-80 italic tracking-wider text-secondary" dir="rtl"></span>
 </div>
+<!-- Empty grid spacer — badge is positioned absolutely relative to nav below. -->
+<div class="col-span-5"></div>
+<!-- Right column (col-span-3): precision clock, centered over the right column content. -->
+<div class="col-span-3 flex items-center justify-center">
+<span id="liveClock" class="font-mono font-bold text-primary tracking-tight tabular-nums text-4xl text-3d leading-none">--:--:--</span>
 </div>
-<!-- Center: shul name -->
-<div class="absolute inset-x-0 flex justify-center pointer-events-none">
-<h1 class="text-4xl font-headline font-bold gold-inlay tracking-[0.08em] text-center leading-tight whitespace-nowrap pointer-events-auto">
-                BEIS MEDRASH D'JACKSON 21
-            </h1>
-</div>
-<!-- Right: precision clock. Used for time-sensitive religious decisions; must stay accurate. -->
-<div class="ml-auto flex items-center shrink-0">
-<span id="liveClock" class="font-mono font-bold text-primary tracking-tight tabular-nums text-3xl text-3d leading-none">--:--:--</span>
+<!-- ARCHED TABLET CARTOUCHE badge — direct child of nav so positioning ignores the
+     grid items-center vertical alignment. Anchored at top: 0 of the nav's padding
+     box + negative margin-top to reach the border; horizontally centered on the
+     center column (mid of 4/5/3 grid = 54.17% of page width).
+     Gentler 120px arch radius (vs the previous half-dome at 220px) so the logo
+     content near the top doesn't get clipped by an aggressive curve. -->
+<div class="absolute -translate-x-1/2 z-50 bg-[#0a0706] overflow-hidden"
+     style="left: 54.17%; top: -6px; width: 280px; height: 145px;
+            border: 1.5px solid #e9c349;
+            border-top-left-radius: 80px; border-top-right-radius: 80px;
+            border-bottom-left-radius: 6px; border-bottom-right-radius: 6px;
+            box-shadow: 0 8px 28px rgba(0,0,0,0.7), inset 0 0 40px rgba(233,195,73,0.06);">
+<div class="absolute inset-0 pointer-events-none"
+     style="background: radial-gradient(ellipse at center, rgba(255,224,136,0.10), transparent 72%);"></div>
+<!-- Scale 2.2 so the crown emblem at top of the source PNG lands inside the
+     now-gentler arch without clipping. transform-origin center 50% keeps the
+     content centered. -->
+<img src="/shul-logo.png"
+     class="w-full h-full object-contain block relative"
+     style="transform: scale(2.2); transform-origin: center 50%;"
+     alt="Beis Medrash D'Jackson 21"/>
 </div>
 </nav>
 <!-- Main Grid -->
@@ -148,7 +168,9 @@
 </div>
 </div>
 <!-- Center Column: Announcements (individually rimmed, no outer container) -->
-<div class="col-span-5 flex flex-col min-h-0 gap-2">
+<!-- pt-24 reserves vertical space for the logo badge that hangs down from the nav,
+     so shul/community fliers start below it. Side columns touch the nav directly. -->
+<div class="col-span-5 flex flex-col min-h-0 gap-2 pt-20">
 <!-- Section 1: Shul Announcement — cursive "Shul" title + flier row -->
 <div id="shulAnnSection" class="flex-1 min-h-0 flex flex-col hidden">
 <div class="shrink-0 text-center leading-none pt-0.5 pb-0">
@@ -184,7 +206,7 @@
 <span id="z-candle-lighting" class="text-primary font-headline font-bold text-4xl text-3d-light shrink-0">—</span>
 </div>
 <div class="flex justify-between items-baseline gap-2 min-w-0">
-<span class="text-lg font-bold text-secondary truncate" dir="rtl">מנחה וקבלת שבת</span>
+<span id="z-mincha-friday-label" class="text-lg font-bold text-secondary truncate" dir="rtl">מנחה וקבלת שבת</span>
 <span id="z-mincha-friday" class="text-primary font-headline font-bold text-4xl text-3d-light shrink-0">—</span>
 </div>
 <div class="flex justify-between items-baseline gap-2 min-w-0">
@@ -364,7 +386,6 @@ async function loadScreenData() {
         var z = data.zmanim;
         var zmMap = {
             'z-candle-lighting': z.candleLighting,
-            'z-mincha-friday': z.minchaFriday,
             'z-shacharit': z.shacharit,
             'z-mincha-saturday': z.minchaSaturday,
             'z-havdalah': z.havdalah,
@@ -377,6 +398,19 @@ async function loadScreenData() {
         for (var id in zmMap) {
             var el = document.getElementById(id);
             if (el && zmMap[id]) el.textContent = zmMap[id];
+        }
+        // Friday Mincha: summer early-shabbos weeks have both A (early) and B (late).
+        // When A is present, show "מנחה א / מנחה ב" label and "A / B" value.
+        // When A is absent (winter / pre-Chazon-onward), keep the single-value layout.
+        var minchaFridayEl = document.getElementById('z-mincha-friday');
+        var minchaFridayLabelEl = document.getElementById('z-mincha-friday-label');
+        if (minchaFridayEl && z.minchaFriday) {
+            if (z.minchaFridayA) {
+                minchaFridayEl.textContent = z.minchaFridayA + ' / ' + z.minchaFriday;
+                if (minchaFridayLabelEl) minchaFridayLabelEl.textContent = 'מנחה א / מנחה ב';
+            } else {
+                minchaFridayEl.textContent = z.minchaFriday;
+            }
         }
         // Shabbos shiur before mincha (20 min before)
         var shiurMinchaWrap = document.getElementById('z-shiur-mincha-wrap');
@@ -605,16 +639,16 @@ async function loadScreenData() {
     var shulItem = (data.announcements && data.announcements.length) ? data.announcements[0] : null;
     if (shulItem && (shulItem.imageData || shulItem.title || shulItem.description)) {
         if (shulAnnSection) shulAnnSection.classList.remove('hidden');
-        // When alone: shrink-to-fit AND add my-auto so flex-col distributes leftover
-        // vertical space equally above+below the flier. Because communitySlots is
-        // flex-none at the bottom of the column, the bottom auto-margin stops at
-        // communitySlots, pinning announcements to the bottom with the flier floating
-        // centered above. When paired with commFlier, use flex-1 + no auto margin.
+        // When alone: shrink-to-fit AND use mb-auto (not my-auto) so the flier sits at
+        // the TOP of the column — bottom margin absorbs the empty space and pushes
+        // any text announcements (communitySlots) to the bottom. my-auto looked "too
+        // low" because it centered the section vertically; mb-auto top-aligns.
         if (shulAnnSection) {
             shulAnnSection.classList.toggle('flex-1', !shulAlone);
             shulAnnSection.classList.toggle('min-h-0', !shulAlone);
             shulAnnSection.classList.toggle('flex-none', shulAlone);
-            shulAnnSection.classList.toggle('my-auto', shulAlone);
+            shulAnnSection.classList.toggle('mb-auto', shulAlone);
+            shulAnnSection.classList.toggle('my-auto', false);
         }
         // Slots container: when alone, don't stretch — just center the image.
         if (shulAnn) {
@@ -635,7 +669,10 @@ async function loadScreenData() {
             if (hasText) {
                 imgCls = 'h-full w-auto max-h-full max-w-[60%]';
             } else if (shulAlone) {
-                imgCls = 'max-h-[75vh] max-w-[98%] w-auto h-auto self-center';
+                // Alone-case: max out both dimensions — whichever the image's aspect
+                // binds first wins. 90vh is the vertical cap; max-w-full lets the
+                // image fill the full column width when it's landscape.
+                imgCls = 'max-h-[90vh] max-w-full w-auto h-auto self-center mx-auto';
             } else {
                 imgCls = 'max-h-full max-w-[98%] w-auto h-auto self-center';
             }

@@ -90,7 +90,7 @@ module.exports = async function handler(req, res) {
         let shabbosRow = null;
         try {
             const rows = await sql`
-                SELECT shabbos_date, parsha, candle_lighting, mincha_erev_shabbos,
+                SELECT shabbos_date, parsha, candle_lighting, mincha_a, mincha_erev_shabbos,
                        shacharit, mincha_shabbos, maariv
                 FROM shabbos_zmanim
                 WHERE shabbos_date = ${shabbosStr}::date
@@ -191,6 +191,7 @@ module.exports = async function handler(req, res) {
                 parashaHebrew,
                 parashaEnglish,
                 candles: shabbosRow ? (shabbosRow.candle_lighting || null) : null,
+                minchaErevShabbosA: shabbosRow ? (clockNoAmPm(shabbosRow.mincha_a) || null) : null,
                 minchaErevShabbos: shabbosRow ? (shabbosRow.mincha_erev_shabbos || null) : null,
                 shacharis: shabbosRow ? (shabbosRow.shacharit || null) : null,
                 minchaShabbos: shabbosRow ? (shabbosRow.mincha_shabbos || null) : null,
