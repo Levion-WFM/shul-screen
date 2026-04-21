@@ -787,12 +787,25 @@ function addCommunity(label, names, sub) {
 // ========================================
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+// Cached zmanim payload from /api/weekly-schedule. Pre-fetched on load (and
+// refreshed after each save) so the Copy-as-Text click handler stays fully
+// synchronous — awaiting a fetch inside the handler revokes the transient
+// user-activation that navigator.clipboard.writeText requires.
+var weeklyScheduleCache = null;
+async function refreshWeeklyScheduleCache() {
+    try {
+        var resp = await fetch('/api/weekly-schedule', { cache: 'no-store' });
+        if (!resp.ok) return;
+        var json = await resp.json();
+        weeklyScheduleCache = (json && json.zmanim) || null;
+    } catch (e) { /* leave previous cache in place */ }
+}
+
 // Build a plain-text summary of this week's Shabbos zmanim (bilingual, line-based,
 // no emojis) and push it to the clipboard so the gabbai can paste into a group chat.
 // Reads directly from the in-memory admin inputs so any un-saved overrides are included.
-// Shkia (Fri/Shabbos) + computed shiur times aren't in the DOM — they come from
-// daily_zmanim / shabbos_zmanim via /api/weekly-schedule (same source as the poster).
-async function copyZmanimAsText() {
+// Shkia (Fri/Shabbos) + computed shiur times come from the pre-fetched cache.
+function copyZmanimAsText() {
     var parshat = document.getElementById('zParshat').value.trim();
     var hebrewDate = document.getElementById('zHebrewDate').value.trim();
     var candle = document.getElementById('zCandleLighting').value.trim();
@@ -805,20 +818,13 @@ async function copyZmanimAsText() {
     var shiurMaarivOn = document.getElementById('shabbosShiurMaarivToggle').checked;
     var shiurChumashOn = document.getElementById('shabbosShiurChumashToggle').checked;
 
-    var shkiaFriday = null, shkiaShabbos = null, halachaTime = null, pirkeiAvosTime = null;
-    try {
-        var resp = await fetch('/api/weekly-schedule', { cache: 'no-store' });
-        if (resp.ok) {
-            var json = await resp.json();
-            var zRemote = (json && json.zmanim) || {};
-            shkiaFriday = zRemote.shkiaFriday || null;
-            shkiaShabbos = zRemote.shkia || null;
-            var byLabel = {};
-            (zRemote.shiurim || []).forEach(function(s) { byLabel[s.label] = s.time; });
-            halachaTime = byLabel['שיעור הלכה'] || null;
-            pirkeiAvosTime = byLabel['פרקי אבות'] || null;
-        }
-    } catch (e) { /* ignore — fall back to DOM-only output */ }
+    var zRemote = weeklyScheduleCache || {};
+    var shkiaFriday = zRemote.shkiaFriday || null;
+    var shkiaShabbos = zRemote.shkia || null;
+    var byLabel = {};
+    (zRemote.shiurim || []).forEach(function(s) { byLabel[s.label] = s.time; });
+    var halachaTime = byLabel['שיעור הלכה'] || null;
+    var pirkeiAvosTime = byLabel['פרקי אבות'] || null;
 
     var lines = [];
     var header = 'Beis Medrash D\'Jackson 21';
@@ -1080,11 +1086,13 @@ async function saveAll() {
     try {
         await Promise.all([saveScreenData(data), saveShabbosZmanimRow(shabbosRow)]);
         showToast(true);
+        refreshWeeklyScheduleCache();
     }
     catch (e) { showToast(false, e.message); }
     finally { saving = false; setSaveLoading(false); }
 }
 
 loadData();
+refreshWeeklyScheduleCache();
 </script>
 </body></html>
