@@ -51,6 +51,7 @@ module.exports = async function handler(req, res) {
                 if (z.parsha) data.zmanim.parshat = z.parsha;
                 if (z.candle_lighting) data.zmanim.candleLighting = z.candle_lighting;
                 if (z.mincha_erev_shabbos) data.zmanim.minchaFriday = z.mincha_erev_shabbos;
+                if (z.mincha_a) data.zmanim.minchaFridayA = z.mincha_a;
                 if (z.shacharit) data.zmanim.shacharit = z.shacharit;
                 if (z.mincha_shabbos) data.zmanim.minchaSaturday = z.mincha_shabbos;
                 if (z.maariv) data.zmanim.havdalah = z.maariv;

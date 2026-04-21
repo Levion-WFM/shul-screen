@@ -94,7 +94,8 @@ tailwind.config = {
                         <th class="text-left px-3 py-2 border-b border-gray-700 col-date">Shabbos Date</th>
                         <th class="text-left px-3 py-2 border-b border-gray-700 col-parsha">Parsha</th>
                         <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Candle Lighting</th>
-                        <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Mincha (Fri)</th>
+                        <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Mincha (Fri A)</th>
+                        <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Mincha (Fri B)</th>
                         <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Shacharit</th>
                         <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Mincha (Sat)</th>
                         <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Maariv</th>
@@ -102,7 +103,7 @@ tailwind.config = {
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    <tr><td colspan="8" class="px-4 py-10 text-center text-gray-500">Loading…</td></tr>
+                    <tr><td colspan="9" class="px-4 py-10 text-center text-gray-500">Loading…</td></tr>
                 </tbody>
             </table>
         </div>
@@ -114,7 +115,7 @@ tailwind.config = {
 </main>
 
 <script>
-const FIELD_KEYS = ['parsha', 'candle_lighting', 'mincha_erev_shabbos', 'shacharit', 'mincha_shabbos', 'maariv'];
+const FIELD_KEYS = ['parsha', 'candle_lighting', 'mincha_a', 'mincha_erev_shabbos', 'shacharit', 'mincha_shabbos', 'maariv'];
 
 // In-memory row state:
 //   original: server-truth snapshot (null if newly added locally)
@@ -190,6 +191,7 @@ async function loadRows() {
             const current = {
                 shabbos_date: r.shabbos_date,
                 parsha: r.parsha, candle_lighting: r.candle_lighting,
+                mincha_a: r.mincha_a,
                 mincha_erev_shabbos: r.mincha_erev_shabbos, shacharit: r.shacharit,
                 mincha_shabbos: r.mincha_shabbos, maariv: r.maariv
             };
@@ -206,7 +208,7 @@ async function loadRows() {
     } catch (err) {
         showToast('error', err.message);
         document.getElementById('statusMsg').textContent = 'Failed to load.';
-        document.getElementById('tableBody').innerHTML = '<tr><td colspan="8" class="px-4 py-10 text-center text-red-400">' + err.message + '</td></tr>';
+        document.getElementById('tableBody').innerHTML = '<tr><td colspan="9" class="px-4 py-10 text-center text-red-400">' + err.message + '</td></tr>';
     }
 }
 
@@ -223,7 +225,7 @@ function render() {
     });
 
     if (rows.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-10 text-center text-gray-500">No weeks yet. Click "Add Row" to create one, or "Import CSV" to bulk-load.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="px-4 py-10 text-center text-gray-500">No weeks yet. Click "Add Row" to create one, or "Import CSV" to bulk-load.</td></tr>';
         updateDirtyBadge();
         return;
     }
@@ -267,7 +269,7 @@ function render() {
     }
 
     if (!html) {
-        html = '<tr><td colspan="8" class="px-4 py-10 text-center text-gray-500">No upcoming weeks. Toggle "Show past weeks" or add a new row.</td></tr>';
+        html = '<tr><td colspan="9" class="px-4 py-10 text-center text-gray-500">No upcoming weeks. Toggle "Show past weeks" or add a new row.</td></tr>';
     }
 
     tbody.innerHTML = html;
@@ -333,7 +335,7 @@ document.getElementById('addRowBtn').addEventListener('click', function() {
     const newDate = nextSaturdayIso(seedDate);
     const empty = {
         shabbos_date: newDate,
-        parsha: '', candle_lighting: '', mincha_erev_shabbos: '',
+        parsha: '', candle_lighting: '', mincha_a: '', mincha_erev_shabbos: '',
         shacharit: '', mincha_shabbos: '', maariv: ''
     };
     rows.push({
@@ -415,6 +417,9 @@ function parseUsDate(s) {
 const HEADER_RULES = [
     { field: 'parsha', hints: ['parsha', 'פרשה', 'פרשת', 'weekly'] },
     { field: 'candle_lighting', hints: ['candle', 'הדלקת', 'נרות'] },
+    // Early-shabbos Mincha A must resolve BEFORE the generic mincha_erev_shabbos
+    // rule below, or "early mincha" / "mincha a" would be swallowed by it.
+    { field: 'mincha_a', hints: ['mincha a', 'מנחה א', 'early mincha'] },
     { field: 'mincha_erev_shabbos', hints: ['mincha erev', 'mincha friday', 'mincha fri', 'ערב שבת', 'מנחה ערב'] },
     { field: 'shacharit', hints: ['shacharit', 'shacharis', 'שחרית'] },
     { field: 'maariv', hints: ['maariv', 'havdalah', 'מעריב', 'הבדלה'] },
@@ -553,6 +558,7 @@ function importCsv(text) {
                     shabbos_date: iso,
                     parsha: incoming.parsha || '',
                     candle_lighting: incoming.candle_lighting || '',
+                    mincha_a: incoming.mincha_a || '',
                     mincha_erev_shabbos: incoming.mincha_erev_shabbos || '',
                     shacharit: incoming.shacharit || '',
                     mincha_shabbos: incoming.mincha_shabbos || '',
@@ -595,6 +601,7 @@ document.getElementById('saveBtn').addEventListener('click', async function() {
             shabbos_date: r.current.shabbos_date,
             parsha: r.current.parsha,
             candle_lighting: r.current.candle_lighting,
+            mincha_a: r.current.mincha_a,
             mincha_erev_shabbos: r.current.mincha_erev_shabbos,
             shacharit: r.current.shacharit,
             mincha_shabbos: r.current.mincha_shabbos,

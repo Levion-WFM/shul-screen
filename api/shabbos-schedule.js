@@ -27,7 +27,7 @@ module.exports = async function handler(req, res) {
     if (req.method === 'GET') {
         try {
             const rows = await sql`
-                SELECT shabbos_date, parsha, candle_lighting, mincha_erev_shabbos,
+                SELECT shabbos_date, parsha, candle_lighting, mincha_a, mincha_erev_shabbos,
                        shacharit, mincha_shabbos, maariv
                 FROM shabbos_zmanim
                 ORDER BY shabbos_date ASC
@@ -40,6 +40,7 @@ module.exports = async function handler(req, res) {
                     shabbos_date: d,
                     parsha: r.parsha || '',
                     candle_lighting: r.candle_lighting || '',
+                    mincha_a: r.mincha_a || '',
                     mincha_erev_shabbos: r.mincha_erev_shabbos || '',
                     shacharit: r.shacharit || '',
                     mincha_shabbos: r.mincha_shabbos || '',
@@ -81,13 +82,14 @@ module.exports = async function handler(req, res) {
             for (const r of incoming) {
                 await sql`
                     INSERT INTO shabbos_zmanim (
-                        shabbos_date, parsha, candle_lighting, mincha_erev_shabbos,
+                        shabbos_date, parsha, candle_lighting, mincha_a, mincha_erev_shabbos,
                         shacharit, mincha_shabbos, maariv
                     )
                     VALUES (
                         ${r.shabbos_date}::date,
                         ${emptyToNull(r.parsha)},
                         ${emptyToNull(r.candle_lighting)},
+                        ${emptyToNull(r.mincha_a)},
                         ${emptyToNull(r.mincha_erev_shabbos)},
                         ${emptyToNull(r.shacharit)},
                         ${emptyToNull(r.mincha_shabbos)},
@@ -96,6 +98,7 @@ module.exports = async function handler(req, res) {
                     ON CONFLICT (shabbos_date) DO UPDATE SET
                         parsha = EXCLUDED.parsha,
                         candle_lighting = EXCLUDED.candle_lighting,
+                        mincha_a = EXCLUDED.mincha_a,
                         mincha_erev_shabbos = EXCLUDED.mincha_erev_shabbos,
                         shacharit = EXCLUDED.shacharit,
                         mincha_shabbos = EXCLUDED.mincha_shabbos,

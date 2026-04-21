@@ -322,7 +322,7 @@
           <div class="section-title"><span class="ornament">✦</span><span>ערב שבת קודש</span><span class="ornament">✦</span></div>
           <div class="row"><span class="label">הדלקת נרות</span><span class="dots">·····································································</span><span class="time" id="t-candles">—</span></div>
           <div class="row"><span class="label">פלג</span><span class="dots">·····································································</span><span class="time" id="t-plag">—</span></div>
-          <div class="row"><span class="label">מנחה ערב שבת</span><span class="dots">·····································································</span><span class="time" id="t-mincha-erev">—</span></div>
+          <div class="row" id="row-mincha-erev"><span class="label" id="t-mincha-erev-label">מנחה ערב שבת</span><span class="dots">·····································································</span><span class="time" id="t-mincha-erev">—</span></div>
         </div>
 
         <!-- Children's learning box — renders only when admin has set one or
@@ -406,7 +406,18 @@
       // Friday slots stay in static HTML.
       set('t-candles', z.candles);
       set('t-plag', z.plag);
-      set('t-mincha-erev', z.minchaErevShabbos || z.plag);
+      // Friday Mincha: during summer early-shabbos season the shul has both
+      // Mincha A (early) and Mincha B (late). When A is set, render both
+      // slash-separated with a dual label; otherwise fall back to the single
+      // value layout (B, or plag as last resort).
+      const minchaB = z.minchaErevShabbos || z.plag;
+      const minchaErevLabelEl = $('t-mincha-erev-label');
+      if (z.minchaErevShabbosA) {
+        set('t-mincha-erev', z.minchaErevShabbosA + ' / ' + (minchaB || '—'));
+        if (minchaErevLabelEl) minchaErevLabelEl.textContent = 'מנחה א / מנחה ב';
+      } else {
+        set('t-mincha-erev', minchaB);
+      }
 
       // Kids' learning box — Pirchei + Avos uBanim times. Hidden when empty
       // so there's no floating empty frame on a week with no kids learning.
