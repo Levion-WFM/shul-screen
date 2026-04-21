@@ -14,7 +14,9 @@
     --poster-width: 1024px;
     --poster-height: 1536px;
     --parchment-ink: #1e2a55;
+    --parchment-ink-soft: #2b3870;
     --parchment-accent: #8a6a2a;
+    --parchment-accent-bright: #b48e3f;
   }
 
   * { box-sizing: border-box; margin: 0; }
@@ -87,73 +89,127 @@
     container-type: inline-size;
   }
 
-  /* New template has the shul name ("בית מדרש דגקסן 21 אשכנז"), the rav-name
-     line, and the address baked into the PNG. Content positions all refer to
-     the parchment inner area — roughly 18%-78% vertically, 18%-82% horizontally.
-     Tighter than the old template because the new navy border eats more edge. */
+  /* Template has the shul name ("בית מדרש דגקסן 21 אשכנז"), the rav-name
+     line, and the address baked into the PNG. Content sits inside the
+     parchment inner area: roughly 18%-78% vertically, 18%-82% horizontally. */
+
+  /* Parsha heading — the "זמנים לשבת קודש פרשת ..." line. Flanked by small
+     ornamental brackets so it reads as a title, not a caption. */
   .parsha {
     position: absolute;
-    top: 24%; left: 18%; right: 18%;
+    top: 22%; left: 14%; right: 14%;
     text-align: center;
     font-weight: 500;
-    font-size: 3.2cqw;
-    line-height: 1.25;
+    font-size: 3.3cqw;
+    line-height: 1.2;
     color: var(--parchment-ink);
+    letter-spacing: 0.01em;
     white-space: nowrap;
+    font-family: 'Frank Ruhl Libre', 'David Libre', serif;
+  }
+  .parsha::before, .parsha::after {
+    content: '❦';
+    display: inline-block;
+    color: var(--parchment-accent);
+    font-size: 0.75em;
+    margin: 0 0.7em;
+    vertical-align: 0.1em;
+    opacity: 0.65;
   }
 
-  /* Content column — the parchment's inner vertical stripe BELOW the parsha
-     and ABOVE the template's silver ornament at the bottom. We use flex so
-     the three blocks (Friday list, optional kids box, Shabbos list)
-     distribute evenly and the layout collapses cleanly when kids-box is
-     hidden instead of leaving a dead middle zone. */
+  /* Content column — flex stack between parsha and template footer so the
+     three blocks (Friday list, optional kids box, Shabbos list) distribute
+     evenly and the layout collapses cleanly when kids-box is hidden. */
   .content-column {
     position: absolute;
-    top: 30%;
-    bottom: 18%;
-    left: 20%;
-    right: 20%;
+    top: 28%;
+    bottom: 17%;
+    left: 17%;
+    right: 17%;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     align-items: stretch;
-    gap: 4%;
+    gap: 3%;
     color: var(--parchment-ink);
   }
 
+  /* Section title above each list — small-caps-ish letter-spaced Hebrew
+     with thin gold rules on either side. Adds rhythm without clutter. */
+  .section-title {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 1em;
+    align-items: center;
+    font-family: 'Frank Ruhl Libre', serif;
+    font-weight: 500;
+    font-size: 1.9cqw;
+    letter-spacing: 0.18em;
+    color: var(--parchment-accent);
+    text-align: center;
+    margin-bottom: 1.2%;
+    text-transform: none;
+  }
+  .section-title::before, .section-title::after {
+    content: '';
+    height: 1px;
+    background: linear-gradient(90deg,
+      rgba(138,106,42,0) 0%,
+      rgba(138,106,42,0.6) 50%,
+      rgba(138,106,42,0) 100%);
+  }
+  .section-title .ornament {
+    color: var(--parchment-accent-bright);
+    font-size: 1em;
+    opacity: 0.85;
+  }
+
+  /* Row: three-column grid with a dotted leader. The label hugs the right
+     margin (RTL), the time hugs the left, and the dots expand the gap so
+     the eye can track label → time cleanly. The time itself is larger and
+     warmer-toned than the label for hierarchy. */
   .list-group {
     font-weight: 400;
     color: var(--parchment-ink);
     display: flex;
     flex-direction: column;
-    gap: 0.15em;
+    gap: 0.35em;
   }
   .list-group .row {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
-    gap: 0.5em;
+    gap: 0.85em;
     align-items: baseline;
-    font-size: 3.1cqw;
-    line-height: 1.5;
-    font-weight: 500;
+    font-size: 3.15cqw;
+    line-height: 1.35;
   }
-  .list-group .row .label { text-align: right; }
+  .list-group .row .label {
+    text-align: right;
+    font-weight: 500;
+    color: var(--parchment-ink);
+    font-family: 'Frank Ruhl Libre', 'David Libre', serif;
+  }
   .list-group .row .dots {
-    color: #8c8169;
-    letter-spacing: 1px;
+    color: rgba(30,42,85,0.35);
+    letter-spacing: 0.35em;
     overflow: hidden;
     white-space: nowrap;
-    opacity: 0.7;
+    font-size: 0.75em;
+    transform: translateY(-0.22em);
+    user-select: none;
   }
   .list-group .row .time {
     text-align: left;
     direction: ltr;
     min-width: 4em;
     font-feature-settings: 'tnum' on, 'lnum' on;
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 1.1em;
+    color: var(--parchment-accent);
+    letter-spacing: 0.01em;
   }
   .list-shabbos .row {
-    line-height: 1.4;
+    line-height: 1.3;
   }
 
   /* Children-learning box — Pirchei + Avos uBanim. Lives inside
@@ -263,9 +319,10 @@
 
         <!-- Erev Shabbos -->
         <div class="list-group list-friday">
-          <div class="row"><span class="label">הדלקת נרות</span><span class="dots"></span><span class="time" id="t-candles">—</span></div>
-          <div class="row"><span class="label">פלג</span><span class="dots"></span><span class="time" id="t-plag">—</span></div>
-          <div class="row"><span class="label">מנחה ערב שבת</span><span class="dots"></span><span class="time" id="t-mincha-erev">—</span></div>
+          <div class="section-title"><span class="ornament">✦</span><span>ערב שבת קודש</span><span class="ornament">✦</span></div>
+          <div class="row"><span class="label">הדלקת נרות</span><span class="dots">·····································································</span><span class="time" id="t-candles">—</span></div>
+          <div class="row"><span class="label">פלג</span><span class="dots">·····································································</span><span class="time" id="t-plag">—</span></div>
+          <div class="row"><span class="label">מנחה ערב שבת</span><span class="dots">·····································································</span><span class="time" id="t-mincha-erev">—</span></div>
         </div>
 
         <!-- Children's learning box — renders only when admin has set one or
@@ -277,8 +334,11 @@
 
         <!-- Shabbos list — JS-built so rabbinic shiurim slot in
              chronologically (Shiur Halacha before Mincha, Pirkei Avos
-             between Shkia and Maariv). -->
-        <div class="list-group list-shabbos" id="list-shabbos"></div>
+             between Shkia and Maariv). Section title sits above the rows. -->
+        <div class="list-group list-shabbos">
+          <div class="section-title"><span class="ornament">✦</span><span>שבת קודש</span><span class="ornament">✦</span></div>
+          <div id="list-shabbos"></div>
+        </div>
 
       </div>
 
@@ -308,17 +368,22 @@
     return new URLSearchParams(location.search).has('embed');
   })();
   if (isEmbed) {
+    // In embed mode the poster should look like a static image — the host
+    // page (shul-website) provides its own download button. Hide the entire
+    // top bar (back link, copy link, Download) plus footer tip, strip the
+    // dark page background, and remove all padding so the iframe is
+    // flush-to-edge with no scrollbars.
     document.documentElement.classList.add('embed');
-    const backLink = $('back-link');
-    const copyBtn = $('copy-link');
-    if (backLink) backLink.style.display = 'none';
-    if (copyBtn) copyBtn.style.display = 'none';
-    // Hide the footer tip paragraph (debugging text about data source).
+    const topBar = $('top-bar');
+    if (topBar) topBar.style.display = 'none';
     const tip = document.querySelector('p[style*="#8e96ae"]');
     if (tip) tip.style.display = 'none';
-    // Slim the page padding so the iframe has less dead space.
+    document.documentElement.style.background = 'transparent';
+    document.body.style.background = 'transparent';
     const page = document.querySelector('.page');
-    if (page) page.style.padding = '0.5rem';
+    if (page) { page.style.padding = '0'; page.style.gap = '0'; }
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
   }
 
   async function load() {
@@ -354,9 +419,10 @@
         if (z.avosUbanimTime) kids.push({ label: 'אבות ובנים', time: z.avosUbanimTime });
         if (kids.length) {
           kidsBoxEl.classList.remove('hidden');
+          const kidsDotRun = '·····································';
           kidsRowsEl.innerHTML = kids.map(k =>
             '<span class="label">' + k.label + '</span>' +
-            '<span class="dots">····································</span>' +
+            '<span class="dots">' + kidsDotRun + '</span>' +
             '<span class="time">' + k.time + '</span>'
           ).join('');
         } else {
@@ -388,10 +454,11 @@
 
       const listShabbosEl = $('list-shabbos');
       if (listShabbosEl) {
+        const dotRun = '·····································································';
         listShabbosEl.innerHTML = shabbosRows.map(r =>
           '<div class="row">' +
             '<span class="label">' + r.label + '</span>' +
-            '<span class="dots"></span>' +
+            '<span class="dots">' + dotRun + '</span>' +
             '<span class="time">' + (r.time || '—') + '</span>' +
           '</div>'
         ).join('');
