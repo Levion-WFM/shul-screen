@@ -131,6 +131,23 @@ tailwind.config = {
                     <p class="text-[10px] text-green-400/70 mt-0.5">12 zmanim loaded from the daily_zmanim table. Updates at midnight. No manual entry needed.</p>
                 </div>
             </div>
+
+            <!-- Printable Shabbos poster — built live from shabbos_zmanim +
+                 daily_zmanim (i.e. the fields directly above + the seeded
+                 astronomical zmanim). Open to view, or Download to save a
+                 PNG straight to disk (?autodownload=1 auto-fires the
+                 html2canvas snapshot once the poster finishes loading). -->
+            <div class="mt-3 pt-3 border-t border-gray-800 flex flex-wrap items-center gap-4">
+                <span class="text-xs text-gray-400 font-semibold">Weekly Shabbos Poster:</span>
+                <a href="/weekly-schedule/" target="_blank" rel="noopener"
+                   class="text-sm text-gold hover:text-yellow-300 flex items-center gap-1 transition active:scale-95 no-underline">
+                    <span class="material-symbols-outlined text-lg">open_in_new</span> Open
+                </a>
+                <a href="/weekly-schedule/?autodownload=1" target="_blank" rel="noopener"
+                   class="text-sm text-gold hover:text-yellow-300 flex items-center gap-1 transition active:scale-95 no-underline">
+                    <span class="material-symbols-outlined text-lg">download</span> Download as Image
+                </a>
+            </div>
         </div>
     </section>
 
@@ -263,8 +280,11 @@ tailwind.config = {
         <span class="material-symbols-outlined text-lg">save</span> Save All Changes
     </button>
 </div>
-<!-- Desktop Save Button -->
-<div class="hidden sm:flex max-w-5xl mx-auto px-6 justify-end pb-8">
+<!-- Desktop Save Button + Force Kiosk Reload -->
+<div class="hidden sm:flex max-w-5xl mx-auto px-6 justify-end pb-8 gap-3">
+    <button id="forceReloadBtn" onclick="forceKioskReload()" class="bg-gray-800 text-gold border border-gold/60 font-bold px-6 py-3 rounded text-sm hover:bg-gray-700 transition flex items-center gap-2" title="Tells every running kiosk to reload on its next poll (~30s)">
+        <span class="material-symbols-outlined text-lg">refresh</span> Force Kiosk Reload
+    </button>
     <button id="saveBtnDesktop" onclick="saveAll()" class="bg-gold text-black font-bold px-8 py-3 rounded text-sm hover:bg-yellow-400 transition flex items-center gap-2">
         <span class="material-symbols-outlined text-lg">save</span> Save All Changes
     </button>
@@ -543,7 +563,7 @@ function updateCommFlierCount() {
     else { btn.classList.remove('opacity-50', 'pointer-events-none'); }
 }
 
-function addCommFlier(title, desc, imageData) {
+function addCommFlier(title, desc, imageData, eventDate, eventDateNote) {
     if (document.querySelectorAll('#commFliersContainer > div').length >= 3) return;
     const container = document.getElementById('commFliersContainer');
     const div = document.createElement('div');
@@ -556,6 +576,15 @@ function addCommFlier(title, desc, imageData) {
                 <input type="text" value="${esc(title || '')}" class="commflier-title w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Flier title" maxlength="80"/></div>
                 <div><label class="block text-xs text-gray-500 mb-1">Description (optional)</label>
                 <textarea rows="3" maxlength="300" class="commflier-desc w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none resize-none" placeholder="Details...">${esc(desc || '')}</textarea></div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1 flex items-center gap-2">
+                        Event date (auto-removes after this date)
+                        <button type="button" class="commflier-detect-btn text-[10px] text-gold hover:text-yellow-300 underline" onclick="detectEventDate(this.closest('.commflier-card'))" title="Re-run auto-detection from the flier image">Auto-detect</button>
+                        <span class="commflier-date-status text-[10px] text-gray-500"></span>
+                    </label>
+                    <input type="date" value="${esc(eventDate || '')}" class="commflier-date w-full sm:w-56 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm focus:border-gold focus:outline-none" oninput="var c=this.closest('.commflier-card');var s=c.querySelector('.commflier-date-status');var n=c.querySelector('.commflier-date-note');if(s)s.textContent='manual';if(n)n.textContent='';"/>
+                    <p class="commflier-date-note text-[10px] text-gray-500 mt-1">${esc(eventDateNote || '')}</p>
+                </div>
             </div>
             <div class="flex sm:flex-col gap-3 items-start">
                 <div class="w-24 sm:w-28 shrink-0">
@@ -641,6 +670,11 @@ function handleImg(event, parent) {
                 placeholder.innerHTML = origPlaceholderHtml;
                 placeholder.classList.add('hidden');
                 if (removeBtn) removeBtn.classList.remove('hidden');
+
+                // If this is a community flier, auto-run event-date detection against the
+                // compressed image. Shul announcements don't have an expiry field so skip.
+                var card = parent.closest('.commflier-card');
+                if (card) detectEventDate(card);
             } catch (err) {
                 placeholder.innerHTML = origPlaceholderHtml;
                 showToast(false, 'Compression failed — try a different image');
@@ -650,6 +684,60 @@ function handleImg(event, parent) {
         tempImg.src = e.target.result;
     };
     reader.readAsDataURL(file);
+}
+
+async function detectEventDate(card) {
+    const imgEl = card.querySelector('.ann-img-preview');
+    const dateEl = card.querySelector('.commflier-date');
+    const statusEl = card.querySelector('.commflier-date-status');
+    const noteEl = card.querySelector('.commflier-date-note');
+    const btn = card.querySelector('.commflier-detect-btn');
+    if (!imgEl || imgEl.dataset.hasImage !== 'true' || !imgEl.src.startsWith('data:')) {
+        if (statusEl) statusEl.textContent = 'no image yet';
+        return;
+    }
+    if (statusEl) statusEl.textContent = 'detecting…';
+    if (btn) btn.disabled = true;
+
+    const token = document.getElementById('adminToken').value;
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+
+    try {
+        const res = await fetch('/api/extract-event-date', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ imageData: imgEl.src })
+        });
+        const payload = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(payload.error || ('HTTP ' + res.status));
+
+        // Belt-and-suspenders: server-side drops low/medium confidence dates, and we
+        // independently re-check here. If either gate fails, the date field stays empty
+        // and the flier is evergreen. "Absolutely sure" means two gates, not one.
+        var conf = (payload.confidence || 'low').toLowerCase();
+        var highConf = conf === 'high';
+        if (highConf && payload.eventDate && /^\d{4}-\d{2}-\d{2}$/.test(payload.eventDate)) {
+            if (!dateEl.value) dateEl.value = payload.eventDate;
+            if (statusEl) statusEl.textContent = 'auto-set (high confidence)';
+        } else if (payload.candidateDate && !highConf) {
+            if (statusEl) statusEl.textContent = 'skipped — only ' + conf + ' confidence (enter manually if you want)';
+        } else {
+            if (statusEl) statusEl.textContent = 'no date found — stays evergreen';
+        }
+        if (noteEl) {
+            var noteText = payload.note || '';
+            if (payload.candidateDate && !highConf) {
+                noteText = 'Model guessed ' + payload.candidateDate + ' but confidence was ' + conf + '. ' + noteText;
+            }
+            noteEl.textContent = noteText;
+        }
+    } catch (e) {
+        if (statusEl) statusEl.textContent = 'failed';
+        if (noteEl) noteEl.textContent = e.message || 'detection error';
+    } finally {
+        if (btn) btn.disabled = false;
+    }
 }
 
 function removeImg(parent) {
@@ -689,6 +777,28 @@ function addCommunity(label, names, sub) {
 // HELPERS
 // ========================================
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+async function forceKioskReload() {
+    if (!confirm('Force every running kiosk to reload on its next poll?')) return;
+    const token = document.getElementById('adminToken').value;
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    const btn = document.getElementById('forceReloadBtn');
+    const orig = btn ? btn.innerHTML : '';
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="material-symbols-outlined text-lg animate-spin">progress_activity</span> Signalling...'; }
+    try {
+        const res = await fetch('/api/force-reload', { method: 'POST', headers });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({ error: 'Reload signal failed' }));
+            throw new Error(err.error || 'Reload signal failed');
+        }
+        showToast(true);
+    } catch (e) {
+        showToast(false, e.message);
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+    }
+}
 
 function showToast(success, msg) {
     if (success) {
@@ -747,7 +857,7 @@ async function loadData() {
         if (i === 0) addAnnouncement(a.title, a.description, a.imageData);
         else if (!hasCommFliers) addCommFlier(a.title, a.description, a.imageData);
     });
-    if (data.communityFliers) data.communityFliers.forEach(function(f) { addCommFlier(f.title, f.description, f.imageData); });
+    if (data.communityFliers) data.communityFliers.forEach(function(f) { addCommFlier(f.title, f.description, f.imageData, f.eventDate, f.eventDateNote); });
     if (data.community) data.community.forEach(function(c) { addCommunity(c.label, c.names, c.sub); });
     if (data.schedule) data.schedule.forEach(function(s) { addScheduleItem(s.label, s.time); });
     if (data.shiurim) data.shiurim.forEach(function(s) { addShiur(s.label, s.time); });
@@ -812,8 +922,12 @@ async function saveAll() {
         var imgData = (imgEl.dataset.hasImage === 'true') ? imgEl.src : '';
         var title = el.querySelector('.commflier-title').value;
         var desc = el.querySelector('.commflier-desc').value;
+        var dateEl = el.querySelector('.commflier-date');
+        var noteEl = el.querySelector('.commflier-date-note');
+        var eventDate = dateEl ? dateEl.value : '';
+        var eventDateNote = noteEl ? noteEl.textContent : '';
         if (!title && !desc && !imgData) return;
-        communityFliers.push({ title: title, description: desc, imageData: imgData });
+        communityFliers.push({ title: title, description: desc, imageData: imgData, eventDate: eventDate || null, eventDateNote: eventDateNote || '' });
     });
     const community = [];
     document.querySelectorAll('#communityContainer > div').forEach(function(el) {
