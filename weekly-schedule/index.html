@@ -102,11 +102,31 @@
     white-space: nowrap;
   }
 
-  .list-group {
+  /* Content column — the parchment's inner vertical stripe BELOW the parsha
+     and ABOVE the template's silver ornament at the bottom. We use flex so
+     the three blocks (Friday list, optional kids box, Shabbos list)
+     distribute evenly and the layout collapses cleanly when kids-box is
+     hidden instead of leaving a dead middle zone. */
+  .content-column {
     position: absolute;
-    left: 20%; right: 20%;
+    top: 30%;
+    bottom: 18%;
+    left: 20%;
+    right: 20%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: 4%;
+    color: var(--parchment-ink);
+  }
+
+  .list-group {
     font-weight: 400;
     color: var(--parchment-ink);
+    display: flex;
+    flex-direction: column;
+    gap: 0.15em;
   }
   .list-group .row {
     display: grid;
@@ -114,7 +134,7 @@
     gap: 0.5em;
     align-items: baseline;
     font-size: 3.1cqw;
-    line-height: 1.55;
+    line-height: 1.5;
     font-weight: 500;
   }
   .list-group .row .label { text-align: right; }
@@ -132,29 +152,16 @@
     font-feature-settings: 'tnum' on, 'lnum' on;
     font-weight: 600;
   }
-
-  /* Vertical layout — inside the new template's parchment area (~18%-78%):
-       parsha       24%                 — just below template's silver-rule ornament
-       list-friday  33% → ~43%          — 3 Friday zmanim rows
-       kids-box     45% → ~52%          — Pirchei + Avos uBanim (hides when empty)
-       list-shabbos 55% → ~77%          — Shabbos zmanim + shiurim (up to 7 rows)
-     (Address + rav name are part of the template PNG — no absolute-positioned
-     elements for them here.) */
-  .list-friday { top: 33%; }
-  .list-shabbos {
-    top: 55%;
-  }
   .list-shabbos .row {
     line-height: 1.4;
   }
 
-  /* Children-learning box — replaces the old static shiur box. Shows Pirchei
-     + Avos uBanim times. Ornate double-border and a subtle gold corner
-     flourish for a more formal feel. Hidden entirely when neither time is
-     set by the admin. */
+  /* Children-learning box — Pirchei + Avos uBanim. Lives inside
+     .content-column; hidden entirely when the admin hasn't set either time,
+     which lets the Friday + Shabbos blocks close up the gap. */
   .kids-box {
-    position: absolute;
-    top: 45%; left: 28%; right: 28%;
+    align-self: center;
+    width: 70%;
     text-align: center;
     color: var(--parchment-ink);
     padding: 2% 3%;
@@ -248,24 +255,32 @@
 
       <div class="parsha" id="parsha"></div>
 
-      <!-- Erev Shabbos -->
-      <div class="list-group list-friday">
-        <div class="row"><span class="label">הדלקת נרות</span><span class="dots"></span><span class="time" id="t-candles">—</span></div>
-        <div class="row"><span class="label">פלג</span><span class="dots"></span><span class="time" id="t-plag">—</span></div>
-        <div class="row"><span class="label">מנחה ערב שבת</span><span class="dots"></span><span class="time" id="t-mincha-erev">—</span></div>
-      </div>
+      <!-- Content column — flex-distributes the Friday list, optional kids
+           box, and Shabbos list across the parchment's inner area. When the
+           kids box is hidden the remaining two blocks take the space back
+           so there's no dead middle zone. -->
+      <div class="content-column">
 
-      <!-- Children's learning box — Pirchei + Avos uBanim times. Only renders
-           when admin has set one or both; hidden entirely otherwise. -->
-      <div class="kids-box hidden" id="kids-box">
-        <div class="heading">לימוד ילדים</div>
-        <div class="kids-rows" id="kids-rows"></div>
-      </div>
+        <!-- Erev Shabbos -->
+        <div class="list-group list-friday">
+          <div class="row"><span class="label">הדלקת נרות</span><span class="dots"></span><span class="time" id="t-candles">—</span></div>
+          <div class="row"><span class="label">פלג</span><span class="dots"></span><span class="time" id="t-plag">—</span></div>
+          <div class="row"><span class="label">מנחה ערב שבת</span><span class="dots"></span><span class="time" id="t-mincha-erev">—</span></div>
+        </div>
 
-      <!-- Shabbos list — JS-built so rabbinic shiurim can slot in chronologically
-           (e.g. Shiur Halacha before Mincha, Pirkei Avos between Shkia and Maariv)
-           as regular dotted-leader rows, matching the rest of the zmanim. -->
-      <div class="list-group list-shabbos" id="list-shabbos"></div>
+        <!-- Children's learning box — renders only when admin has set one or
+             both Pirchei / Avos uBanim times. -->
+        <div class="kids-box hidden" id="kids-box">
+          <div class="heading">לימוד ילדים</div>
+          <div class="kids-rows" id="kids-rows"></div>
+        </div>
+
+        <!-- Shabbos list — JS-built so rabbinic shiurim slot in
+             chronologically (Shiur Halacha before Mincha, Pirkei Avos
+             between Shkia and Maariv). -->
+        <div class="list-group list-shabbos" id="list-shabbos"></div>
+
+      </div>
 
       <!-- Address + rav name are baked into template.png (בנשיאות הרב יעקב
            יוסף גוורצמן  /  15 Avalon Lane, Jackson N.J. 08527). No absolute
