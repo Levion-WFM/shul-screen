@@ -87,27 +87,24 @@
     container-type: inline-size;
   }
 
+  /* New template has the shul name ("בית מדרש דגקסן 21 אשכנז"), the rav-name
+     line, and the address baked into the PNG. Content positions all refer to
+     the parchment inner area — roughly 18%-78% vertically, 18%-82% horizontally.
+     Tighter than the old template because the new navy border eats more edge. */
   .parsha {
     position: absolute;
-    top: 30%; left: 10%; right: 10%;
+    top: 24%; left: 18%; right: 18%;
     text-align: center;
     font-weight: 500;
-    font-size: 3.4cqw;
+    font-size: 3.2cqw;
     line-height: 1.25;
     color: var(--parchment-ink);
     white-space: nowrap;
   }
-  .parsha .rule {
-    margin: 2.5% auto 0;
-    width: 22%;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, #aa9455 40%, #aa9455 60%, transparent);
-    opacity: 0.6;
-  }
 
   .list-group {
     position: absolute;
-    left: 17%; right: 17%;
+    left: 20%; right: 20%;
     font-weight: 400;
     color: var(--parchment-ink);
   }
@@ -136,18 +133,16 @@
     font-weight: 600;
   }
 
-  /* Vertical layout:
-       parsha       30%                 — header
-       list-friday  38% → ~49%          — 3 Friday zmanim rows
-       kids-box     49.5% → ~55%        — Pirchei + Avos uBanim (hides when empty)
-       list-shabbos 57% → ~80%          — Shabbos zmanim + shiurim (up to 7 rows)
-       footer-note  84%                 — address
-       rav-name     88%                 — rav name in Hebrew
-     Shabbos rows use tighter line-height (1.4) to fit 7 entries without
-     colliding with the address. */
-  .list-friday { top: 38%; }
+  /* Vertical layout — inside the new template's parchment area (~18%-78%):
+       parsha       24%                 — just below template's silver-rule ornament
+       list-friday  33% → ~43%          — 3 Friday zmanim rows
+       kids-box     45% → ~52%          — Pirchei + Avos uBanim (hides when empty)
+       list-shabbos 55% → ~77%          — Shabbos zmanim + shiurim (up to 7 rows)
+     (Address + rav name are part of the template PNG — no absolute-positioned
+     elements for them here.) */
+  .list-friday { top: 33%; }
   .list-shabbos {
-    top: 57%;
+    top: 55%;
   }
   .list-shabbos .row {
     line-height: 1.4;
@@ -159,7 +154,7 @@
      set by the admin. */
   .kids-box {
     position: absolute;
-    top: 49.5%; left: 26%; right: 26%;
+    top: 45%; left: 28%; right: 28%;
     text-align: center;
     color: var(--parchment-ink);
     padding: 2% 3%;
@@ -208,31 +203,6 @@
     min-width: 4em;
     font-weight: 600;
     font-feature-settings: 'tnum' on, 'lnum' on;
-  }
-
-  .footer-note {
-    position: absolute;
-    top: 84%; left: 0; right: 0;
-    text-align: center;
-    font-size: 2.1cqw;
-    color: var(--parchment-ink);
-    opacity: 0.75;
-    font-weight: 400;
-  }
-  /* Rav name — sits just below the address inside the decorative footer
-     strip. Same serif font + same ink color as the address for visual
-     continuity; smaller weight + slightly smaller size so the address
-     still reads as the primary line. */
-  .rav-name {
-    position: absolute;
-    top: 88%; left: 0; right: 0;
-    text-align: center;
-    font-family: 'Frank Ruhl Libre', 'David Libre', serif;
-    font-size: 1.9cqw;
-    color: var(--parchment-ink);
-    opacity: 0.7;
-    font-weight: 400;
-    letter-spacing: 0.02em;
   }
 
   .loading {
@@ -297,11 +267,9 @@
            as regular dotted-leader rows, matching the rest of the zmanim. -->
       <div class="list-group list-shabbos" id="list-shabbos"></div>
 
-      <!-- Address line — printed over the ornate footer strip of the template. -->
-      <div class="footer-note" id="footer-note">15 Avalon Lane, Jackson N.J. 08527</div>
-      <!-- Rav's name in Hebrew, below the address. Currently a placeholder;
-           swap the literal text once the user confirms. -->
-      <div class="rav-name">הרב שליט״א</div>
+      <!-- Address + rav name are baked into template.png (בנשיאות הרב יעקב
+           יוסף גוורצמן  /  15 Avalon Lane, Jackson N.J. 08527). No absolute
+           elements needed here — the PNG carries that footer region. -->
     </div>
   </div>
 
@@ -353,7 +321,7 @@
       const parshaText = parshaName
         ? 'זמנים לשבת קודש פרשת ' + parshaName
         : 'זמנים לשבת קודש';
-      $('parsha').innerHTML = parshaText + '<div class="rule"></div>';
+      $('parsha').textContent = parshaText;
 
       // Friday slots stay in static HTML.
       set('t-candles', z.candles);
