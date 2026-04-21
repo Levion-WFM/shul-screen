@@ -91,181 +91,255 @@
 
   /* Template has the shul name ("בית מדרש דגקסן 21 אשכנז"), the rav-name
      line, and the address baked into the PNG. Content sits inside the
-     parchment inner area: roughly 18%-78% vertically, 18%-82% horizontally. */
+     parchment inner area: roughly 22%-85% vertically, 10%-90% horizontally. */
 
-  /* Parsha heading — the "זמנים לשבת קודש פרשת ..." line. Flanked by small
-     ornamental brackets so it reads as a title, not a caption. */
-  .parsha {
+  /* Header block — kicker + hero. Two-line structure dedicates one line to
+     "זמנים לשבת קודש" (fixed) and one to the parsha name itself, so long
+     double-parshiyos (אחרי מות - קדושים, מטות - מסעי) get their own
+     full-width line and never overflow. The template already has a baked-in
+     silver/gold divider at ~28% of the parchment, so the header sits above
+     it and lets that baked divider do the separation work — no custom
+     fleuron to fight the template's ornamentation. Top:25.5%% keeps the
+     kicker clear of the parchment's top ornamental arch. */
+  .header {
     position: absolute;
-    top: 22%; left: 14%; right: 14%;
+    top: 25.5%; left: 8%; right: 8%;
     text-align: center;
-    font-weight: 500;
-    font-size: 3.3cqw;
-    line-height: 1.2;
     color: var(--parchment-ink);
-    letter-spacing: 0.01em;
-    white-space: nowrap;
     font-family: 'Frank Ruhl Libre', 'David Libre', serif;
   }
-  .parsha::before, .parsha::after {
-    content: '❦';
-    display: inline-block;
+  .header .kicker {
+    font-size: 2.1cqw;
+    font-weight: 500;
+    letter-spacing: 0.24em;
     color: var(--parchment-accent);
-    font-size: 0.75em;
-    margin: 0 0.7em;
-    vertical-align: 0.1em;
-    opacity: 0.65;
+    margin-bottom: 0.55em;
+    opacity: 0.9;
+  }
+  .header .hero {
+    font-size: 4.8cqw;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.005em;
+    color: var(--parchment-ink);
+    text-shadow:
+      0 1px 0 rgba(255,253,245,0.6),
+      0 -1px 0 rgba(30,42,85,0.06);
   }
 
-  /* Content column — flex stack between parsha and template footer so the
-     three blocks (Friday list, optional kids box, Shabbos list) distribute
-     evenly and the layout collapses cleanly when kids-box is hidden. */
+  /* Content column — the schedule zone. Starts below the template's baked
+     silver/gold divider and ends above the parchment's bottom ornamentation.
+     Flex-column with space-between so the Friday / kids / Shabbos blocks
+     distribute through the area; min-height:0 cascade lets the rows-dense
+     variant shrink without overflow. */
   .content-column {
     position: absolute;
-    top: 28%;
-    bottom: 17%;
-    left: 17%;
-    right: 17%;
+    top: 38%;
+    bottom: 15%;
+    left: 14%;
+    right: 14%;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     align-items: stretch;
-    gap: 3%;
+    gap: 2.2%;
     color: var(--parchment-ink);
+    min-height: 0;
   }
+  .content-column > * { min-height: 0; }
 
-  /* Section title above each list — small-caps-ish letter-spaced Hebrew
-     with thin gold rules on either side. Adds rhythm without clutter. */
+  /* When Shabbos list is at full 6 rows (both shiurim enabled) AND the
+     kids-box is visible, tighten vertical rhythm to clear the parchment
+     footer. */
+  .content-column.rows-dense .list-shabbos .row { font-size: 3.15cqw; line-height: 1.28; }
+  .content-column.rows-dense .list-group { gap: 0.3em; }
+
+  /* Section title — authoritative Hebrew display type flanked by gold rules.
+     Single flex row: rule · ✦ · TEXT · ✦ · rule. Pseudos handle the rules,
+     inline ✦ glyphs handle the ornaments. Prior grid-template-columns:1fr
+     auto 1fr had 5 items (2 pseudos + 3 spans) trying to fit 3 columns and
+     wrapped onto a second row, which is why the stars were floating alone. */
   .section-title {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 1em;
+    display: flex;
     align-items: center;
+    justify-content: center;
+    gap: 0.8em;
     font-family: 'Frank Ruhl Libre', serif;
-    font-weight: 500;
-    font-size: 1.9cqw;
+    font-weight: 600;
+    font-size: 2.55cqw;
     letter-spacing: 0.18em;
     color: var(--parchment-accent);
     text-align: center;
-    margin-bottom: 1.2%;
-    text-transform: none;
+    margin-bottom: 0.9%;
   }
   .section-title::before, .section-title::after {
     content: '';
+    flex: 1 1 0;
+    max-width: 28%;
     height: 1px;
     background: linear-gradient(90deg,
       rgba(138,106,42,0) 0%,
-      rgba(138,106,42,0.6) 50%,
+      rgba(138,106,42,0.75) 50%,
       rgba(138,106,42,0) 100%);
+  }
+  .section-title .title {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7em;
   }
   .section-title .ornament {
     color: var(--parchment-accent-bright);
-    font-size: 1em;
-    opacity: 0.85;
+    font-size: 0.8em;
+    opacity: 0.95;
   }
 
-  /* Row: three-column grid with a dotted leader. The label hugs the right
-     margin (RTL), the time hugs the left, and the dots expand the gap so
-     the eye can track label → time cleanly. The time itself is larger and
-     warmer-toned than the label for hierarchy. */
+  /* Row: Hebrew label on right (RTL), time on left in gold with display-
+     weight type. The leader is a CSS dotted line that flex-grows between
+     them — auto-fits any label/time width, RTL-safe, and html2canvas
+     rasterizes background gradients cleanly. Times get a soft text-shadow
+     for an "engraved on parchment" read instead of the flat overlay feel. */
   .list-group {
     font-weight: 400;
     color: var(--parchment-ink);
     display: flex;
     flex-direction: column;
-    gap: 0.35em;
+    gap: 0.5em;
   }
   .list-group .row {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 0.85em;
+    display: flex;
     align-items: baseline;
-    font-size: 3.15cqw;
-    line-height: 1.35;
+    gap: 0.8em;
+    font-size: 3.8cqw;
+    line-height: 1.25;
   }
   .list-group .row .label {
-    text-align: right;
     font-weight: 500;
     color: var(--parchment-ink);
     font-family: 'Frank Ruhl Libre', 'David Libre', serif;
+    flex: 0 0 auto;
+    text-shadow: 0 1px 0 rgba(255,253,245,0.5);
   }
-  .list-group .row .dots {
-    color: rgba(30,42,85,0.35);
-    letter-spacing: 0.35em;
-    overflow: hidden;
-    white-space: nowrap;
-    font-size: 0.75em;
-    transform: translateY(-0.22em);
+  .list-group .row .leader {
+    flex: 1 1 auto;
+    align-self: center;
+    height: 1px;
+    margin: 0 0.8em;
+    background: linear-gradient(90deg,
+      rgba(138,106,42,0) 0%,
+      rgba(138,106,42,0.5) 12%,
+      rgba(138,106,42,0.5) 88%,
+      rgba(138,106,42,0) 100%);
     user-select: none;
   }
   .list-group .row .time {
-    text-align: left;
     direction: ltr;
-    min-width: 4em;
+    min-width: 3.5em;
+    text-align: left;
     font-feature-settings: 'tnum' on, 'lnum' on;
-    font-weight: 700;
-    font-size: 1.1em;
+    font-variant-numeric: tabular-nums lining-nums;
+    font-weight: 800;
+    font-size: 1.25em;
     color: var(--parchment-accent);
-    letter-spacing: 0.01em;
+    letter-spacing: 0.005em;
+    flex: 0 0 auto;
+    text-shadow:
+      0 1px 0 rgba(255,253,245,0.55),
+      0 0 0.6em rgba(138,106,42,0.12);
   }
-  .list-shabbos .row {
-    line-height: 1.3;
+  /* Candle-lighting row — the most-consulted time of the week gets display
+     treatment: larger time, label tinted gold, subtle bottom rule to anchor
+     it as the Friday block's focal point. */
+  .list-group .row.candles {
+    padding-bottom: 0.3em;
+    margin-bottom: 0.2em;
+    border-bottom: 1px solid rgba(138,106,42,0.18);
+  }
+  .list-group .row.candles .label {
+    color: var(--parchment-accent);
+    font-weight: 600;
+  }
+  .list-group .row.candles .time {
+    font-weight: 900;
+    font-size: 1.45em;
   }
 
-  /* Children-learning box — Pirchei + Avos uBanim. Lives inside
-     .content-column; hidden entirely when the admin hasn't set either time,
-     which lets the Friday + Shabbos blocks close up the gap. */
+  /* Children-learning box — Pirchei + Avos uBanim. Feels like an inset
+     illuminated panel within the parchment: gold single-line frame, a
+     whisper of cream wash behind it, and a centered heading that echoes
+     the section-title treatment so the box reads as "part of the design"
+     rather than a dropped-in widget. */
   .kids-box {
     align-self: center;
-    width: 70%;
+    width: 72%;
     text-align: center;
     color: var(--parchment-ink);
-    padding: 2% 3%;
-    background:
-      linear-gradient(rgba(255,253,245,0.18), rgba(255,253,245,0.08));
+    padding: 1.5% 3.5% 1.8%;
+    background: rgba(255,253,245,0.1);
     border: 1px solid rgba(138,106,42,0.55);
-    box-shadow:
-      inset 0 0 0 3px rgba(255,253,245,0.35),
-      inset 0 0 0 4px rgba(138,106,42,0.35),
-      0 1px 0 rgba(255,253,245,0.15);
-    border-radius: 3px;
+    outline: 2px solid rgba(255,253,245,0.35);
+    outline-offset: -5px;
+    border-radius: 2px;
   }
   .kids-box.hidden { display: none; }
   .kids-box .heading {
-    font-size: 1.7cqw;
-    font-weight: 500;
-    letter-spacing: 0.12em;
+    font-size: 2.05cqw;
+    font-weight: 600;
+    letter-spacing: 0.16em;
     color: var(--parchment-accent);
-    opacity: 0.85;
-    margin-bottom: 1%;
+    margin-bottom: 1.4%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7em;
   }
   .kids-box .heading::before,
   .kids-box .heading::after {
-    content: '•';
-    margin: 0 0.8em;
-    opacity: 0.6;
+    content: '◆';
+    font-size: 0.55em;
+    color: var(--parchment-accent-bright);
+    opacity: 0.75;
+    transform: translateY(-0.15em);
   }
   .kids-box .kids-rows {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 0.6em 1em;
-    font-size: 2.6cqw;
-    line-height: 1.35;
-    align-items: baseline;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35em;
+    font-size: 3.05cqw;
+    line-height: 1.3;
   }
-  .kids-box .kids-rows .label { text-align: right; font-weight: 600; }
-  .kids-box .kids-rows .dots {
-    color: #8c8169;
-    opacity: 0.55;
-    overflow: hidden;
-    white-space: nowrap;
+  .kids-box .kids-rows .row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.8em;
+  }
+  .kids-box .kids-rows .label {
+    font-weight: 600;
+    flex: 0 0 auto;
+    text-shadow: 0 1px 0 rgba(255,253,245,0.5);
+  }
+  .kids-box .kids-rows .leader {
+    flex: 1 1 auto;
+    align-self: center;
+    height: 1px;
+    margin: 0 0.7em;
+    background: linear-gradient(90deg,
+      rgba(138,106,42,0) 0%,
+      rgba(138,106,42,0.42) 15%,
+      rgba(138,106,42,0.42) 85%,
+      rgba(138,106,42,0) 100%);
   }
   .kids-box .kids-rows .time {
-    text-align: left;
     direction: ltr;
-    min-width: 4em;
-    font-weight: 600;
+    text-align: left;
+    min-width: 3em;
+    font-weight: 700;
+    font-size: 1.1em;
     font-feature-settings: 'tnum' on, 'lnum' on;
+    font-variant-numeric: tabular-nums lining-nums;
+    color: var(--parchment-accent);
+    flex: 0 0 auto;
+    text-shadow: 0 1px 0 rgba(255,253,245,0.5);
   }
 
   .loading {
@@ -309,7 +383,10 @@
     <div class="poster" id="poster">
       <div class="loading" id="loading"><span>Loading zmanim…</span><span class="spin"></span></div>
 
-      <div class="parsha" id="parsha"></div>
+      <div class="header">
+        <div class="kicker">זמנים לשבת קודש</div>
+        <div class="hero" id="parsha-hero">&nbsp;</div>
+      </div>
 
       <!-- Content column — flex-distributes the Friday list, optional kids
            box, and Shabbos list across the parchment's inner area. When the
@@ -319,10 +396,10 @@
 
         <!-- Erev Shabbos -->
         <div class="list-group list-friday">
-          <div class="section-title"><span class="ornament">✦</span><span>ערב שבת קודש</span><span class="ornament">✦</span></div>
-          <div class="row"><span class="label">הדלקת נרות</span><span class="dots">·····································································</span><span class="time" id="t-candles">—</span></div>
-          <div class="row"><span class="label">פלג</span><span class="dots">·····································································</span><span class="time" id="t-plag">—</span></div>
-          <div class="row" id="row-mincha-erev"><span class="label" id="t-mincha-erev-label">מנחה ערב שבת</span><span class="dots">·····································································</span><span class="time" id="t-mincha-erev">—</span></div>
+          <div class="section-title"><span class="title"><span class="ornament">✦</span>ערב שבת קודש<span class="ornament">✦</span></span></div>
+          <div class="row candles"><span class="label">הדלקת נרות</span><span class="leader"></span><span class="time" id="t-candles">—</span></div>
+          <div class="row"><span class="label">פלג</span><span class="leader"></span><span class="time" id="t-plag">—</span></div>
+          <div class="row" id="row-mincha-erev"><span class="label" id="t-mincha-erev-label">מנחה ערב שבת</span><span class="leader"></span><span class="time" id="t-mincha-erev">—</span></div>
         </div>
 
         <!-- Children's learning box — renders only when admin has set one or
@@ -336,7 +413,7 @@
              chronologically (Shiur Halacha before Mincha, Pirkei Avos
              between Shkia and Maariv). Section title sits above the rows. -->
         <div class="list-group list-shabbos">
-          <div class="section-title"><span class="ornament">✦</span><span>שבת קודש</span><span class="ornament">✦</span></div>
+          <div class="section-title"><span class="title"><span class="ornament">✦</span>שבת קודש<span class="ornament">✦</span></span></div>
           <div id="list-shabbos"></div>
         </div>
 
@@ -396,12 +473,12 @@
       const z = data.zmanim;
 
       // Parasha — prefer the DB parsha (matches how the shul writes it),
-      // fall back to Hebcal's Hebrew name.
+      // fall back to Hebcal's Hebrew name. The header's "זמנים לשבת קודש"
+      // kicker is static HTML; only the parsha name goes into the hero so
+      // even long double-parshiyos stay on one line without overflow.
       const parshaName = z.parashaDb || z.parashaHebrew || '';
-      const parshaText = parshaName
-        ? 'זמנים לשבת קודש פרשת ' + parshaName
-        : 'זמנים לשבת קודש';
-      $('parsha').textContent = parshaText;
+      const heroEl = $('parsha-hero');
+      if (heroEl) heroEl.textContent = parshaName ? 'פרשת ' + parshaName : '';
 
       // Friday slots stay in static HTML.
       set('t-candles', z.candles);
@@ -430,23 +507,25 @@
         if (z.avosUbanimTime) kids.push({ label: 'אבות ובנים', time: z.avosUbanimTime });
         if (kids.length) {
           kidsBoxEl.classList.remove('hidden');
-          const kidsDotRun = '·····································';
           kidsRowsEl.innerHTML = kids.map(k =>
-            '<span class="label">' + k.label + '</span>' +
-            '<span class="dots">' + kidsDotRun + '</span>' +
-            '<span class="time">' + k.time + '</span>'
+            '<div class="row">' +
+              '<span class="label">' + k.label + '</span>' +
+              '<span class="leader"></span>' +
+              '<span class="time">' + k.time + '</span>' +
+            '</div>'
           ).join('');
         } else {
           kidsBoxEl.classList.add('hidden');
         }
       }
 
-      // Shabbos list — built dynamically so we can insert active shiurim
-      // in CHRONOLOGICAL position as regular dotted-leader rows:
-      //   Shacharis → Mincha Ketana → [Shiur Halacha ~20m before Mincha] →
-      //   Mincha → Shkia → [Pirkei Avos ~15m before Maariv] → Maariv
-      // Shiurim not toggled on are simply omitted; the list contracts to
-      // however many rows are active that week (5, 6, or 7 max).
+      // Shabbos list — built dynamically so active shiurim slot into their
+      // chronological position:
+      //   Shacharis → [Shiur Halacha ~20m before Mincha] → Mincha → Shkia
+      //   → [Pirkei Avos ~15m before Maariv] → Maariv
+      // Mincha Ketana is intentionally omitted — the shul doesn't post it
+      // on the flier; what matters is the Mincha minyan time. Shiurim not
+      // toggled on are omitted too, so the list is 4–6 rows on any week.
       const shiurim = Array.isArray(z.shiurim) ? z.shiurim : [];
       const shiurByLabel = {};
       shiurim.forEach(s => { shiurByLabel[s.label] = s.time; });
@@ -455,7 +534,6 @@
 
       const shabbosRows = [
         { label: 'שחרית',            time: z.shacharis },
-        { label: 'זמן מנחה קטנה',    time: z.minchaKetana },
         halacha ? { label: 'שיעור הלכה', time: halacha } : null,
         { label: 'מנחה',             time: z.minchaShabbos },
         { label: 'שקיעה',            time: z.shkia },
@@ -465,23 +543,33 @@
 
       const listShabbosEl = $('list-shabbos');
       if (listShabbosEl) {
-        const dotRun = '·····································································';
         listShabbosEl.innerHTML = shabbosRows.map(r =>
           '<div class="row">' +
             '<span class="label">' + r.label + '</span>' +
-            '<span class="dots">' + dotRun + '</span>' +
+            '<span class="leader"></span>' +
             '<span class="time">' + (r.time || '—') + '</span>' +
           '</div>'
         ).join('');
       }
 
+      // When the Shabbos list is at its maximum (6 rows: both shiurim enabled)
+      // AND the kids-box is visible, flip a class that shrinks row type
+      // slightly so the block clears the parchment footer.
+      const col = document.querySelector('.content-column');
+      if (col) {
+        const shabbosCount = listShabbosEl ? listShabbosEl.querySelectorAll('.row').length : 0;
+        const kidsVisible = kidsBoxEl && !kidsBoxEl.classList.contains('hidden');
+        col.classList.toggle('rows-dense', shabbosCount >= 6 && kidsVisible);
+      }
+
       $('loading').classList.add('hidden');
 
       // If ?autodownload=1 was passed (from the admin "Download Image" button),
-      // fire the download now that zmanim are populated. Wait a tick so
-      // @fontface'd fonts settle before html2canvas snapshots.
+      // fire the download once fonts have actually loaded — otherwise the
+      // @fontface Hebrew serif can fall back to system fonts mid-snapshot.
       if (new URLSearchParams(location.search).has('autodownload')) {
-        setTimeout(() => $('download-png').click(), 400);
+        if (document.fonts && document.fonts.ready) await document.fonts.ready;
+        $('download-png').click();
       }
     } catch (err) {
       $('loading').innerHTML = '<span style="color:#ff9a9a;">' + err.message + '</span>';
@@ -502,11 +590,21 @@
     btn.textContent = 'Rendering…';
     btn.disabled = true;
     try {
+      if (document.fonts && document.fonts.ready) await document.fonts.ready;
       const poster = $('poster');
+      const rect = poster.getBoundingClientRect();
+      // Pin html2canvas to the poster's actual rendered box so the export is
+      // deterministic across viewport widths. Without width/windowWidth the
+      // canvas picks up the surrounding page geometry and produces slightly
+      // different layouts per-device.
       const canvas = await html2canvas(poster, {
         useCORS: true,
         backgroundColor: null,
-        scale: 2
+        scale: 2,
+        width: rect.width,
+        height: rect.height,
+        windowWidth: rect.width,
+        windowHeight: rect.height
       });
       const a = document.createElement('a');
       a.href = canvas.toDataURL('image/png');

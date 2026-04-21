@@ -650,26 +650,25 @@ async function loadScreenData() {
             shulAnnSection.classList.toggle('mb-auto', shulAlone);
             shulAnnSection.classList.toggle('my-auto', false);
         }
-        // Slots container: when alone, don't stretch — just center the image.
+        // Slots container: always items-center so the gold border hugs the image
+        // at its natural aspect — items-stretch + h-full on the image was the
+        // letterbox bug PR #8 (0c4d606) fixed; the merge of feat/zmanim-seed-
+        // and-flier-pipeline accidentally reintroduced it via a stretch toggle.
         if (shulAnn) {
             shulAnn.classList.toggle('flex-1', !shulAlone);
             shulAnn.classList.toggle('min-h-0', !shulAlone);
-            shulAnn.classList.toggle('items-stretch', !shulAlone);
-            shulAnn.classList.toggle('items-center', shulAlone);
         }
         var hasImg = shulItem.imageData && shulItem.imageData.length > 10 && shulItem.imageData.startsWith('data:');
         var hasText = shulItem.title || shulItem.description;
         var sHtml = '';
         if (hasImg) {
-            // Image IS the bordered element — gold frame hugs the picture, no letterbox.
-            // With text: force h-full so img aligns with the text block vertically (cap width 60%).
-            // Without text + alone: let section auto-size; image goes natural up to 75vh tall.
-            // Without text + paired: max-h-full bounds to half-column.
-            // (Supersedes the simpler max-h-full+max-w-[60/92]% rule from PR #8 —
-            // this version handles the "alone" case explicitly.)
+            // Intrinsic sizing so the gold frame hugs the picture's actual aspect —
+            // no interior letterbox on landscape fliers. The earlier h-full+w-auto
+            // version locked the <img>'s BOX to the row height and let
+            // object-contain fit the picture inside with bars; we avoid that here.
             var imgCls;
             if (hasText) {
-                imgCls = 'h-full w-auto max-h-full max-w-[60%]';
+                imgCls = 'max-h-full max-w-[60%] w-auto h-auto self-center';
             } else if (shulAlone) {
                 // Alone-case: max out both dimensions — whichever the image's aspect
                 // binds first wins. 90vh is the vertical cap; max-w-full lets the
