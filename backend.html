@@ -13,9 +13,22 @@ tailwind.config = {
 </script>
 <style>
     input, textarea, select { font-size: 16px !important; }
+    /* Block typing into any form control until the initial /api/get-data
+       has populated the form. Otherwise a fast typist can enter a value
+       before the fetch resolves, and loadData() will overwrite their
+       input with whatever was last stored in the DB — saving an empty
+       value in the process. Class is applied in the <body> tag so it
+       beats the first paint, and cleared in loadData's finally. */
+    body.pre-load input, body.pre-load textarea, body.pre-load select,
+    body.pre-load button { opacity: 0.5; pointer-events: none; cursor: wait; }
+    body.pre-load #loadingBanner { display: flex !important; }
 </style>
 </head>
-<body class="bg-gray-950 text-gray-100 font-body min-h-screen pb-20 sm:pb-8">
+<body class="bg-gray-950 text-gray-100 font-body min-h-screen pb-20 sm:pb-8 pre-load">
+<div id="loadingBanner" style="display:none; position:fixed; top:0; left:0; right:0; z-index:50; background:#111; color:#e9c349; padding:.5rem 1rem; text-align:center; font-size:.8rem; border-bottom:1px solid #333; align-items:center; justify-content:center; gap:.5rem;">
+  <span class="material-symbols-outlined animate-spin" style="font-size:1rem;">progress_activity</span>
+  <span>Loading current data — please wait before editing</span>
+</div>
 
 <!-- Header -->
 <header class="bg-gray-900 border-b border-gold/30 py-3 px-4 sm:px-8 sm:py-4">
@@ -928,6 +941,15 @@ function setSaveLoading(loading) {
 // LOAD / SAVE
 // ========================================
 async function loadData() {
+    try {
+        await loadDataInner();
+    } finally {
+        // Inputs become editable only once the initial DB state is
+        // reflected in the form — see the pre-load CSS in <head>.
+        document.body.classList.remove('pre-load');
+    }
+}
+async function loadDataInner() {
     const data = await fetchScreenData();
     if (!data) {
         addSponsor('Kiddush Sponsored By', 'THE COHEN FAMILY');
