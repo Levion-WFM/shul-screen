@@ -262,13 +262,13 @@ tailwind.config = {
         </div>
     </section>
 
-    <!-- Community Announcements (text, max 3) -->
+    <!-- Community Announcements (text, max 2) -->
     <section class="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
         <div class="bg-gray-800/50 px-4 sm:px-6 py-3 flex items-center gap-2 border-b border-gray-800">
             <span class="material-symbols-outlined text-gold">groups</span>
             <h2 class="text-base sm:text-lg font-bold text-gold">Community Announcements (text)</h2>
         </div>
-        <div class="px-4 sm:px-6 pt-3 text-[11px] text-gray-500">Bottom of the center column. Up to 3 text-based cards (category + names).</div>
+        <div class="px-4 sm:px-6 pt-3 text-[11px] text-gray-500">Bottom of the center column. Up to 2 text cards (category + names). Only the first 2 render on the screen; the rest are ignored until you delete or reorder.</div>
         <div id="communityContainer" class="p-4 sm:p-6 space-y-3 sm:space-y-4"></div>
         <div class="px-4 sm:px-6 pb-4 sm:pb-6">
             <button onclick="addCommunity()" class="text-sm text-gold hover:text-yellow-300 flex items-center gap-1 transition active:scale-95">
@@ -789,10 +789,26 @@ function addCommunity(label, names, sub) {
             <div><label class="block text-xs text-gray-500 mb-1">Subtitle (optional)</label>
             <input type="text" value="${esc(sub || '')}" class="comm-sub w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. 25 Golden Years"/></div>
         </div>
-        <button onclick="this.parentElement.remove()" class="text-gray-500 hover:text-red-400 active:text-red-400 mt-6 transition p-1">
+        <button onclick="deleteCommunitySection(this)" class="text-gray-500 hover:text-red-400 active:text-red-400 mt-6 transition p-1">
             <span class="material-symbols-outlined">delete</span>
         </button>`;
     container.appendChild(div);
+}
+
+// Community-section delete confirms, removes from DOM, and saves immediately.
+// The "delete didn't work" bug report was rooted in the old flow: click
+// delete (card vanished visually) -> forget to click Save -> kiosk still
+// shows the deleted item on next refresh because the DB row was untouched.
+// Auto-saving on confirm closes that UX gap.
+async function deleteCommunitySection(btn) {
+    if (!confirm('Delete this section and save immediately?')) return;
+    btn.parentElement.remove();
+    try {
+        await saveAll();
+    } catch (e) {
+        console.error('Auto-save after community delete failed:', e);
+        alert('Deleted locally but the save failed. Click Save to retry.');
+    }
 }
 
 // ========================================

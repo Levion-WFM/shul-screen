@@ -344,10 +344,13 @@ setInterval(updateSecularDate, 60000);
 // ========================================
 var flierTitle = { 1: 'text-3xl', 2: 'text-2xl', 3: 'text-xl' };
 var flierDesc  = { 1: 'text-lg',  2: 'text-base', 3: 'text-sm' };
+// Consolidated from 3 slots to 2 so each box has more room for longer
+// names / longer category labels without clipping. Fonts are slightly
+// smaller than the old 2-slot sizes because names can now wrap onto
+// multiple lines inside a box — readability wins over single-line.
 var commSizes = {
-    1: { name: 'text-4xl', label: 'text-base', sub: 'text-base', pad: 'p-4', space: 'space-y-2' },
-    2: { name: 'text-3xl', label: 'text-sm',   sub: 'text-sm',   pad: 'p-3', space: 'space-y-1' },
-    3: { name: 'text-2xl', label: 'text-sm',   sub: 'text-sm',   pad: 'p-2', space: 'space-y-0.5' }
+    1: { name: 'text-4xl', label: 'text-base', sub: 'text-base', pad: 'p-5', space: 'space-y-2' },
+    2: { name: 'text-2xl', label: 'text-xs',   sub: 'text-xs',   pad: 'p-5', space: 'space-y-1.5' }
 };
 // Sponsor plaque sizes — tuned for a larger (p-5) brass plaque that can comfortably
 // carry 2 entries including a yahrzeit name without text feeling cramped.
@@ -732,29 +735,33 @@ async function loadScreenData() {
         if (commFlierSection) commFlierSection.classList.add('hidden');
     }
 
-    // ── Text Announcements (max 3, horizontal, each on black bg with own gold rim) ──
+    // ── Text Announcements (max 2, horizontal, each on black bg with own gold rim) ──
+    // Capped at 2 (was 3) so each box has room for longer labels and more
+    // names without having to truncate. Labels and subtitles now wrap
+    // instead of truncating, so multi-word categories like "Mazel Tov
+    // Birthdays & Anniversaries" render in full.
     var commContainer = document.getElementById('communitySlots');
     commContainer.innerHTML = '';
     if (data.community && data.community.length) {
         commContainer.classList.remove('hidden');
-        var count = Math.min(data.community.length, 3);
+        var count = Math.min(data.community.length, 2);
         var sz = commSizes[count];
         var cHtml = '';
         data.community.forEach(function(c, i) {
-            if (i >= 3) return;
+            if (i >= 2) return;
             var lines = (c.names || '').split('\n').filter(function(l){ return l.trim(); });
-            var maxNames = count === 3 ? 3 : (count === 2 ? 5 : 6);
+            var maxNames = count === 2 ? 6 : 8;
             var truncated = lines.length > maxNames;
             if (truncated) lines = lines.slice(0, maxNames);
             cHtml += '<div class="flex-1 min-w-0 bg-black/70 border-4 border-primary/60 rounded-sm elevated-3d ' + sz.pad + ' text-center flex flex-col items-center justify-center ' + sz.space + '">';
-            cHtml += '<p class="' + sz.label + ' uppercase tracking-[0.3em] font-bold text-primary/80 truncate w-full">' + esc(c.label) + '</p>';
+            cHtml += '<p class="' + sz.label + ' uppercase tracking-[0.3em] font-bold text-primary/80 w-full break-words leading-tight">' + esc(c.label) + '</p>';
             cHtml += '<div class="flex flex-col gap-0.5 w-full">';
             lines.forEach(function(name) {
-                cHtml += '<p class="font-headline ' + sz.name + ' italic font-bold text-primary text-3d leading-tight truncate">' + esc(name) + '</p>';
+                cHtml += '<p class="font-headline ' + sz.name + ' italic font-bold text-primary text-3d leading-tight break-words">' + esc(name) + '</p>';
             });
             if (truncated) cHtml += '<p class="font-headline ' + sz.name + ' italic font-bold text-primary/60 leading-tight">&amp; others</p>';
             cHtml += '</div>';
-            if (c.sub) cHtml += '<p class="' + sz.sub + ' uppercase tracking-widest font-semibold text-secondary truncate w-full">' + esc(c.sub) + '</p>';
+            if (c.sub) cHtml += '<p class="' + sz.sub + ' uppercase tracking-widest font-semibold text-secondary w-full break-words leading-tight">' + esc(c.sub) + '</p>';
             cHtml += '</div>';
         });
         commContainer.innerHTML = cHtml;
