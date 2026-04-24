@@ -5,7 +5,7 @@
 <title>Beis Medrash D Jackson 21</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&amp;family=Noto+Serif:wght@400;500;600;700&amp;family=Work_Sans:wght@300;400;500;600;700&amp;family=Great+Vibes&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&amp;family=Frank+Ruhl+Libre:wght@400;500;700;900&amp;family=Noto+Serif:wght@400;500;600;700&amp;family=Work_Sans:wght@300;400;500;600;700&amp;family=Great+Vibes&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script id="tailwind-config">
@@ -29,11 +29,13 @@
                         "full": "9999px"
                     },
                     "fontFamily": {
-                        // Cormorant Garamond for warmth + character (classical, hand-cut feel);
-                        // Noto Serif kept as fallback so Hebrew glyphs (זמני חול, שיעורים, …)
-                        // still render — Cormorant is Latin-only, so the browser falls back per-
-                        // glyph and we get warm English + proper Hebrew in the same class.
-                        "headline": ["Cormorant Garamond", "Noto Serif", "serif"],
+                        // Cormorant Garamond for warmth + character on Latin glyphs;
+                        // Frank Ruhl Libre for Hebrew glyphs — it's the canonical shul/sefer
+                        // serif (think formal simcha invitations), warmer and more authentically
+                        // frum than Google's generic Noto Serif. Browser falls back per-glyph:
+                        // English letters hit Cormorant, Hebrew hits Frank Ruhl.
+                        // Noto Serif kept as last resort for any Unicode not covered above.
+                        "headline": ["Cormorant Garamond", "Frank Ruhl Libre", "Noto Serif", "serif"],
                         "body": ["Work Sans", "sans-serif"]
                     }
                 }
@@ -64,6 +66,23 @@
         }
         .elevated-3d {
             box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 15px rgba(0,0,0,0.4), inset 1px 1px 0 rgba(255,255,255,0.05);
+        }
+        /* Tabular figures on every .font-headline element — zmanim times ("8:00",
+           "10:39"), the next-zman countdown, Shabbos times. Without this, proportional
+           digits make a "1" narrower than a "0" so the columns micro-shift on each
+           refresh. Pro schedule fliers always use tabular nums for the same reason.
+           'lnum' (lining figures) keeps the digits at full caps-height so they don't
+           sag beneath the label baseline. */
+        .font-headline {
+            font-feature-settings: "tnum" 1, "lnum" 1;
+        }
+        /* Small-caps utility for uppercase labels ("KIDDUSH SPONSORED BY", "NEXT",
+           info-bar tags). Rendering uppercase text through all-small-caps gives
+           it the petite, inscribed-plaque proportions that classic fliers use for
+           eyebrow labels — less "billboard", more "engraved brass". */
+        .label-smallcaps {
+            font-variant-caps: all-small-caps;
+            letter-spacing: 0.18em;
         }
         /* Soft warm drop-shadow — the old versions used a hard 2px,2px,0 pixel stamp
            as the first shadow which reads as "aliased computer text" or print-screen
@@ -177,7 +196,7 @@
 </div>
 <!-- Countdown to next zman — gold-lined footer strip -->
 <div class="shrink-0 border-t border-white/10 bg-black/50 px-3 py-1 flex items-baseline justify-between gap-2" id="nextZmanFooter">
-<span class="text-sm font-bold text-secondary tracking-wide uppercase">Next</span>
+<span class="text-sm font-bold text-secondary label-smallcaps">Next</span>
 <span class="text-base font-bold text-secondary truncate" id="nextZmanLabel" dir="rtl">—</span>
 <span class="text-primary font-headline font-bold text-2xl text-3d-light tabular-nums shrink-0" id="nextZmanCountdown">—</span>
 </div>
@@ -296,7 +315,7 @@
 <div class="bg-[#0a0706] border-y-4 gold-border-3d h-12 flex items-center shadow-xl relative z-40 overflow-hidden shrink-0">
 <div class="px-8 text-primary font-headline w-full grid grid-cols-3 items-center gap-4">
 <span id="infoSefirah" dir="rtl" class="font-bold text-xl glow-text-hebrew truncate text-left"></span>
-<span id="infoWelcome" class="tracking-[0.2em] uppercase font-bold text-xl text-center truncate"></span>
+<span id="infoWelcome" class="label-smallcaps font-bold text-xl text-center truncate"></span>
 <span id="infoReminder" class="italic font-semibold text-xl text-secondary text-right truncate"></span>
 </div>
 </div>
@@ -672,7 +691,7 @@ async function loadScreenData() {
         data.sponsors.forEach(function(s, i) {
             if (i >= 3) return;
             sHtml += '<div class="text-center">';
-            sHtml += '<p class="' + sz.label + ' text-on-primary uppercase tracking-[0.2em] font-bold opacity-80 break-words leading-snug">' + esc(s.label) + '</p>';
+            sHtml += '<p class="' + sz.label + ' text-on-primary label-smallcaps font-bold opacity-80 break-words leading-snug">' + esc(s.label) + '</p>';
             sHtml += '<h3 class="font-headline ' + sz.name + ' text-on-primary font-bold tracking-[0.05em] break-words leading-snug drop-shadow-sm">' + esc(s.name) + '</h3>';
             sHtml += '</div>';
             if (i < count - 1) sHtml += '<div class="h-px bg-on-primary/20 w-3/4 mx-auto"></div>';
@@ -809,7 +828,7 @@ async function loadScreenData() {
             var truncated = lines.length > maxNames;
             if (truncated) lines = lines.slice(0, maxNames);
             cHtml += '<div class="flex-1 min-w-0 bg-black/70 border-4 border-primary/60 rounded-sm elevated-3d ' + sz.pad + ' text-center flex flex-col items-center justify-center ' + sz.space + '">';
-            cHtml += '<p class="' + sz.label + ' uppercase tracking-[0.3em] font-bold text-primary/80 w-full break-words leading-tight">' + esc(c.label) + '</p>';
+            cHtml += '<p class="' + sz.label + ' label-smallcaps font-bold text-primary/80 w-full break-words leading-tight">' + esc(c.label) + '</p>';
             cHtml += '<div class="flex flex-col gap-0.5 w-full">';
             lines.forEach(function(name) {
                 cHtml += '<p class="font-headline ' + sz.name + ' italic font-bold text-primary text-3d leading-tight break-words">' + esc(name) + '</p>';
