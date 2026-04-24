@@ -5,7 +5,7 @@
 <title>Beis Medrash D Jackson 21</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;500;600;700&amp;family=Work_Sans:wght@300;400;500;600;700&amp;family=Great+Vibes&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&amp;family=Noto+Serif:wght@400;500;600;700&amp;family=Work_Sans:wght@300;400;500;600;700&amp;family=Great+Vibes&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script id="tailwind-config">
@@ -29,7 +29,11 @@
                         "full": "9999px"
                     },
                     "fontFamily": {
-                        "headline": ["Noto Serif", "serif"],
+                        // Cormorant Garamond for warmth + character (classical, hand-cut feel);
+                        // Noto Serif kept as fallback so Hebrew glyphs (זמני חול, שיעורים, …)
+                        // still render — Cormorant is Latin-only, so the browser falls back per-
+                        // glyph and we get warm English + proper Hebrew in the same class.
+                        "headline": ["Cormorant Garamond", "Noto Serif", "serif"],
                         "body": ["Work Sans", "sans-serif"]
                     }
                 }
