@@ -65,11 +65,20 @@
         .elevated-3d {
             box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 15px rgba(0,0,0,0.4), inset 1px 1px 0 rgba(255,255,255,0.05);
         }
+        /* Soft warm drop-shadow — the old versions used a hard 2px,2px,0 pixel stamp
+           as the first shadow which reads as "aliased computer text" or print-screen
+           artifact. Replaced with a layered soft drop; the shadow color is a near-black
+           with a subtle brown cast (rgba(30,15,0,…)) instead of pure #000 so it reads
+           as "lit ink on warm stone" rather than a graphic-design hard shadow. */
         .text-3d {
-            text-shadow: 2px 2px 0px #000, 3px 3px 5px rgba(0,0,0,0.6);
+            text-shadow:
+                0 1px 2px rgba(30, 15, 0, 0.85),
+                0 3px 8px rgba(0, 0, 0, 0.5);
         }
         .text-3d-light {
-            text-shadow: 1px 1px 0px #000, 2px 2px 3px rgba(0,0,0,0.4);
+            text-shadow:
+                0 1px 1px rgba(30, 15, 0, 0.7),
+                0 2px 4px rgba(0, 0, 0, 0.35);
         }
         /* Elegant script for center-column section titles ("Shul", "Community") */
         .font-cursive {
@@ -85,7 +94,10 @@
             border: 2px solid #7a5c00;
         }
         .glow-text-hebrew {
-            text-shadow: 0 0 10px rgba(233, 195, 73, 0.4), 2px 2px 0px #000;
+            /* Soft gold halo + warm drop, no more hard-black pixel stamp. */
+            text-shadow:
+                0 0 12px rgba(233, 195, 73, 0.45),
+                0 1px 2px rgba(30, 15, 0, 0.85);
         }
     </style>
 </head>
