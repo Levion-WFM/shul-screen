@@ -7,13 +7,16 @@
 <meta name="robots" content="noindex, nofollow"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@300;400;500;700;900&family=David+Libre:wght@400;500;700&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Suez+One&family=Frank+Ruhl+Libre:wght@300;400;500;700;900&family=David+Libre:wght@400;500;700&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <style>
   :root {
     --poster-width: 1024px;
     --poster-height: 1536px;
-    --parchment-ink: #1e2a55;
+    /* Deep navy tuned to the reference flier — a hair darker and less
+       blue-purple than the prior #1e2a55 so it sits flat against the
+       parchment's blue-grey midtones rather than vibrating against them. */
+    --parchment-ink: #1a2750;
     --parchment-ink-soft: #2b3870;
     --parchment-accent: #8a6a2a;
     --parchment-accent-bright: #b48e3f;
@@ -97,41 +100,35 @@
      layered on top of the template — those read as "dropped-in widgets"
      rather than part of the poster. Type alone carries the hierarchy. */
 
-  /* Header block — kicker + hero. Two-line structure dedicates one line to
-     "זמנים לשבת קודש" (fixed) and one to the parsha name itself, so long
-     double-parshiyos (אחרי מות - קדושים, מטות - מסעי) get their own
-     full-width line and never overflow. Top:25.5%% keeps the kicker clear
-     of the parchment's top ornamental arch. */
+  /* Header — single-line title in Suez One (thick Hebrew slab, closest
+     free analog to Vilna Bold / Aharoni — the canonical heimish-flier
+     display face). One line lets "זמנים לשבת קודש פרשת [parsha]" flow
+     RTL as a continuous title; .title-overflow falls back to two lines
+     ONLY when a long double-parsha can't fit. No hairline rule under
+     the title — the parchment template's own silver divider does that
+     job and stacking another reads as a "dropped-in widget".
+
+     Top:24% keeps the title clear of the parchment's upper arch
+     ornament; size 5.6cqw matches the reference's title-to-page-width
+     ratio (the previous 4.4cqw was visibly under-sized). */
   .header {
     position: absolute;
-    top: 25.5%; left: 8%; right: 8%;
+    top: 24%; left: 6%; right: 6%;
     text-align: center;
     color: var(--parchment-ink);
-    font-family: 'Frank Ruhl Libre', 'David Libre', serif;
+    font-family: 'Suez One', 'Frank Ruhl Libre', 'David Libre', serif;
   }
-  .header .kicker {
-    font-size: 4.4cqw;
-    font-weight: 900;
-    letter-spacing: 0.05em;
-    color: var(--parchment-ink);
+  .header .title {
+    font-family: 'Suez One', 'Frank Ruhl Libre', serif;
+    font-weight: 400;             /* Suez One ships only at 400 — its weight is in the design itself */
+    font-size: 5.6cqw;
+    letter-spacing: 0.01em;
     line-height: 1.1;
-    margin-bottom: 0.25em;
-  }
-  .header .hero {
-    font-size: 4.4cqw;
-    font-weight: 900;
-    line-height: 1.08;
     color: var(--parchment-ink);
-  }
-  /* Subtle hairline below the title pair, matching the reference flier's
-     silver divider beneath "זמנים לטבת קודש פרשת". */
-  .header::after {
-    content: "";
-    display: block;
-    width: 36%;
-    height: 1px;
-    margin: 0.6em auto 0;
-    background: rgba(30,42,85,0.55);
+    /* Tighter line-height + balanced wrapping so a long double-parsha
+       breaks gracefully instead of dropping a single trailing word
+       onto its own line. */
+    text-wrap: balance;
   }
 
   /* Content column — the schedule zone. Starts below the template's baked
@@ -155,46 +152,58 @@
   }
   .content-column > * { min-height: 0; }
 
-  /* Section title — small subtle eyebrow above each block (Erev Shabbos,
-     Shabbos, Limud Yeladim). Reference flier doesn't carry these but our
-     data has Erev/Shabbos/Kids blocks worth labeling; rendered small + in
-     navy (not gold) so the time list stays the dominant reading. */
-  .section-title {
+  /* Section titles ("ערב שבת קודש", "שבת קודש") — hidden by default.
+     The reference flier renders one continuous list with no eyebrow
+     subtitles; the visual gap between the Erev block and the Shabbos
+     block is the only divider, and the parchment-template's silver rule
+     under the title carries the rest. Eyebrows above sub-blocks were the
+     biggest "this is an AI mockup" tell on the previous pass.
+
+     The Erev / Shabbos titles in the static HTML still render as
+     <div class="section-title"> for semantic clarity, but `display:none`
+     drops them visually. Kids learning ("לימוד ילדים") opts back in
+     via .section-title.kids when admin has set kids times — at that
+     point the section is structurally a separate block worth labeling. */
+  .section-title { display: none; }
+  .section-title.kids {
+    display: block;
     font-family: 'Frank Ruhl Libre', serif;
     font-weight: 700;
-    font-size: 2.5cqw;
-    letter-spacing: 0.18em;
+    font-size: 2.4cqw;
+    letter-spacing: 0.16em;
     color: var(--parchment-ink);
-    opacity: 0.85;
+    opacity: 0.8;
     text-align: center;
-    margin-bottom: 0.6%;
+    margin-bottom: 0.5%;
   }
 
   /* List group — a section of rows (Erev, Shabbos, Limud). No internal
-     rules or separators. */
+     rules or separators. Tighter line-height + smaller gap than the
+     prior pass; Hebrew has no descenders so generous English-style
+     leading reads as wasted air on a parchment poster. */
   .list-group {
     font-weight: 400;
     color: var(--parchment-ink);
     display: flex;
     flex-direction: column;
-    gap: 0.55em;
+    gap: 0.3em;
   }
 
   /* Row: Hebrew label on the right (RTL), time on the left, dotted leader
-     filling the middle. Both label and time are deep navy — no gold tint,
-     no row-of-the-week emphasis. Matches the printed reference flier:
-     uniform color, uniform weight, dotted leader does all the alignment.
-
-     The leader is a flex spacer with a dotted border-bottom; transform
-     pulls it up so the dots sit on the type baseline instead of below.
-     direction:ltr inside .time keeps numerals left-aligned (the natural
-     reading order for clock times) without breaking the row's RTL flow. */
+     filling the middle. Both label and time are deep navy — uniform
+     weight, no per-row emphasis. The leader is a radial-gradient strip
+     instead of `border-style: dotted` because:
+       - dotted border renders 1-2px greyish dots evenly spaced — fine
+         for default browser leaders, but printed Hebrew fliers run
+         denser, fully-opaque navy dots ~3-4px diameter at ~6-8px pitch,
+       - a radial-gradient gives explicit control over dot diameter,
+         spacing, and opacity (no browser defaults to fight). */
   .list-group .row {
     display: flex;
-    align-items: baseline;
-    gap: 0.55em;
+    align-items: center;
+    gap: 0.5em;
     font-size: 4.4cqw;
-    line-height: 1.22;
+    line-height: 1.15;
     color: var(--parchment-ink);
   }
   .list-group .row .label {
@@ -202,13 +211,21 @@
     font-weight: 700;
     color: var(--parchment-ink);
     flex-shrink: 0;
+    line-height: 1.15;
   }
   .list-group .row .leader {
     flex: 1;
-    border-bottom: 0.18em dotted var(--parchment-ink);
-    transform: translateY(-0.32em);
-    opacity: 0.78;
-    min-width: 1.2em;
+    align-self: center;
+    height: 0.45em;
+    /* Round dots ~0.22em diameter at 0.55em pitch, 100% opaque navy.
+       Center-aligned vertically so the dots sit on the type's optical
+       midline (Hebrew has no descenders to anchor a baseline rule). */
+    background-image: radial-gradient(circle, var(--parchment-ink) 0.11em, transparent 0.13em);
+    background-size: 0.55em 0.55em;
+    background-position: center;
+    background-repeat: repeat-x;
+    min-width: 1.5em;
+    margin-bottom: 0.05em;
   }
   .list-group .row .time {
     direction: ltr;
@@ -220,27 +237,31 @@
     color: var(--parchment-ink);
     letter-spacing: 0.01em;
     flex-shrink: 0;
+    line-height: 1.15;
   }
 
-  /* Shiur box — non-davening entries (Pirkei Avos by the Rav, shiur halacha,
-     etc.) get a separate framed presentation instead of being inline rows.
-     Mirrors the reference flier where the Pirkei Avos shlit"a info sits
-     inside a subtle parchment-tinted box with a thin navy hairline border.
-     Reads as "supplementary information" without using a different color. */
+  /* Shiur callout — Pirkei Avos by the Rav shlit"a etc. The reference
+     flier renders this as a barely-there parchment-tint band: slightly
+     darker cream than the page, no border, no shadow, near-flat. Drops
+     the bordered-card look that read as "web widget" rather than
+     "printed callout". */
   .shiur-box {
     align-self: center;
-    margin: 0.4% 0;
-    padding: 0.55em 1em;
-    background: rgba(255,250,235,0.55);
-    border: 1px solid rgba(30,42,85,0.45);
-    border-radius: 4px;
+    margin: 0.6% 0;
+    padding: 0.5em 1.4em;
+    /* Parchment-darker tint, no stroke. The 18% navy mixed into the
+       cream gives the band-of-tint that reads as a printed highlight
+       overlay rather than an outlined box. */
+    background: rgba(26,39,80,0.10);
+    border: 0;
+    border-radius: 2px;
     text-align: center;
     color: var(--parchment-ink);
     font-family: 'Frank Ruhl Libre', 'David Libre', serif;
     font-size: 3.2cqw;
-    line-height: 1.35;
+    line-height: 1.3;
     font-weight: 700;
-    box-shadow: 0 1px 2px rgba(30,42,85,0.08);
+    max-width: 78%;
   }
   .shiur-box .shiur-time {
     font-feature-settings: 'tnum' on, 'lnum' on;
@@ -248,26 +269,44 @@
     margin-inline-start: 0.4em;
   }
 
-  /* Italic footer note — small line at the bottom of the schedule for
-     local minhag callouts (e.g. "לא ברישת אבא" — "no [shiur] at the
-     seudah" weeks). Matches the italic line in the reference flier. */
+  /* Footer note — Hebrew has no real italic so we DON'T set
+     `font-style: italic` (slanted Hebrew letters look broken). Instead
+     mark the note with a smaller size + lighter weight + slight muting,
+     which is how heimish print designers typeset minhag callouts like
+     "לא ברישת אבא". Hidden until populated. */
   .footer-note {
-    margin-top: 1.2%;
+    margin-top: 1.4%;
     text-align: center;
     font-family: 'Frank Ruhl Libre', 'David Libre', serif;
-    font-style: italic;
-    font-weight: 500;
-    font-size: 2.6cqw;
-    color: var(--parchment-ink);
-    opacity: 0.85;
+    font-weight: 400;
+    font-size: 2.4cqw;
+    color: #5a6378;
   }
   .footer-note.hidden { display: none; }
 
+  /* בס״ד top-right — required on heimish/yeshivish fliers, omission
+     reads as "non-frum design". Sits inside the parchment area, not
+     overlapping the template's top arch. */
+  .bsd {
+    position: absolute;
+    top: 21%; right: 9%;
+    font-family: 'Frank Ruhl Libre', serif;
+    font-weight: 500;
+    font-size: 1.9cqw;
+    color: var(--parchment-ink);
+    opacity: 0.82;
+    letter-spacing: 0.02em;
+  }
+
   /* When content is dense (6+ Shabbos rows AND kids section visible),
-     tighten rhythm slightly so the block clears the parchment footer. */
+     tighten rhythm slightly so the block clears the parchment footer.
+     Default gap is already tight (0.3em) so dense just nudges it
+     further; row size shrinks to 3.9cqw (matches the prior dense
+     baseline). */
   .content-column.rows-dense .list-group .row { font-size: 3.9cqw; }
-  .content-column.rows-dense .list-group { gap: 0.38em; }
-  .content-column.rows-dense .section-title { font-size: 2.7cqw; margin-bottom: 0.5%; }
+  .content-column.rows-dense .list-group { gap: 0.22em; }
+  .content-column.rows-dense .section-title.kids { font-size: 2.2cqw; margin-bottom: 0.4%; }
+  .content-column.rows-dense .shiur-box { font-size: 2.9cqw; padding: 0.4em 1.2em; }
 
   .list-kids.hidden { display: none; }
 
@@ -312,9 +351,17 @@
     <div class="poster" id="poster">
       <div class="loading" id="loading"><span>Loading zmanim…</span><span class="spin"></span></div>
 
+      <!-- בס״ד — required on heimish/yeshivish fliers; omitted reads as
+           non-frum-designed. -->
+      <div class="bsd">בס״ד</div>
+
+      <!-- Title — single line that flows RTL. The fixed phrase
+           "זמנים לשבת קודש" carries through to the parsha name on the
+           same line, matching the reference's layout. JS replaces
+           #parsha-name with "פרשת [name]" once data loads; long
+           double-parshiyos break gracefully via text-wrap:balance. -->
       <div class="header">
-        <div class="kicker">זמנים לשבת קודש</div>
-        <div class="hero" id="parsha-hero">&nbsp;</div>
+        <div class="title">זמנים לשבת קודש <span id="parsha-name">&nbsp;</span></div>
       </div>
 
       <!-- Content column — flex-distributes Erev Shabbos, Shabbos, and the
@@ -344,11 +391,21 @@
         </div>
 
         <!-- Kids learning — Pirchei + Avos uBanim. Renders only when admin
-             has set at least one time. Tinted rows, no box / frame. -->
+             has set at least one time. The .kids modifier on the section
+             title turns its display back on (default for section titles
+             is none — they're hidden on the Erev/Shabbos blocks to match
+             the reference's continuous-list layout). -->
         <div class="list-group list-kids hidden" id="kids-box">
-          <div class="section-title">לימוד ילדים</div>
+          <div class="section-title kids">לימוד ילדים</div>
           <div id="kids-rows"></div>
         </div>
+
+        <!-- Optional minhag/announcement footer note (e.g. "לא ברישת אבא"
+             on weeks the seudah is at the rav's house). Wired from
+             data.zmanim.scheduleNote — hidden when the field is empty.
+             Kept inside the content-column so it sits above the
+             template's baked-in address line. -->
+        <div class="footer-note hidden" id="schedule-note"></div>
 
       </div>
 
@@ -406,12 +463,13 @@
       const z = data.zmanim;
 
       // Parasha — prefer the DB parsha (matches how the shul writes it),
-      // fall back to Hebcal's Hebrew name. The header's "זמנים לשבת קודש"
-      // kicker is static HTML; only the parsha name goes into the hero so
-      // even long double-parshiyos stay on one line without overflow.
+      // fall back to Hebcal's Hebrew name. The static title "זמנים לשבת
+      // קודש" continues with "פרשת [name]" inline on a single line; long
+      // double-parshiyos wrap onto a second line via text-wrap:balance
+      // rather than overflowing the parchment.
       const parshaName = z.parashaDb || z.parashaHebrew || '';
-      const heroEl = $('parsha-hero');
-      if (heroEl) heroEl.textContent = parshaName ? 'פרשת ' + parshaName : '';
+      const parshaEl = $('parsha-name');
+      if (parshaEl) parshaEl.textContent = parshaName ? 'פרשת ' + parshaName : '';
 
       // Friday slots stay in static HTML.
       set('t-candles', z.candles);
@@ -508,6 +566,22 @@
         const shabbosCount = listShabbosEl ? listShabbosEl.querySelectorAll('.row').length : 0;
         const kidsVisible = kidsBoxEl && !kidsBoxEl.classList.contains('hidden');
         col.classList.toggle('rows-dense', shabbosCount >= 6 && kidsVisible);
+      }
+
+      // Optional schedule note — shul-specific minhag callout (e.g. "לא
+      // ברישת אבא"). Pulled from z.scheduleNote when present; the field
+      // is admin-editable in the kiosk's zmanim editor. Hidden when blank
+      // so the parchment doesn't carry an empty-line ghost.
+      const noteEl = $('schedule-note');
+      if (noteEl) {
+        const note = (z.scheduleNote || '').trim();
+        if (note) {
+          noteEl.textContent = note;
+          noteEl.classList.remove('hidden');
+        } else {
+          noteEl.classList.add('hidden');
+          noteEl.textContent = '';
+        }
       }
 
       $('loading').classList.add('hidden');
