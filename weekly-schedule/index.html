@@ -100,21 +100,14 @@
      layered on top of the template — those read as "dropped-in widgets"
      rather than part of the poster. Type alone carries the hierarchy. */
 
-  /* Header — kicker + hero. Cramming "זמנים לשבת קודש פרשת [name]"
-     onto a single line ran five words at equal weight with no focal
-     point, which is why it read as awkward. Real shul fliers lead
-     with the PARSHA name as the hero (it's what changes weekly and
-     identifies the week) and put "זמנים לשבת קודש" small above as
-     contextual kicker. Suez One carries the hero; the kicker drops
-     to Frank Ruhl Libre at a lighter weight + smaller size + slight
-     muting so the eye lands on the parsha first.
-
-     Top:24% keeps the kicker clear of the parchment's upper arch.
-     The two lines together still take roughly the same vertical band
-     that the prior single-line title did; nothing else needs to move. */
+  /* Header — kicker + hero. Top:25.5% pushes the kicker below the
+     parchment's baked-in silver divider line at ~22% (immovable, part
+     of template.png) — the previous top:24% had the kicker clipped by
+     it. The kicker is also tightened (2.4cqw) so the title block stays
+     compact and doesn't shove the time list further down. */
   .header {
     position: absolute;
-    top: 24%; left: 6%; right: 6%;
+    top: 25.5%; left: 6%; right: 6%;
     text-align: center;
     color: var(--parchment-ink);
     font-family: 'Suez One', 'Frank Ruhl Libre', 'David Libre', serif;
@@ -122,37 +115,30 @@
   .header .kicker {
     font-family: 'Frank Ruhl Libre', 'David Libre', serif;
     font-weight: 500;
-    font-size: 3.0cqw;
+    font-size: 2.4cqw;
     letter-spacing: 0.06em;
     line-height: 1.1;
     color: var(--parchment-ink);
-    opacity: 0.8;
-    margin-bottom: 0.25em;
+    opacity: 0.78;
+    margin-bottom: 0.15em;
   }
   .header .hero {
     font-family: 'Suez One', 'Frank Ruhl Libre', serif;
     font-weight: 400;             /* Suez One ships only at 400 — its weight is in the design itself */
-    font-size: 6.2cqw;
+    font-size: 5.8cqw;
     letter-spacing: 0.005em;
     line-height: 1.05;
     color: var(--parchment-ink);
-    /* text-wrap:balance lets a long double-parsha (אחרי מות-קדושים,
-       מטות-מסעי) break onto two lines without dropping a single
-       trailing word; otherwise this is one line. */
     text-wrap: balance;
   }
 
-  /* Content column — the schedule zone. Pulled up to top:31% (was 38%)
-     so the title and the first zmanim row sit ~7% apart instead of
-     14%. The reference flier has the title and zmanim block almost
-     touching with just the silver divider between them; the previous
-     gap left a dead "empty parchment" zone that read as unfinished.
-     Flex-column with space-between distributes Erev / Shabbos / Kids
-     blocks through the area; min-height:0 cascade lets rows-dense
-     variant shrink without overflow. */
+  /* Content column — the schedule zone. Top:34% sits right below the
+     hero (which now ends ~33%), keeping the title and first zmanim
+     row close. min-height:0 cascade lets the rows-dense variant
+     shrink without overflow. */
   .content-column {
     position: absolute;
-    top: 31%;
+    top: 34%;
     bottom: 15%;
     left: 13%;
     right: 13%;
@@ -191,31 +177,33 @@
     margin-bottom: 0.5%;
   }
 
-  /* List group — a section of rows (Erev, Shabbos, Limud). No internal
-     rules or separators. Tighter line-height + smaller gap than the
-     prior pass; Hebrew has no descenders so generous English-style
-     leading reads as wasted air on a parchment poster. */
+  /* List group — a section of rows (Erev, Shabbos, Limud). max-width
+     78% pulls each row toward the center of the parchment so the
+     Hebrew label and the time aren't stranded at the parchment's
+     left/right edges with a long sparse leader between them. Hebrew
+     has no descenders so the tight line-height isn't a problem. */
   .list-group {
     font-weight: 400;
     color: var(--parchment-ink);
     display: flex;
     flex-direction: column;
     gap: 0.3em;
+    max-width: 78%;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
   }
 
   /* Row: Hebrew label on the right (RTL), time on the left, dotted leader
-     filling the middle. Both label and time are deep navy — uniform
-     weight, no per-row emphasis. The leader is a radial-gradient strip
-     instead of `border-style: dotted` because:
-       - dotted border renders 1-2px greyish dots evenly spaced — fine
-         for default browser leaders, but printed Hebrew fliers run
-         denser, fully-opaque navy dots ~3-4px diameter at ~6-8px pitch,
-       - a radial-gradient gives explicit control over dot diameter,
-         spacing, and opacity (no browser defaults to fight). */
+     between them. Items align to baseline so the dot leader sits
+     visually on the bottom of each row — like a typographic dotted
+     underline — rather than running through the vertical middle.
+     Together with the list-group's max-width:78%, label and time end
+     up close to centered with a short tight leader between them. */
   .list-group .row {
     display: flex;
-    align-items: center;
-    gap: 0.5em;
+    align-items: baseline;
+    gap: 0.45em;
     font-size: 4.4cqw;
     line-height: 1.15;
     color: var(--parchment-ink);
@@ -229,20 +217,20 @@
   }
   .list-group .row .leader {
     flex: 1;
-    align-self: center;
-    height: 0.3em;
+    /* Dots at the baseline — the leader's bottom edge sits at the
+       row's baseline, so the dots fall just below the Hebrew letters
+       instead of through their middle. Negative margin-bottom drops
+       the strip below the baseline by another ~0.05em so the dots
+       read as a dotted underline rather than overlapping the type. */
+    height: 0.28em;
+    margin-bottom: -0.06em;
     /* Dense fine dots — 0.12em diameter at 0.22em pitch (edge-to-edge
-       gap ~0.10em, about one dot-width). Classic table-of-contents
-       leader density: dots clearly separated but visually continuous,
-       like a finely-printed line of periods. The previous 0.32em
-       pitch left visible airy gaps that read more as "row of beads"
-       than "typographic leader". */
+       gap ~0.10em, about one dot-width). */
     background-image: radial-gradient(circle, var(--parchment-ink) 0.06em, transparent 0.07em);
     background-size: 0.22em 0.22em;
     background-position: center;
     background-repeat: repeat-x;
-    min-width: 1em;
-    margin-bottom: 0.05em;
+    min-width: 0.8em;
   }
   .list-group .row .time {
     direction: ltr;
@@ -409,13 +397,12 @@
           <div id="list-shabbos"></div>
         </div>
 
-        <!-- Kids learning — Pirchei + Avos uBanim. Renders only when admin
-             has set at least one time. The .kids modifier on the section
-             title turns its display back on (default for section titles
-             is none — they're hidden on the Erev/Shabbos blocks to match
-             the reference's continuous-list layout). -->
+        <!-- Kids learning — Pirchei + Avos uBanim. Rendered as plain
+             rows in the same continuous list flow, no "לימוד ילדים"
+             section heading (the per-row labels read clearly enough
+             without a categorical eyebrow above them). Hidden when
+             neither time is populated. -->
         <div class="list-group list-kids hidden" id="kids-box">
-          <div class="section-title kids">לימוד ילדים</div>
           <div id="kids-rows"></div>
         </div>
 
@@ -558,23 +545,18 @@
 
       const listShabbosEl = $('list-shabbos');
       if (listShabbosEl) {
-        listShabbosEl.innerHTML = shabbosRows.map(r => {
-          // Shiur entries (tint:true) render as a centered framed box —
-          // matches the highlighted Pirkei Avos shlit"a callout in the
-          // reference flier. Davening rows render as the standard dotted-
-          // leader row.
-          if (r.tint) {
-            return '<div class="shiur-box">' +
-                     '<span class="shiur-label">' + r.label + '</span>' +
-                     '<span class="shiur-time">' + (r.time || '—') + '</span>' +
-                   '</div>';
-          }
-          return '<div class="row">' +
-                   '<span class="label">' + r.label + '</span>' +
-                   '<span class="leader"></span>' +
-                   '<span class="time">' + (r.time || '—') + '</span>' +
-                 '</div>';
-        }).join('');
+        // All entries — davening AND shiurim — render as the same
+        // dotted-leader row. Earlier pass had shiurim in a centered
+        // tinted-band callout box, but that read as awkward visually
+        // intrusive. Inline rows match the rest of the schedule and
+        // the chronological position alone is enough context.
+        listShabbosEl.innerHTML = shabbosRows.map(r =>
+          '<div class="row">' +
+            '<span class="label">' + r.label + '</span>' +
+            '<span class="leader"></span>' +
+            '<span class="time">' + (r.time || '—') + '</span>' +
+          '</div>'
+        ).join('');
       }
 
       // When content is at its maximum density — 6-row Shabbos list (both
