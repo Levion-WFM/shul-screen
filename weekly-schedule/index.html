@@ -100,14 +100,13 @@
      layered on top of the template — those read as "dropped-in widgets"
      rather than part of the poster. Type alone carries the hierarchy. */
 
-  /* Header — kicker + hero. Top:25.5% pushes the kicker below the
-     parchment's baked-in silver divider line at ~22% (immovable, part
-     of template.png) — the previous top:24% had the kicker clipped by
-     it. The kicker is also tightened (2.4cqw) so the title block stays
-     compact and doesn't shove the time list further down. */
+  /* Header — kicker + hero. Top:27% centers the title block in the
+     band between the parchment's top ornamental flourish (~24%) and
+     the lower silver divider beneath the title (~35%) — previous
+     25.5% sat the kicker too close to the upper flourish. */
   .header {
     position: absolute;
-    top: 25.5%; left: 6%; right: 6%;
+    top: 27%; left: 6%; right: 6%;
     text-align: center;
     color: var(--parchment-ink);
     font-family: 'Suez One', 'Frank Ruhl Libre', 'David Libre', serif;
@@ -132,13 +131,12 @@
     text-wrap: balance;
   }
 
-  /* Content column — the schedule zone. Top:34% sits right below the
-     hero (which now ends ~33%), keeping the title and first zmanim
-     row close. min-height:0 cascade lets the rows-dense variant
-     shrink without overflow. */
+  /* Content column — the schedule zone. Top:36% gives the lowered
+     title block room above. min-height:0 cascade lets the rows-dense
+     variant shrink without overflow. */
   .content-column {
     position: absolute;
-    top: 34%;
+    top: 36%;
     bottom: 15%;
     left: 13%;
     right: 13%;
@@ -180,14 +178,13 @@
   /* List group — a section of rows (Erev, Shabbos, Limud). max-width
      78% pulls each row toward the center of the parchment so the
      Hebrew label and the time aren't stranded at the parchment's
-     left/right edges with a long sparse leader between them. Hebrew
-     has no descenders so the tight line-height isn't a problem. */
+     left/right edges with a long sparse leader between them. */
   .list-group {
     font-weight: 400;
     color: var(--parchment-ink);
     display: flex;
     flex-direction: column;
-    gap: 0.3em;
+    gap: 0.55em;             /* breathes between rows (was 0.3em — too cramped) */
     max-width: 78%;
     margin-left: auto;
     margin-right: auto;
@@ -195,17 +192,17 @@
   }
 
   /* Row: Hebrew label on the right (RTL), time on the left, dotted leader
-     between them. Items align to baseline so the dot leader sits
-     visually on the bottom of each row — like a typographic dotted
-     underline — rather than running through the vertical middle.
-     Together with the list-group's max-width:78%, label and time end
-     up close to centered with a short tight leader between them. */
+     between them. Items align to baseline so the dot leader sits like
+     a dotted underline beneath the type rather than running through
+     the middle. Font bumped to 4.9cqw — previous 4.4cqw read as small
+     against the parchment's available band, especially after the
+     title block was lowered. */
   .list-group .row {
     display: flex;
     align-items: baseline;
     gap: 0.45em;
-    font-size: 4.4cqw;
-    line-height: 1.15;
+    font-size: 4.9cqw;
+    line-height: 1.18;
     color: var(--parchment-ink);
   }
   .list-group .row .label {
@@ -303,15 +300,11 @@
     letter-spacing: 0.02em;
   }
 
-  /* When content is dense (6+ Shabbos rows AND kids section visible),
-     tighten rhythm slightly so the block clears the parchment footer.
-     Default gap is already tight (0.3em) so dense just nudges it
-     further; row size shrinks to 3.9cqw (matches the prior dense
-     baseline). */
-  .content-column.rows-dense .list-group .row { font-size: 3.9cqw; }
-  .content-column.rows-dense .list-group { gap: 0.22em; }
-  .content-column.rows-dense .section-title.kids { font-size: 2.2cqw; margin-bottom: 0.4%; }
-  .content-column.rows-dense .shiur-box { font-size: 2.9cqw; padding: 0.4em 1.2em; }
+  /* Dense fallback (6+ Shabbos rows AND kids visible) — tightens the
+     base 4.9cqw / 0.55em gap to fit a fuller schedule without
+     overflowing the parchment footer. */
+  .content-column.rows-dense .list-group .row { font-size: 4.3cqw; }
+  .content-column.rows-dense .list-group { gap: 0.35em; }
 
   .list-kids.hidden { display: none; }
 
