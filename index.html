@@ -840,10 +840,21 @@ async function loadScreenData() {
     }
 }
 
-// Recursive setTimeout prevents stacking on slow networks
+// Recursive setTimeout prevents stacking on slow networks.
+//
+// Polling cadence: 5 minutes (was 30s before 2026-04-26).
+// Each fetch returns the full screen_data payload, including base64-embedded
+// flier images — at ~500KB–1MB per response, 30s polling burned ~40-80GB
+// of Neon egress per month per kiosk and tripped Neon's data-transfer quota
+// (HTTP 402 "data transfer quota exceeded" on every subsequent query, which
+// surfaced to the admin as "failed to save"). 5min cadence cuts egress 10x
+// while still being plenty fresh for a wall display whose content changes
+// no more often than weekly (zmanim, fliers, sponsors). Time-sensitive UI
+// (clocks, countdown, secular date) is driven by local clock ticks, not
+// the data poll, so this doesn't slow any visible animation.
 async function refreshLoop() {
     await loadScreenData();
-    setTimeout(refreshLoop, 30000);
+    setTimeout(refreshLoop, 5 * 60 * 1000);
 }
 refreshLoop();
 
