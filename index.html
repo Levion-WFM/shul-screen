@@ -731,19 +731,30 @@ async function loadScreenData() {
         fliersSection.classList.remove('hidden');
         var fHtml = '';
         fliers.forEach(function(f) {
-            var hasImg = f && f.imageData && typeof f.imageData === 'string' &&
-                         f.imageData.length > 10 && f.imageData.startsWith('data:');
+            // Image source: prefer the Blob URL (CDN-served, browser-cached,
+            // egress-cheap) over the embedded base64 data URL. The kiosk
+            // continues to handle the legacy data-URL path so older saves
+            // keep rendering until the admin re-uploads them through the
+            // new flow, but the migration goal is for this branch to be the
+            // exception and the imageUrl branch to be the rule.
+            var imgSrc = '';
+            if (f && typeof f.imageUrl === 'string' && f.imageUrl.indexOf('http') === 0) {
+                imgSrc = f.imageUrl;
+            } else if (f && typeof f.imageData === 'string' &&
+                       f.imageData.length > 10 && f.imageData.startsWith('data:')) {
+                imgSrc = f.imageData;
+            }
             // Each slot: flex-1 so 2 fliers split 50/50; min-w-0 / min-h-0 lets
             // the image actually shrink to fit (without these the flex child
             // takes its content size and max-h-full has nothing to clamp to).
             fHtml += '<div class="flex-1 min-w-0 min-h-0 flex items-center justify-center overflow-hidden">';
-            if (hasImg) {
+            if (imgSrc) {
                 // max-h-full + max-w-full + object-contain together: image
                 // fills the larger dimension first while staying inside the
                 // box; aspect ratio is preserved; no letterbox bars get baked
                 // into the gold border because the border tracks the <img>
                 // element's intrinsic content size.
-                fHtml += '<img class="max-h-full max-w-full object-contain elevated-3d border-4 border-primary/60 rounded-sm" src="' + esc(f.imageData) + '"/>';
+                fHtml += '<img class="max-h-full max-w-full object-contain elevated-3d border-4 border-primary/60 rounded-sm" src="' + esc(imgSrc) + '"/>';
             } else if (f && (f.title || f.description)) {
                 // Rare image-less flier — keep a text fallback so saved-but-
                 // not-yet-uploaded entries don't render an empty box.

@@ -536,13 +536,19 @@ function updateFlierCount() {
     else { btn.classList.remove('opacity-50', 'pointer-events-none'); }
 }
 
-function addFlier(title, desc, imageData, eventDate, eventDateNote) {
+function addFlier(title, desc, imageData, eventDate, eventDateNote, imageUrl) {
     if (document.querySelectorAll('#fliersContainer > div').length >= 2) return;
     const container = document.getElementById('fliersContainer');
     const div = document.createElement('div');
     // Card class stays `.commflier-card` so existing helpers (handleImg /
     // removeImg / detectEventDate) keep working without per-card type sniffing.
     div.className = 'commflier-card bg-gray-800/50 rounded-lg p-3 sm:p-4';
+    // Image source preference on initial render: blob URL (cheap, CDN-served)
+    // beats embedded data URL (legacy / fliers saved before the Blob migration).
+    // Both paths set hasImage='true' so removeImg + saveAll see a populated card.
+    const renderSrc = imageUrl || imageData || '';
+    const hasImage = renderSrc ? 'true' : 'false';
+    const blobUrlAttr = imageUrl ? imageUrl : '';
     div.innerHTML = `
         <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <div class="flex-1 space-y-2">
@@ -563,13 +569,13 @@ function addFlier(title, desc, imageData, eventDate, eventDateNote) {
             <div class="flex sm:flex-col gap-3 items-start">
                 <div class="w-24 sm:w-28 shrink-0">
                     <label class="block text-xs text-gray-500 mb-1">Image</label>
-                    <img class="ann-img-preview w-full aspect-[4/5] object-contain rounded border border-gray-700 bg-black cursor-pointer ${imageData ? '' : 'hidden'}" src="${imageData || ''}" data-has-image="${imageData ? 'true' : 'false'}" onclick="this.parentElement.querySelector('.ann-img-input').click()" title="Click to replace"/>
-                    <div class="ann-img-placeholder w-full aspect-[4/5] rounded border-2 border-dashed border-gray-600 flex flex-col items-center justify-center bg-gray-800 cursor-pointer hover:border-gold/50 active:border-gold/50 transition ${imageData ? 'hidden' : ''}" onclick="this.parentElement.querySelector('.ann-img-input').click()">
+                    <img class="ann-img-preview w-full aspect-[4/5] object-contain rounded border border-gray-700 bg-black cursor-pointer ${renderSrc ? '' : 'hidden'}" src="${esc(renderSrc)}" data-has-image="${hasImage}" data-blob-url="${esc(blobUrlAttr)}" onclick="this.parentElement.querySelector('.ann-img-input').click()" title="Click to replace"/>
+                    <div class="ann-img-placeholder w-full aspect-[4/5] rounded border-2 border-dashed border-gray-600 flex flex-col items-center justify-center bg-gray-800 cursor-pointer hover:border-gold/50 active:border-gold/50 transition ${renderSrc ? 'hidden' : ''}" onclick="this.parentElement.querySelector('.ann-img-input').click()">
                         <span class="material-symbols-outlined text-xl text-gray-500">add_photo_alternate</span>
                         <p class="text-[9px] text-gray-500 mt-0.5">Upload</p>
                     </div>
                     <input type="file" accept="image/*" class="ann-img-input hidden" onchange="handleImg(event, this.parentElement)"/>
-                    <button type="button" class="ann-img-remove text-[10px] text-red-400 hover:text-red-300 mt-1 ${imageData ? '' : 'hidden'}" onclick="removeImg(this.parentElement)">Remove image</button>
+                    <button type="button" class="ann-img-remove text-[10px] text-red-400 hover:text-red-300 mt-1 ${renderSrc ? '' : 'hidden'}" onclick="removeImg(this.parentElement)">Remove image</button>
                 </div>
                 <button onclick="this.closest('.commflier-card').remove(); updateFlierCount();" class="text-gray-500 hover:text-red-400 active:text-red-400 transition p-1 mt-4 sm:mt-0">
                     <span class="material-symbols-outlined">delete</span>
@@ -638,12 +644,25 @@ function handleImg(event, parent) {
                 ctx.drawImage(tempImg, 0, 0, canvas.width, canvas.height);
                 const compressed = canvas.toDataURL('image/jpeg', 0.75);
 
+                // Replace path: if this <img> was previously bound to a Blob
+                // URL (admin is swapping to a new picture), fire-and-forget
+                // delete the old one so storage doesn't accumulate orphans.
+                const previousBlob = img.dataset.blobUrl || '';
+                img.dataset.blobUrl = '';
+
                 img.src = compressed;
                 img.dataset.hasImage = 'true';
                 img.classList.remove('hidden');
                 placeholder.innerHTML = origPlaceholderHtml;
                 placeholder.classList.add('hidden');
                 if (removeBtn) removeBtn.classList.remove('hidden');
+
+                if (previousBlob) deleteFlierBlob(previousBlob);
+
+                // Kick off the Blob upload in the background; saveAll() awaits
+                // any in-flight uploads before collecting form data, so the
+                // admin can click Save immediately without losing the image.
+                queueFlierUpload(img, compressed);
 
                 // If this is a community flier, auto-run event-date detection against the
                 // compressed image. Shul announcements don't have an expiry field so skip.
@@ -716,13 +735,91 @@ async function detectEventDate(card) {
 
 function removeImg(parent) {
     var img = parent.querySelector('.ann-img-preview');
+    var previousBlob = img.dataset.blobUrl || '';
     img.src = '';
     img.dataset.hasImage = 'false';
+    img.dataset.blobUrl = '';
     img.classList.add('hidden');
     parent.querySelector('.ann-img-placeholder').classList.remove('hidden');
     parent.querySelector('.ann-img-input').value = '';
     var removeBtn = parent.querySelector('.ann-img-remove');
     if (removeBtn) removeBtn.classList.add('hidden');
+    if (previousBlob) deleteFlierBlob(previousBlob);
+}
+
+// ========================================
+// VERCEL BLOB FLIER UPLOADS
+// ========================================
+// Why: the screen_data JSONB row used to embed each flier as a base64
+// data URL — at ~150-300 KB per image × 2 fliers, the kiosk's recurring
+// /api/get-data poll dragged the JSON row past 500 KB and burned through
+// Neon's free-tier data transfer quota in days. Now we upload the bytes
+// once to Vercel Blob (CDN-served, browser-cached), store only the
+// resulting public URL on the flier record, and the JSONB row drops back
+// to a few KB. Each kiosk poll fetches the metadata; the image bytes
+// come from the Blob CDN directly without ever touching Neon.
+
+// Promises for uploads currently in flight. saveAll() awaits these before
+// reading the form, so an admin who picks an image and clicks Save before
+// the upload finishes still gets a complete payload.
+var pendingFlierUploads = [];
+
+function queueFlierUpload(imgEl, dataUrl) {
+    var token = document.getElementById('adminToken').value;
+    var headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+
+    imgEl.dataset.uploading = 'true';
+    var p = fetch('/api/upload-flier', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ imageData: dataUrl })
+    }).then(function(res) {
+        if (!res.ok) {
+            return res.json().catch(function(){ return {}; }).then(function(j) {
+                throw new Error(j.error || ('Upload failed: ' + res.status));
+            });
+        }
+        return res.json();
+    }).then(function(payload) {
+        // The user might have replaced the image again while we were
+        // uploading. If hasImage flipped to 'false' or the src is no
+        // longer the data URL we just uploaded, drop the result on the
+        // floor and let the new upload's URL win.
+        if (imgEl.dataset.hasImage === 'true' && imgEl.src === dataUrl) {
+            imgEl.dataset.blobUrl = payload.url || '';
+        }
+    }).catch(function(err) {
+        console.error('flier upload failed:', err);
+        // Don't show a toast on every transient failure — the save flow
+        // will fall back to embedding the data URL (legacy path) so the
+        // admin's edit isn't lost; they'll just see the next save burn
+        // egress until the upload eventually succeeds.
+    }).finally(function() {
+        imgEl.dataset.uploading = 'false';
+    });
+    pendingFlierUploads.push(p);
+    // Trim resolved promises so the array doesn't grow unbounded across
+    // many edits. Promise.all() on a pre-resolved promise is free.
+    p.finally(function() {
+        var idx = pendingFlierUploads.indexOf(p);
+        if (idx >= 0) pendingFlierUploads.splice(idx, 1);
+    });
+    return p;
+}
+
+function deleteFlierBlob(url) {
+    if (!url || typeof url !== 'string' || !url.startsWith('http')) return;
+    var token = document.getElementById('adminToken').value;
+    var headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    // Fire-and-forget: a failed cleanup leaves an orphan blob (which
+    // costs cents/year of storage) but must not block the admin flow.
+    fetch('/api/delete-flier-blob', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ url: url })
+    }).catch(function(){ /* swallow — cleanup is best-effort */ });
 }
 
 // ========================================
@@ -949,17 +1046,17 @@ async function loadDataInner() {
     } else {
         if (Array.isArray(data.announcements)) {
             data.announcements.forEach(function(a) {
-                if (a && (a.imageData || a.title || a.description)) legacyFliers.push(a);
+                if (a && (a.imageUrl || a.imageData || a.title || a.description)) legacyFliers.push(a);
             });
         }
         if (Array.isArray(data.communityFliers)) {
             data.communityFliers.forEach(function(f) {
-                if (f && (f.imageData || f.title || f.description)) legacyFliers.push(f);
+                if (f && (f.imageUrl || f.imageData || f.title || f.description)) legacyFliers.push(f);
             });
         }
     }
     legacyFliers.slice(0, 2).forEach(function(f) {
-        addFlier(f.title, f.description, f.imageData, f.eventDate, f.eventDateNote);
+        addFlier(f.title, f.description, f.imageData, f.eventDate, f.eventDateNote, f.imageUrl);
     });
     if (data.community) data.community.forEach(function(c) { addCommunity(c.label, c.names, c.sub); });
     if (data.schedule) data.schedule.forEach(function(s) { addScheduleItem(s.label, s.time); });
@@ -1006,29 +1103,52 @@ async function saveAll() {
     saving = true;
     setSaveLoading(true);
 
+    // Wait for any in-flight Blob uploads to settle before reading the form.
+    // Without this, an admin who picks an image and clicks Save in the next
+    // ~500ms would race the upload — saveAll would read dataset.blobUrl
+    // before queueFlierUpload() set it, then fall back to embedding the
+    // base64 (which is exactly what the migration is meant to avoid).
+    if (pendingFlierUploads.length) {
+        try { await Promise.all(pendingFlierUploads); }
+        catch (e) { /* individual upload failures already logged; continue */ }
+    }
+
     const sponsors = [];
     document.querySelectorAll('#sponsorsContainer > div').forEach(function(el) {
         sponsors.push({ label: el.querySelector('.sponsor-label').value, name: el.querySelector('.sponsor-name').value });
     });
     // Fliers (replaces the old announcements + communityFliers fields).
-    // We hard-cap at 2 here as well as in the UI — the kiosk render code
+    // Hard-capped at 2 here in addition to the UI cap; the kiosk render code
     // also slices to 2, so anything beyond is invisible. Belt + suspenders
     // because admin could in principle paste extra DOM via dev tools.
+    //
+    // Image storage: prefer imageUrl (Blob CDN, kilobytes) over imageData
+    // (base64, hundreds of KB). On a successful upload, dataset.blobUrl is
+    // populated and we send only the URL. If the upload failed or the admin
+    // is editing pre-migration data that hasn't been re-uploaded yet, we
+    // fall back to the base64 src so nothing is lost — Neon egress is worse
+    // than ideal in that fallback path but no data goes missing.
     const fliers = [];
     document.querySelectorAll('#fliersContainer > div').forEach(function(el) {
         if (fliers.length >= 2) return;
         var imgEl = el.querySelector('.ann-img-preview');
-        var imgData = (imgEl && imgEl.dataset.hasImage === 'true') ? imgEl.src : '';
+        var hasImage = imgEl && imgEl.dataset.hasImage === 'true';
+        var blobUrl = imgEl ? (imgEl.dataset.blobUrl || '') : '';
+        // Only embed base64 when we don't have a Blob URL yet. Sending both
+        // would waste payload size and defeat the migration's point.
+        var imgData = (hasImage && !blobUrl && imgEl.src && imgEl.src.startsWith('data:'))
+                        ? imgEl.src : '';
         var title = el.querySelector('.commflier-title').value;
         var desc = el.querySelector('.commflier-desc').value;
         var dateEl = el.querySelector('.commflier-date');
         var noteEl = el.querySelector('.commflier-date-note');
         var eventDate = dateEl ? dateEl.value : '';
         var eventDateNote = noteEl ? noteEl.textContent : '';
-        if (!title && !desc && !imgData) return;
+        if (!title && !desc && !blobUrl && !imgData) return;
         fliers.push({
             title: title,
             description: desc,
+            imageUrl: blobUrl || '',
             imageData: imgData,
             eventDate: eventDate || null,
             eventDateNote: eventDateNote || ''
