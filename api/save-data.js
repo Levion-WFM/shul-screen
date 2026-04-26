@@ -18,10 +18,15 @@ module.exports = async function handler(req, res) {
         }
     }
 
-    // Payload size check (500KB max)
+    // Payload size check.
+    // 2MB cap (was 500KB before 2026-04-26). Two compressed flier JPEGs at the
+    // backend's current 800px/0.75-quality preset land at 150-300 KB each;
+    // combined with sponsors / community / schedule the old 500KB ceiling
+    // tipped over and the admin saw "failed to save" 413s. Vercel serverless
+    // functions accept up to 4.5MB so 2MB still leaves headroom.
     const payload = JSON.stringify(req.body);
-    if (payload.length > 500000) {
-        return res.status(413).json({ error: 'Payload too large — max 500KB' });
+    if (payload.length > 2_000_000) {
+        return res.status(413).json({ error: 'Payload too large — max 2MB' });
     }
 
     try {

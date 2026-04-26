@@ -230,34 +230,24 @@ tailwind.config = {
         </div>
     </section>
 
-    <!-- Shul Announcement (flier, max 1) -->
-    <section class="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
-        <div class="bg-gray-800/50 px-4 sm:px-6 py-3 flex items-center gap-2 border-b border-gray-800">
-            <span class="material-symbols-outlined text-gold">campaign</span>
-            <h2 class="text-base sm:text-lg font-bold text-gold">Shul Announcement</h2>
-            <span id="annCount" class="text-xs text-gray-500 ml-auto"></span>
-        </div>
-        <div class="px-4 sm:px-6 pt-3 text-[11px] text-gray-500">Top of the center column. Max 1 flier — takes prominence.</div>
-        <div id="announcementsContainer" class="p-4 sm:p-6 space-y-4 sm:space-y-6"></div>
-        <div class="px-4 sm:px-6 pb-4 sm:pb-6">
-            <button id="addAnnBtn" onclick="addAnnouncement()" class="text-sm text-gold hover:text-yellow-300 flex items-center gap-1 transition active:scale-95">
-                <span class="material-symbols-outlined text-lg">add_circle</span> Add Announcement
-            </button>
-        </div>
-    </section>
-
-    <!-- Community Fliers (max 3) -->
+    <!-- Fliers (max 2) — single unified section, replaces the old separate
+         Shul Announcement (1) and Community Fliers (3) sections. New rule:
+         either up to 2 vertical fliers (rendered side-by-side on the kiosk)
+         or 1 horizontal flier (fills the whole center column). The kiosk
+         auto-detects orientation from the image; admin just uploads. -->
     <section class="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
         <div class="bg-gray-800/50 px-4 sm:px-6 py-3 flex items-center gap-2 border-b border-gray-800">
             <span class="material-symbols-outlined text-gold">image</span>
-            <h2 class="text-base sm:text-lg font-bold text-gold">Community Fliers</h2>
-            <span id="commFlierCount" class="text-xs text-gray-500 ml-auto"></span>
+            <h2 class="text-base sm:text-lg font-bold text-gold">Fliers</h2>
+            <span id="flierCount" class="text-xs text-gray-500 ml-auto"></span>
         </div>
-        <div class="px-4 sm:px-6 pt-3 text-[11px] text-gray-500">Middle of the center column. Up to 3 fliers, arranged horizontally.</div>
-        <div id="commFliersContainer" class="p-4 sm:p-6 space-y-4 sm:space-y-6"></div>
+        <div class="px-4 sm:px-6 pt-3 text-[11px] text-gray-500">
+            Center column of the kiosk. Up to 2 vertical fliers (side-by-side) OR 1 horizontal flier (full width).
+        </div>
+        <div id="fliersContainer" class="p-4 sm:p-6 space-y-4 sm:space-y-6"></div>
         <div class="px-4 sm:px-6 pb-4 sm:pb-6">
-            <button id="addCommFlierBtn" onclick="addCommFlier()" class="text-sm text-gold hover:text-yellow-300 flex items-center gap-1 transition active:scale-95">
-                <span class="material-symbols-outlined text-lg">add_circle</span> Add Community Flier
+            <button id="addFlierBtn" onclick="addFlier()" class="text-sm text-gold hover:text-yellow-300 flex items-center gap-1 transition active:scale-95">
+                <span class="material-symbols-outlined text-lg">add_circle</span> Add Flier
             </button>
         </div>
     </section>
@@ -531,65 +521,27 @@ function addSponsor(label, name) {
 }
 
 // ========================================
-// DYNAMIC ANNOUNCEMENTS (max 1 — shul announcement flier)
+// FLIERS (max 2 — single unified section, replaces the prior split between
+// Shul Announcement (1) and Community Fliers (3). Render-side rule on the
+// kiosk: 2 vertical fliers go side-by-side, 1 horizontal flier fills the
+// width — orientation is auto-detected from the image so admin just uploads.)
 // ========================================
-function updateAnnCount() {
-    const count = document.querySelectorAll('#announcementsContainer > div').length;
-    document.getElementById('annCount').textContent = count + '/1';
-    const btn = document.getElementById('addAnnBtn');
-    if (count >= 1) { btn.classList.add('opacity-50', 'pointer-events-none'); }
+function updateFlierCount() {
+    const count = document.querySelectorAll('#fliersContainer > div').length;
+    const countEl = document.getElementById('flierCount');
+    if (countEl) countEl.textContent = count + '/2';
+    const btn = document.getElementById('addFlierBtn');
+    if (!btn) return;
+    if (count >= 2) { btn.classList.add('opacity-50', 'pointer-events-none'); }
     else { btn.classList.remove('opacity-50', 'pointer-events-none'); }
 }
 
-function addAnnouncement(title, desc, imageData) {
-    if (document.querySelectorAll('#announcementsContainer > div').length >= 1) return;
-    const container = document.getElementById('announcementsContainer');
+function addFlier(title, desc, imageData, eventDate, eventDateNote) {
+    if (document.querySelectorAll('#fliersContainer > div').length >= 2) return;
+    const container = document.getElementById('fliersContainer');
     const div = document.createElement('div');
-    div.className = 'ann-card bg-gray-800/50 rounded-lg p-3 sm:p-4';
-    div.innerHTML = `
-        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
-            <div class="flex-1 space-y-2">
-                <div><label class="block text-xs text-gray-500 mb-1">Title</label>
-                <input type="text" value="${esc(title || '')}" class="ann-title w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Announcement title" maxlength="80"/></div>
-                <div><label class="block text-xs text-gray-500 mb-1">Description</label>
-                <textarea rows="3" maxlength="300" class="ann-desc w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none resize-none" placeholder="Details...">${esc(desc || '')}</textarea></div>
-            </div>
-            <div class="flex sm:flex-col gap-3 items-start">
-                <div class="w-24 sm:w-28 shrink-0">
-                    <label class="block text-xs text-gray-500 mb-1">Image</label>
-                    <img class="ann-img-preview w-full aspect-[4/5] object-contain rounded border border-gray-700 bg-black cursor-pointer ${imageData ? '' : 'hidden'}" src="${imageData || ''}" data-has-image="${imageData ? 'true' : 'false'}" onclick="this.parentElement.querySelector('.ann-img-input').click()" title="Click to replace"/>
-                    <div class="ann-img-placeholder w-full aspect-[4/5] rounded border-2 border-dashed border-gray-600 flex flex-col items-center justify-center bg-gray-800 cursor-pointer hover:border-gold/50 active:border-gold/50 transition ${imageData ? 'hidden' : ''}" onclick="this.parentElement.querySelector('.ann-img-input').click()">
-                        <span class="material-symbols-outlined text-xl text-gray-500">add_photo_alternate</span>
-                        <p class="text-[9px] text-gray-500 mt-0.5">Upload</p>
-                    </div>
-                    <input type="file" accept="image/*" class="ann-img-input hidden" onchange="handleImg(event, this.parentElement)"/>
-                    <button type="button" class="ann-img-remove text-[10px] text-red-400 hover:text-red-300 mt-1 ${imageData ? '' : 'hidden'}" onclick="removeImg(this.parentElement)">Remove image</button>
-                </div>
-                <button onclick="this.closest('.ann-card').remove(); updateAnnCount();" class="text-gray-500 hover:text-red-400 active:text-red-400 transition p-1 mt-4 sm:mt-0">
-                    <span class="material-symbols-outlined">delete</span>
-                </button>
-            </div>
-        </div>`;
-    container.appendChild(div);
-    updateAnnCount();
-}
-
-// ========================================
-// DYNAMIC COMMUNITY FLIERS (max 3)
-// ========================================
-function updateCommFlierCount() {
-    const count = document.querySelectorAll('#commFliersContainer > div').length;
-    document.getElementById('commFlierCount').textContent = count + '/3';
-    const btn = document.getElementById('addCommFlierBtn');
-    if (count >= 3) { btn.classList.add('opacity-50', 'pointer-events-none'); }
-    else { btn.classList.remove('opacity-50', 'pointer-events-none'); }
-}
-
-function addCommFlier(title, desc, imageData, eventDate, eventDateNote) {
-    if (document.querySelectorAll('#commFliersContainer > div').length >= 3) return;
-    const container = document.getElementById('commFliersContainer');
-    const div = document.createElement('div');
-    // reuses .ann-img-* classes so handleImg/removeImg work unchanged
+    // Card class stays `.commflier-card` so existing helpers (handleImg /
+    // removeImg / detectEventDate) keep working without per-card type sniffing.
     div.className = 'commflier-card bg-gray-800/50 rounded-lg p-3 sm:p-4';
     div.innerHTML = `
         <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
@@ -619,13 +571,13 @@ function addCommFlier(title, desc, imageData, eventDate, eventDateNote) {
                     <input type="file" accept="image/*" class="ann-img-input hidden" onchange="handleImg(event, this.parentElement)"/>
                     <button type="button" class="ann-img-remove text-[10px] text-red-400 hover:text-red-300 mt-1 ${imageData ? '' : 'hidden'}" onclick="removeImg(this.parentElement)">Remove image</button>
                 </div>
-                <button onclick="this.closest('.commflier-card').remove(); updateCommFlierCount();" class="text-gray-500 hover:text-red-400 active:text-red-400 transition p-1 mt-4 sm:mt-0">
+                <button onclick="this.closest('.commflier-card').remove(); updateFlierCount();" class="text-gray-500 hover:text-red-400 active:text-red-400 transition p-1 mt-4 sm:mt-0">
                     <span class="material-symbols-outlined">delete</span>
                 </button>
             </div>
         </div>`;
     container.appendChild(div);
-    updateCommFlierCount();
+    updateFlierCount();
 }
 
 function handleImg(event, parent) {
@@ -969,7 +921,7 @@ async function loadDataInner() {
     const data = await fetchScreenData();
     if (!data) {
         addSponsor('Kiddush Sponsored By', 'THE COHEN FAMILY');
-        addAnnouncement('Winter Clothing Drive', 'Ongoing collection for local families in the main lobby bins.', '');
+        addFlier('Winter Clothing Drive', 'Ongoing collection for local families in the main lobby bins.', '');
         addCommunity('Mazel Tov Birthdays', 'Sarah Goldberg\nAvi Steinmetz', '');
         addScheduleItem('Shacharit Sun', '8:00 AM');
         addScheduleItem('Shacharit M-F', '6:45 AM');
@@ -983,16 +935,32 @@ async function loadDataInner() {
     }
 
     if (data.sponsors) data.sponsors.forEach(function(s) { addSponsor(s.label, s.name); });
-    // Migration: pre-split data had up to 3 items in `announcements`. Now cap is 1.
-    // First -> Shul; overflow auto-migrates into Community Fliers whenever that field is
-    // empty OR missing (an empty array means the migration never actually ran, so we must
-    // still perform it — otherwise the second flier is silently dropped).
-    var hasCommFliers = Array.isArray(data.communityFliers) && data.communityFliers.length > 0;
-    if (data.announcements) data.announcements.forEach(function(a, i) {
-        if (i === 0) addAnnouncement(a.title, a.description, a.imageData);
-        else if (!hasCommFliers) addCommFlier(a.title, a.description, a.imageData);
+    // Fliers — single unified list (cap 2). On load we accept three shapes:
+    //   1. New: data.fliers — preferred, written by current saves.
+    //   2. Legacy split: data.announcements (was max 1) + data.communityFliers
+    //      (was max 3). We concat in order and take the first 2.
+    //   3. Mixed/either subset of the above — same merge rule applies.
+    // The 2-cap is enforced by addFlier() itself, so any overflow simply
+    // doesn't render. We DON'T silently drop overflow into a phantom slot
+    // and we DON'T require admin to re-upload after the schema change.
+    var legacyFliers = [];
+    if (Array.isArray(data.fliers) && data.fliers.length) {
+        legacyFliers = data.fliers;
+    } else {
+        if (Array.isArray(data.announcements)) {
+            data.announcements.forEach(function(a) {
+                if (a && (a.imageData || a.title || a.description)) legacyFliers.push(a);
+            });
+        }
+        if (Array.isArray(data.communityFliers)) {
+            data.communityFliers.forEach(function(f) {
+                if (f && (f.imageData || f.title || f.description)) legacyFliers.push(f);
+            });
+        }
+    }
+    legacyFliers.slice(0, 2).forEach(function(f) {
+        addFlier(f.title, f.description, f.imageData, f.eventDate, f.eventDateNote);
     });
-    if (data.communityFliers) data.communityFliers.forEach(function(f) { addCommFlier(f.title, f.description, f.imageData, f.eventDate, f.eventDateNote); });
     if (data.community) data.community.forEach(function(c) { addCommunity(c.label, c.names, c.sub); });
     if (data.schedule) data.schedule.forEach(function(s) { addScheduleItem(s.label, s.time); });
     if (data.shiurim) data.shiurim.forEach(function(s) { addShiur(s.label, s.time); });
@@ -1042,20 +1010,15 @@ async function saveAll() {
     document.querySelectorAll('#sponsorsContainer > div').forEach(function(el) {
         sponsors.push({ label: el.querySelector('.sponsor-label').value, name: el.querySelector('.sponsor-name').value });
     });
-    const announcements = [];
-    document.querySelectorAll('#announcementsContainer > div').forEach(function(el) {
+    // Fliers (replaces the old announcements + communityFliers fields).
+    // We hard-cap at 2 here as well as in the UI — the kiosk render code
+    // also slices to 2, so anything beyond is invisible. Belt + suspenders
+    // because admin could in principle paste extra DOM via dev tools.
+    const fliers = [];
+    document.querySelectorAll('#fliersContainer > div').forEach(function(el) {
+        if (fliers.length >= 2) return;
         var imgEl = el.querySelector('.ann-img-preview');
-        var imgData = (imgEl.dataset.hasImage === 'true') ? imgEl.src : '';
-        var title = el.querySelector('.ann-title').value;
-        var desc = el.querySelector('.ann-desc').value;
-        // Skip completely empty announcements
-        if (!title && !desc && !imgData) return;
-        announcements.push({ title: title, description: desc, imageData: imgData });
-    });
-    const communityFliers = [];
-    document.querySelectorAll('#commFliersContainer > div').forEach(function(el) {
-        var imgEl = el.querySelector('.ann-img-preview');
-        var imgData = (imgEl.dataset.hasImage === 'true') ? imgEl.src : '';
+        var imgData = (imgEl && imgEl.dataset.hasImage === 'true') ? imgEl.src : '';
         var title = el.querySelector('.commflier-title').value;
         var desc = el.querySelector('.commflier-desc').value;
         var dateEl = el.querySelector('.commflier-date');
@@ -1063,7 +1026,13 @@ async function saveAll() {
         var eventDate = dateEl ? dateEl.value : '';
         var eventDateNote = noteEl ? noteEl.textContent : '';
         if (!title && !desc && !imgData) return;
-        communityFliers.push({ title: title, description: desc, imageData: imgData, eventDate: eventDate || null, eventDateNote: eventDateNote || '' });
+        fliers.push({
+            title: title,
+            description: desc,
+            imageData: imgData,
+            eventDate: eventDate || null,
+            eventDateNote: eventDateNote || ''
+        });
     });
     const community = [];
     document.querySelectorAll('#communityContainer > div').forEach(function(el) {
@@ -1114,7 +1083,7 @@ async function saveAll() {
         avosUbanimTime: document.getElementById('zAvosUbanim').value.trim(),
     };
     const data = {
-        sponsors, announcements, communityFliers, community, schedule, shiurim, sederLimud, zmanim,
+        sponsors, fliers, community, schedule, shiurim, sederLimud, zmanim,
         infoBar: { hebrew: document.getElementById('infoHebrew').value, welcome: document.getElementById('infoWelcome').value, reminder: document.getElementById('infoReminder').value },
         zecherNishmas: document.getElementById('zecherNishmas').value.trim(),
         updatedAt: new Date().toISOString()

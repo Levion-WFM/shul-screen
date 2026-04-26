@@ -122,16 +122,20 @@ module.exports = async function handler(req, res) {
             });
         } catch (e) { console.error('sefirah error:', e.message); }
 
-        // ── Expire past community fliers ──
+        // ── Expire past fliers ──
         // Event-dated fliers auto-disappear after their date passes (in kiosk TZ).
         // Fliers with no eventDate are evergreen and always shown. todayStr is already
         // the kiosk-local YYYY-MM-DD, so string comparison works correctly.
-        if (Array.isArray(data.communityFliers)) {
-            data.communityFliers = data.communityFliers.filter(function(f) {
-                if (!f || !f.eventDate) return true;
-                return String(f.eventDate) >= todayStr;
-            });
+        // Filter all three possible shapes — current saves use data.fliers, but
+        // older kiosks reading fresh data might still produce data.announcements +
+        // data.communityFliers until they re-deploy.
+        function notExpired(f) {
+            if (!f || !f.eventDate) return true;
+            return String(f.eventDate) >= todayStr;
         }
+        if (Array.isArray(data.fliers))          data.fliers          = data.fliers.filter(notExpired);
+        if (Array.isArray(data.communityFliers)) data.communityFliers = data.communityFliers.filter(notExpired);
+        if (Array.isArray(data.announcements))   data.announcements   = data.announcements.filter(notExpired);
 
         // ── Remote-reload nonce ──
         // Admin bumps screen_data.data.reloadNonce (via /api/force-reload) to tell all
