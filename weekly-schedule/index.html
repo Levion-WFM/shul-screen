@@ -110,17 +110,28 @@
     font-family: 'Frank Ruhl Libre', 'David Libre', serif;
   }
   .header .kicker {
-    font-size: 2.35cqw;
-    font-weight: 500;
-    letter-spacing: 0.22em;
-    color: var(--parchment-accent);
-    margin-bottom: 0.45em;
+    font-size: 4.4cqw;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    color: var(--parchment-ink);
+    line-height: 1.1;
+    margin-bottom: 0.25em;
   }
   .header .hero {
-    font-size: 5.4cqw;
-    font-weight: 700;
+    font-size: 4.4cqw;
+    font-weight: 900;
     line-height: 1.08;
     color: var(--parchment-ink);
+  }
+  /* Subtle hairline below the title pair, matching the reference flier's
+     silver divider beneath "זמנים לטבת קודש פרשת". */
+  .header::after {
+    content: "";
+    display: block;
+    width: 36%;
+    height: 1px;
+    margin: 0.6em auto 0;
+    background: rgba(30,42,85,0.55);
   }
 
   /* Content column — the schedule zone. Starts below the template's baked
@@ -144,16 +155,19 @@
   }
   .content-column > * { min-height: 0; }
 
-  /* Section title — clean display Hebrew, no flanking rules, no stars,
-     no ornaments. The parchment + the typography carry it. */
+  /* Section title — small subtle eyebrow above each block (Erev Shabbos,
+     Shabbos, Limud Yeladim). Reference flier doesn't carry these but our
+     data has Erev/Shabbos/Kids blocks worth labeling; rendered small + in
+     navy (not gold) so the time list stays the dominant reading. */
   .section-title {
     font-family: 'Frank Ruhl Libre', serif;
     font-weight: 700;
-    font-size: 3.0cqw;
-    letter-spacing: 0.08em;
-    color: var(--parchment-accent);
+    font-size: 2.5cqw;
+    letter-spacing: 0.18em;
+    color: var(--parchment-ink);
+    opacity: 0.85;
     text-align: center;
-    margin-bottom: 0.8%;
+    margin-bottom: 0.6%;
   }
 
   /* List group — a section of rows (Erev, Shabbos, Limud). No internal
@@ -166,60 +180,88 @@
     gap: 0.55em;
   }
 
-  /* Row: Hebrew label on right (RTL), time on left in gold. No leader line
-     between them — flex space-between does the job and the result reads as
-     a clean two-column list instead of a dotted-line receipt. */
+  /* Row: Hebrew label on the right (RTL), time on the left, dotted leader
+     filling the middle. Both label and time are deep navy — no gold tint,
+     no row-of-the-week emphasis. Matches the printed reference flier:
+     uniform color, uniform weight, dotted leader does all the alignment.
+
+     The leader is a flex spacer with a dotted border-bottom; transform
+     pulls it up so the dots sit on the type baseline instead of below.
+     direction:ltr inside .time keeps numerals left-aligned (the natural
+     reading order for clock times) without breaking the row's RTL flow. */
   .list-group .row {
     display: flex;
-    justify-content: space-between;
     align-items: baseline;
-    gap: 1.2em;
+    gap: 0.55em;
     font-size: 4.4cqw;
     line-height: 1.22;
+    color: var(--parchment-ink);
   }
   .list-group .row .label {
     font-family: 'Frank Ruhl Libre', 'David Libre', serif;
-    font-weight: 500;
+    font-weight: 700;
     color: var(--parchment-ink);
+    flex-shrink: 0;
+  }
+  .list-group .row .leader {
+    flex: 1;
+    border-bottom: 0.18em dotted var(--parchment-ink);
+    transform: translateY(-0.32em);
+    opacity: 0.78;
+    min-width: 1.2em;
   }
   .list-group .row .time {
     direction: ltr;
     text-align: left;
     font-feature-settings: 'tnum' on, 'lnum' on;
     font-variant-numeric: tabular-nums lining-nums;
-    font-weight: 800;
-    font-size: 1.22em;
-    color: var(--parchment-accent);
+    font-weight: 700;
+    font-size: 1em;
+    color: var(--parchment-ink);
     letter-spacing: 0.01em;
+    flex-shrink: 0;
   }
 
-  /* Candle-lighting row — the most-consulted time of the week gets display
-     treatment: larger time, label tinted gold. No bottom border; its
-     weight + size already anchor it as the Erev Shabbos focal point. */
-  .list-group .row.candles .label {
-    color: var(--parchment-accent);
+  /* Shiur box — non-davening entries (Pirkei Avos by the Rav, shiur halacha,
+     etc.) get a separate framed presentation instead of being inline rows.
+     Mirrors the reference flier where the Pirkei Avos shlit"a info sits
+     inside a subtle parchment-tinted box with a thin navy hairline border.
+     Reads as "supplementary information" without using a different color. */
+  .shiur-box {
+    align-self: center;
+    margin: 0.4% 0;
+    padding: 0.55em 1em;
+    background: rgba(255,250,235,0.55);
+    border: 1px solid rgba(30,42,85,0.45);
+    border-radius: 4px;
+    text-align: center;
+    color: var(--parchment-ink);
+    font-family: 'Frank Ruhl Libre', 'David Libre', serif;
+    font-size: 3.2cqw;
+    line-height: 1.35;
     font-weight: 700;
+    box-shadow: 0 1px 2px rgba(30,42,85,0.08);
   }
-  .list-group .row.candles .time {
-    font-weight: 900;
-    font-size: 1.45em;
+  .shiur-box .shiur-time {
+    font-feature-settings: 'tnum' on, 'lnum' on;
+    font-variant-numeric: tabular-nums lining-nums;
+    margin-inline-start: 0.4em;
   }
 
-  /* Tint row — non-davening entries (shiurim, kids learning). Both label
-     and time render in a lighter gold tone so they read as supplementary
-     to the tefilla times. No boxes, no frames — the color does the work. */
-  .list-group .row.tint .label {
-    color: var(--parchment-accent);
-    font-weight: 500;
+  /* Italic footer note — small line at the bottom of the schedule for
+     local minhag callouts (e.g. "לא ברישת אבא" — "no [shiur] at the
+     seudah" weeks). Matches the italic line in the reference flier. */
+  .footer-note {
+    margin-top: 1.2%;
+    text-align: center;
+    font-family: 'Frank Ruhl Libre', 'David Libre', serif;
     font-style: italic;
+    font-weight: 500;
+    font-size: 2.6cqw;
+    color: var(--parchment-ink);
+    opacity: 0.85;
   }
-  .list-group .row.tint .time {
-    color: var(--parchment-accent-bright);
-    font-weight: 700;
-    font-size: 1.08em;
-    font-style: normal;
-    opacity: 0.92;
-  }
+  .footer-note.hidden { display: none; }
 
   /* When content is dense (6+ Shabbos rows AND kids section visible),
      tighten rhythm slightly so the block clears the parchment footer. */
@@ -281,12 +323,15 @@
            so there's no dead middle zone. -->
       <div class="content-column">
 
-        <!-- Erev Shabbos -->
+        <!-- Erev Shabbos. Each row uses label + dotted leader + time, all
+             rendered in deep navy — no gold tint, no per-row emphasis.
+             Matches the printed-flier reference where every line reads
+             with equal weight and the leader does the alignment. -->
         <div class="list-group list-friday">
           <div class="section-title">ערב שבת קודש</div>
-          <div class="row candles"><span class="label">הדלקת נרות</span><span class="time" id="t-candles">—</span></div>
-          <div class="row"><span class="label">פלג</span><span class="time" id="t-plag">—</span></div>
-          <div class="row" id="row-mincha-erev"><span class="label" id="t-mincha-erev-label">מנחה ערב שבת</span><span class="time" id="t-mincha-erev">—</span></div>
+          <div class="row"><span class="label">הדלקת נרות</span><span class="leader"></span><span class="time" id="t-candles">—</span></div>
+          <div class="row"><span class="label">פלג</span><span class="leader"></span><span class="time" id="t-plag">—</span></div>
+          <div class="row" id="row-mincha-erev"><span class="label" id="t-mincha-erev-label">מנחה ערב שבת</span><span class="leader"></span><span class="time" id="t-mincha-erev">—</span></div>
         </div>
 
         <!-- Shabbos list — JS-built so rabbinic shiurim slot in
@@ -384,10 +429,10 @@
         set('t-mincha-erev', minchaB);
       }
 
-      // Kids' learning — Pirchei + Avos uBanim times. Both label + time get
-      // the .tint class so they read as supplementary to davening zmanim.
-      // Whole section hidden when neither time is set so there's no empty
-      // "לימוד ילדים" heading on a week with no kids learning.
+      // Kids' learning — Pirchei + Avos uBanim times. Same dotted-leader
+      // row treatment as the davening times; section hides itself when
+      // neither time is set so a no-kids-learning week doesn't render an
+      // empty "לימוד ילדים" heading.
       const kidsRowsEl = $('kids-rows');
       const kidsBoxEl = $('kids-box');
       if (kidsRowsEl && kidsBoxEl) {
@@ -398,8 +443,9 @@
         if (kids.length) {
           kidsBoxEl.classList.remove('hidden');
           kidsRowsEl.innerHTML = kids.map(k =>
-            '<div class="row tint">' +
+            '<div class="row">' +
               '<span class="label">' + k.label + '</span>' +
+              '<span class="leader"></span>' +
               '<span class="time">' + k.time + '</span>' +
             '</div>'
           ).join('');
@@ -435,12 +481,23 @@
 
       const listShabbosEl = $('list-shabbos');
       if (listShabbosEl) {
-        listShabbosEl.innerHTML = shabbosRows.map(r =>
-          '<div class="row' + (r.tint ? ' tint' : '') + '">' +
-            '<span class="label">' + r.label + '</span>' +
-            '<span class="time">' + (r.time || '—') + '</span>' +
-          '</div>'
-        ).join('');
+        listShabbosEl.innerHTML = shabbosRows.map(r => {
+          // Shiur entries (tint:true) render as a centered framed box —
+          // matches the highlighted Pirkei Avos shlit"a callout in the
+          // reference flier. Davening rows render as the standard dotted-
+          // leader row.
+          if (r.tint) {
+            return '<div class="shiur-box">' +
+                     '<span class="shiur-label">' + r.label + '</span>' +
+                     '<span class="shiur-time">' + (r.time || '—') + '</span>' +
+                   '</div>';
+          }
+          return '<div class="row">' +
+                   '<span class="label">' + r.label + '</span>' +
+                   '<span class="leader"></span>' +
+                   '<span class="time">' + (r.time || '—') + '</span>' +
+                 '</div>';
+        }).join('');
       }
 
       // When content is at its maximum density — 6-row Shabbos list (both
