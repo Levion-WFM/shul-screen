@@ -100,17 +100,18 @@
      layered on top of the template — those read as "dropped-in widgets"
      rather than part of the poster. Type alone carries the hierarchy. */
 
-  /* Header — single-line title in Suez One (thick Hebrew slab, closest
-     free analog to Vilna Bold / Aharoni — the canonical heimish-flier
-     display face). One line lets "זמנים לשבת קודש פרשת [parsha]" flow
-     RTL as a continuous title; .title-overflow falls back to two lines
-     ONLY when a long double-parsha can't fit. No hairline rule under
-     the title — the parchment template's own silver divider does that
-     job and stacking another reads as a "dropped-in widget".
+  /* Header — kicker + hero. Cramming "זמנים לשבת קודש פרשת [name]"
+     onto a single line ran five words at equal weight with no focal
+     point, which is why it read as awkward. Real shul fliers lead
+     with the PARSHA name as the hero (it's what changes weekly and
+     identifies the week) and put "זמנים לשבת קודש" small above as
+     contextual kicker. Suez One carries the hero; the kicker drops
+     to Frank Ruhl Libre at a lighter weight + smaller size + slight
+     muting so the eye lands on the parsha first.
 
-     Top:24% keeps the title clear of the parchment's upper arch
-     ornament; size 5.6cqw matches the reference's title-to-page-width
-     ratio (the previous 4.4cqw was visibly under-sized). */
+     Top:24% keeps the kicker clear of the parchment's upper arch.
+     The two lines together still take roughly the same vertical band
+     that the prior single-line title did; nothing else needs to move. */
   .header {
     position: absolute;
     top: 24%; left: 6%; right: 6%;
@@ -118,16 +119,26 @@
     color: var(--parchment-ink);
     font-family: 'Suez One', 'Frank Ruhl Libre', 'David Libre', serif;
   }
-  .header .title {
-    font-family: 'Suez One', 'Frank Ruhl Libre', serif;
-    font-weight: 400;             /* Suez One ships only at 400 — its weight is in the design itself */
-    font-size: 5.6cqw;
-    letter-spacing: 0.01em;
+  .header .kicker {
+    font-family: 'Frank Ruhl Libre', 'David Libre', serif;
+    font-weight: 500;
+    font-size: 3.0cqw;
+    letter-spacing: 0.06em;
     line-height: 1.1;
     color: var(--parchment-ink);
-    /* Tighter line-height + balanced wrapping so a long double-parsha
-       breaks gracefully instead of dropping a single trailing word
-       onto its own line. */
+    opacity: 0.8;
+    margin-bottom: 0.25em;
+  }
+  .header .hero {
+    font-family: 'Suez One', 'Frank Ruhl Libre', serif;
+    font-weight: 400;             /* Suez One ships only at 400 — its weight is in the design itself */
+    font-size: 6.2cqw;
+    letter-spacing: 0.005em;
+    line-height: 1.05;
+    color: var(--parchment-ink);
+    /* text-wrap:balance lets a long double-parsha (אחרי מות-קדושים,
+       מטות-מסעי) break onto two lines without dropping a single
+       trailing word; otherwise this is one line. */
     text-wrap: balance;
   }
 
@@ -220,13 +231,14 @@
     flex: 1;
     align-self: center;
     height: 0.3em;
-    /* Smaller, denser dots — 0.13em diameter at 0.32em pitch, fully
-       opaque navy. The previous 0.22em-at-0.55em pitch read as chunky
-       bullet points; this density matches the classic typographic
-       leader convention (think table-of-contents dots, not a row of
-       beads). */
-    background-image: radial-gradient(circle, var(--parchment-ink) 0.065em, transparent 0.075em);
-    background-size: 0.32em 0.32em;
+    /* Dense fine dots — 0.12em diameter at 0.22em pitch (edge-to-edge
+       gap ~0.10em, about one dot-width). Classic table-of-contents
+       leader density: dots clearly separated but visually continuous,
+       like a finely-printed line of periods. The previous 0.32em
+       pitch left visible airy gaps that read more as "row of beads"
+       than "typographic leader". */
+    background-image: radial-gradient(circle, var(--parchment-ink) 0.06em, transparent 0.07em);
+    background-size: 0.22em 0.22em;
     background-position: center;
     background-repeat: repeat-x;
     min-width: 1em;
@@ -360,13 +372,15 @@
            non-frum-designed. -->
       <div class="bsd">בס״ד</div>
 
-      <!-- Title — single line that flows RTL. The fixed phrase
-           "זמנים לשבת קודש" carries through to the parsha name on the
-           same line, matching the reference's layout. JS replaces
-           #parsha-name with "פרשת [name]" once data loads; long
-           double-parshiyos break gracefully via text-wrap:balance. -->
+      <!-- Title — small kicker ("זמנים לשבת קודש") above a heavy parsha
+           hero ("פרשת [name]"). The parsha name is the visual anchor of
+           the flier; the times-for-Shabbos phrase is contextual frame.
+           Real shul fliers always lead with the parsha for exactly this
+           reason — five-words-equal-weight on one line had no focal
+           point and read as awkward. -->
       <div class="header">
-        <div class="title">זמנים לשבת קודש <span id="parsha-name">&nbsp;</span></div>
+        <div class="kicker">זמנים לשבת קודש</div>
+        <div class="hero" id="parsha-name">&nbsp;</div>
       </div>
 
       <!-- Content column — flex-distributes Erev Shabbos, Shabbos, and the
