@@ -109,8 +109,10 @@ tailwind.config = {
                 <div><label class="block text-xs text-gray-500 mb-1">Shkia (Fri)</label><input id="zShkiaFriday" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="7:45"/></div>
                 <div><label class="block text-xs text-gray-500 mb-1">Shacharit (Shabbat)</label><input id="zShacharit" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Auto"/></div>
                 <div><label class="block text-xs text-gray-500 mb-1">Sof Z"K Sh"ma (MGA/GRA)</label><input id="zSofZmanShema" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="8:54/9:30"/></div>
+                <div><label class="block text-xs text-gray-500 mb-1">Halacha Shiur (override)</label><input id="zHalachaShiur" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Auto if blank"/></div>
                 <div><label class="block text-xs text-gray-500 mb-1">Mincha (Sat)</label><input id="zMinchaSaturday" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Auto"/></div>
                 <div><label class="block text-xs text-gray-500 mb-1">Shkia (Sat)</label><input id="zShkiaShabbos" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="7:46"/></div>
+                <div><label class="block text-xs text-gray-500 mb-1">Pirkei Avos (override)</label><input id="zPirkeiAvos" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Auto if blank"/></div>
                 <div><label class="block text-xs text-gray-500 mb-1">Havdalah / Maariv</label><input id="zHavdalah" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Auto"/></div>
             </div>
             <p class="text-xs text-gold font-semibold mt-4 mb-2">שיעורי שבת (auto-calculated, toggle to show/hide)</p>
@@ -1119,6 +1121,8 @@ async function loadDataInner() {
                 if (row.shkia_friday)         document.getElementById('zShkiaFriday').value = row.shkia_friday;
                 if (row.shkia_shabbos)        document.getElementById('zShkiaShabbos').value = row.shkia_shabbos;
                 if (row.sof_zman_krias_shema) document.getElementById('zSofZmanShema').value = row.sof_zman_krias_shema;
+                if (row.halacha_shiur)        document.getElementById('zHalachaShiur').value = row.halacha_shiur;
+                if (row.pirkei_avos)          document.getElementById('zPirkeiAvos').value = row.pirkei_avos;
             }
         }
     } catch (e) {
@@ -1222,8 +1226,10 @@ async function saveAll() {
         shkia_friday: document.getElementById('zShkiaFriday').value.trim(),
         shacharit: document.getElementById('zShacharit').value.trim(),
         sof_zman_krias_shema: document.getElementById('zSofZmanShema').value.trim(),
+        halacha_shiur: document.getElementById('zHalachaShiur').value.trim(),
         mincha_shabbos: document.getElementById('zMinchaSaturday').value.trim(),
         shkia_shabbos: document.getElementById('zShkiaShabbos').value.trim(),
+        pirkei_avos: document.getElementById('zPirkeiAvos').value.trim(),
         maariv: document.getElementById('zHavdalah').value.trim(),
     };
     const zmanim = {

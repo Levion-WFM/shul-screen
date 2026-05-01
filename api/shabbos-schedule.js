@@ -29,7 +29,8 @@ module.exports = async function handler(req, res) {
             const rows = await sql`
                 SELECT shabbos_date, parsha, candle_lighting, mincha_a, plag_hamincha,
                        mincha_erev_shabbos, shacharit, mincha_shabbos, maariv,
-                       shkia_friday, shkia_shabbos, sof_zman_krias_shema
+                       shkia_friday, shkia_shabbos, sof_zman_krias_shema,
+                       halacha_shiur, pirkei_avos
                 FROM shabbos_zmanim
                 ORDER BY shabbos_date ASC
             `;
@@ -49,7 +50,9 @@ module.exports = async function handler(req, res) {
                     maariv: r.maariv || '',
                     shkia_friday: r.shkia_friday || '',
                     shkia_shabbos: r.shkia_shabbos || '',
-                    sof_zman_krias_shema: r.sof_zman_krias_shema || ''
+                    sof_zman_krias_shema: r.sof_zman_krias_shema || '',
+                    halacha_shiur: r.halacha_shiur || '',
+                    pirkei_avos: r.pirkei_avos || ''
                 };
             });
             return res.json({ rows: out });
@@ -89,7 +92,8 @@ module.exports = async function handler(req, res) {
                     INSERT INTO shabbos_zmanim (
                         shabbos_date, parsha, candle_lighting, mincha_a, plag_hamincha,
                         mincha_erev_shabbos, shacharit, mincha_shabbos, maariv,
-                        shkia_friday, shkia_shabbos, sof_zman_krias_shema
+                        shkia_friday, shkia_shabbos, sof_zman_krias_shema,
+                        halacha_shiur, pirkei_avos
                     )
                     VALUES (
                         ${r.shabbos_date}::date,
@@ -103,7 +107,9 @@ module.exports = async function handler(req, res) {
                         ${emptyToNull(r.maariv)},
                         ${emptyToNull(r.shkia_friday)},
                         ${emptyToNull(r.shkia_shabbos)},
-                        ${emptyToNull(r.sof_zman_krias_shema)}
+                        ${emptyToNull(r.sof_zman_krias_shema)},
+                        ${emptyToNull(r.halacha_shiur)},
+                        ${emptyToNull(r.pirkei_avos)}
                     )
                     ON CONFLICT (shabbos_date) DO UPDATE SET
                         parsha = EXCLUDED.parsha,
@@ -116,7 +122,9 @@ module.exports = async function handler(req, res) {
                         maariv = EXCLUDED.maariv,
                         shkia_friday = EXCLUDED.shkia_friday,
                         shkia_shabbos = EXCLUDED.shkia_shabbos,
-                        sof_zman_krias_shema = EXCLUDED.sof_zman_krias_shema
+                        sof_zman_krias_shema = EXCLUDED.sof_zman_krias_shema,
+                        halacha_shiur = EXCLUDED.halacha_shiur,
+                        pirkei_avos = EXCLUDED.pirkei_avos
                 `;
                 written++;
             }

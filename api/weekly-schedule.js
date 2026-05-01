@@ -105,7 +105,8 @@ module.exports = async function handler(req, res) {
             const rows = await sql`
                 SELECT shabbos_date, parsha, candle_lighting, mincha_a, mincha_erev_shabbos,
                        plag_hamincha, shacharit, mincha_shabbos, maariv,
-                       shkia_friday, shkia_shabbos, sof_zman_krias_shema
+                       shkia_friday, shkia_shabbos, sof_zman_krias_shema,
+                       halacha_shiur, pirkei_avos
                 FROM shabbos_zmanim
                 WHERE shabbos_date = ${shabbosStr}::date
                 LIMIT 1
@@ -116,7 +117,8 @@ module.exports = async function handler(req, res) {
                 const next = await sql`
                     SELECT shabbos_date, parsha, candle_lighting, mincha_a, mincha_erev_shabbos,
                            plag_hamincha, shacharit, mincha_shabbos, maariv,
-                           shkia_friday, shkia_shabbos, sof_zman_krias_shema
+                           shkia_friday, shkia_shabbos, sof_zman_krias_shema,
+                           halacha_shiur, pirkei_avos
                     FROM shabbos_zmanim
                     WHERE shabbos_date >= ${shabbosStr}::date
                     ORDER BY shabbos_date ASC
@@ -241,12 +243,19 @@ module.exports = async function handler(req, res) {
         }
         const minchaShabbosRaw = shabbosRow ? (shabbosRow.mincha_shabbos || null) : null;
         const maarivRaw = shabbosRow ? (shabbosRow.maariv || null) : null;
-        const halachaShiurTime = manifestZmanim.shabbosShiurMincha
-            ? minusMinutes(minchaShabbosRaw, 20)
-            : null;
-        const pirkeiAvosTime = manifestZmanim.shabbosShiurMaariv
-            ? minusMinutes(maarivRaw, 15, 5)
-            : null;
+        // Manual gabbai override wins over the toggle/compute path.
+        // - If shabbos_zmanim.halacha_shiur (or pirkei_avos) is set, use it
+        //   verbatim and surface the row regardless of the manifest toggle.
+        // - Else fall back to the toggle: when ON, compute from
+        //   mincha_shabbos − 20m / maariv − 15m (rounded to 5).
+        // This matches the flier's "manual entry" behavior: the gabbai's
+        // posted time always wins.
+        const halachaManual = pick(shabbosRow && shabbosRow.halacha_shiur);
+        const pirkeiManual = pick(shabbosRow && shabbosRow.pirkei_avos);
+        const halachaShiurTime = halachaManual
+            || (manifestZmanim.shabbosShiurMincha ? minusMinutes(minchaShabbosRaw, 20) : null);
+        const pirkeiAvosTime = pirkeiManual
+            || (manifestZmanim.shabbosShiurMaariv ? minusMinutes(maarivRaw, 15, 5) : null);
 
         // Kids learning times (entered as free text in the admin, e.g. "4:30 PM").
         const pircheiTime = clockNoAmPm((manifestZmanim.pircheiTime || '').trim());

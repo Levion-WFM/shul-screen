@@ -100,14 +100,16 @@ tailwind.config = {
                         <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Shkia (Fri)</th>
                         <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Shacharit</th>
                         <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Sof Z"K Sh"ma</th>
+                        <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Halacha Shiur</th>
                         <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Mincha (Sat)</th>
                         <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Shkia (Sat)</th>
+                        <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Pirkei Avos</th>
                         <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Maariv</th>
                         <th class="text-center px-2 py-2 border-b border-gray-700 w-10"></th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    <tr><td colspan="13" class="px-4 py-10 text-center text-gray-500">Loading…</td></tr>
+                    <tr><td colspan="15" class="px-4 py-10 text-center text-gray-500">Loading…</td></tr>
                 </tbody>
             </table>
         </div>
@@ -119,7 +121,7 @@ tailwind.config = {
 </main>
 
 <script>
-const FIELD_KEYS = ['parsha', 'candle_lighting', 'mincha_a', 'plag_hamincha', 'mincha_erev_shabbos', 'shkia_friday', 'shacharit', 'sof_zman_krias_shema', 'mincha_shabbos', 'shkia_shabbos', 'maariv'];
+const FIELD_KEYS = ['parsha', 'candle_lighting', 'mincha_a', 'plag_hamincha', 'mincha_erev_shabbos', 'shkia_friday', 'shacharit', 'sof_zman_krias_shema', 'halacha_shiur', 'mincha_shabbos', 'shkia_shabbos', 'pirkei_avos', 'maariv'];
 
 // In-memory row state:
 //   original: server-truth snapshot (null if newly added locally)
@@ -201,8 +203,10 @@ async function loadRows() {
                 shkia_friday: r.shkia_friday,
                 shacharit: r.shacharit,
                 sof_zman_krias_shema: r.sof_zman_krias_shema,
+                halacha_shiur: r.halacha_shiur,
                 mincha_shabbos: r.mincha_shabbos,
                 shkia_shabbos: r.shkia_shabbos,
+                pirkei_avos: r.pirkei_avos,
                 maariv: r.maariv
             };
             return {
@@ -218,7 +222,7 @@ async function loadRows() {
     } catch (err) {
         showToast('error', err.message);
         document.getElementById('statusMsg').textContent = 'Failed to load.';
-        document.getElementById('tableBody').innerHTML = '<tr><td colspan="13" class="px-4 py-10 text-center text-red-400">' + err.message + '</td></tr>';
+        document.getElementById('tableBody').innerHTML = '<tr><td colspan="15" class="px-4 py-10 text-center text-red-400">' + err.message + '</td></tr>';
     }
 }
 
@@ -235,7 +239,7 @@ function render() {
     });
 
     if (rows.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="13" class="px-4 py-10 text-center text-gray-500">No weeks yet. Click "Add Row" to create one, or "Import CSV" to bulk-load.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="15" class="px-4 py-10 text-center text-gray-500">No weeks yet. Click "Add Row" to create one, or "Import CSV" to bulk-load.</td></tr>';
         updateDirtyBadge();
         return;
     }
@@ -271,6 +275,8 @@ function render() {
               : k === 'sof_zman_krias_shema' ? '8:54/9:30'
               : k === 'shkia_friday' ? '7:45'
               : k === 'shkia_shabbos' ? '7:46'
+              : k === 'halacha_shiur' ? '6:40 (auto if blank)'
+              : k === 'pirkei_avos' ? '8:30 (auto if blank)'
               : '—';
             html += '<td class="px-2 py-1"><input type="text" value="' + escAttr(val) + '" dir="' + dir + '" data-field="' + k + '" class="cell-input' + dirty + '" placeholder="' + placeholder + '"/></td>';
         }
@@ -285,7 +291,7 @@ function render() {
     }
 
     if (!html) {
-        html = '<tr><td colspan="13" class="px-4 py-10 text-center text-gray-500">No upcoming weeks. Toggle "Show past weeks" or add a new row.</td></tr>';
+        html = '<tr><td colspan="15" class="px-4 py-10 text-center text-gray-500">No upcoming weeks. Toggle "Show past weeks" or add a new row.</td></tr>';
     }
 
     tbody.innerHTML = html;
@@ -356,8 +362,10 @@ document.getElementById('addRowBtn').addEventListener('click', function() {
         shkia_friday: '',
         shacharit: '',
         sof_zman_krias_shema: '',
+        halacha_shiur: '',
         mincha_shabbos: '',
         shkia_shabbos: '',
+        pirkei_avos: '',
         maariv: ''
     };
     rows.push({
@@ -452,6 +460,10 @@ const HEADER_RULES = [
     { field: 'shkia_shabbos', hints: ['shkia sat', 'shkia shabbos', 'shkia shabbat', 'sunset sat', 'sunset shabbos', 'שקיעה שבת', 'שקיעה'] },
     // Sof Z"man Krias Shema — gabbai-entered free text (e.g. "8:54/9:30").
     { field: 'sof_zman_krias_shema', hints: ['sof zman', 'krias shema', 'shema', 'סוף זמן', 'קריאת שמע', 'ק"ש'] },
+    // Optional shiur overrides — when blank the API computes from
+    // mincha_shabbos − 20m / maariv − 15m as before.
+    { field: 'halacha_shiur', hints: ['halacha shiur', 'shiur halacha', 'rav halacha', 'שיעור הלכה'] },
+    { field: 'pirkei_avos',  hints: ['pirkei avos', 'pirkei avot', 'avos', 'avot', 'פרקי אבות'] },
     { field: 'shacharit', hints: ['shacharit', 'shacharis', 'שחרית'] },
     { field: 'maariv', hints: ['maariv', 'havdalah', 'מעריב', 'הבדלה'] },
     // Saturday mincha last — includes the bare "מנחה" fallback so it can grab whatever's left.
@@ -595,8 +607,10 @@ function importCsv(text) {
                     shkia_friday: incoming.shkia_friday || '',
                     shacharit: incoming.shacharit || '',
                     sof_zman_krias_shema: incoming.sof_zman_krias_shema || '',
+                    halacha_shiur: incoming.halacha_shiur || '',
                     mincha_shabbos: incoming.mincha_shabbos || '',
                     shkia_shabbos: incoming.shkia_shabbos || '',
+                    pirkei_avos: incoming.pirkei_avos || '',
                     maariv: incoming.maariv || ''
                 },
                 deleted: false,
@@ -642,8 +656,10 @@ document.getElementById('saveBtn').addEventListener('click', async function() {
             shkia_friday: r.current.shkia_friday,
             shacharit: r.current.shacharit,
             sof_zman_krias_shema: r.current.sof_zman_krias_shema,
+            halacha_shiur: r.current.halacha_shiur,
             mincha_shabbos: r.current.mincha_shabbos,
             shkia_shabbos: r.current.shkia_shabbos,
+            pirkei_avos: r.current.pirkei_avos,
             maariv: r.current.maariv
         });
     }
