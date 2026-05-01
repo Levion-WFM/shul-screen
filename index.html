@@ -237,6 +237,13 @@
 <span class="text-lg font-bold text-secondary truncate" dir="rtl">הדלקת נרות</span>
 <span id="z-candle-lighting" class="text-primary font-headline font-bold text-4xl text-3d-light shrink-0">—</span>
 </div>
+<!-- Plag HaMincha — gabbai's plag from shabbos_zmanim.plag_hamincha. Slightly
+     smaller than the davening rows (text-3xl vs text-4xl) since it's a halachic
+     reference, not a davening time. Hidden when the row has no plag value. -->
+<div class="flex justify-between items-baseline gap-2 min-w-0 hidden" id="z-plag-wrap">
+<span class="text-base font-bold text-secondary/80 truncate" dir="rtl">פלג המנחה</span>
+<span id="z-plag" class="text-primary/90 font-headline font-bold text-3xl text-3d-light shrink-0">—</span>
+</div>
 <!-- Friday shkiyah — reference time between candle lighting and mincha, so people
      see how early they lit before sunset. Slightly smaller than the davening rows
      (text-3xl vs text-4xl) so the davening times stay visually primary. -->
@@ -442,6 +449,18 @@ async function loadScreenData() {
         for (var id in zmMap) {
             var el = document.getElementById(id);
             if (el && zmMap[id]) el.textContent = zmMap[id];
+        }
+        // Plag HaMincha — show row only when shabbos_zmanim has a value. Same
+        // pattern as the optional shkiyah rows below.
+        var plagWrap = document.getElementById('z-plag-wrap');
+        var plagEl = document.getElementById('z-plag');
+        if (plagWrap && plagEl) {
+            if (z.plag) {
+                plagEl.textContent = z.plag;
+                plagWrap.classList.remove('hidden');
+            } else {
+                plagWrap.classList.add('hidden');
+            }
         }
         // Friday Mincha: summer early-shabbos weeks have both A (early) and B (late).
         // When A is present, show "מנחה א / מנחה ב" label and "A / B" value.

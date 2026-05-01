@@ -50,6 +50,7 @@ module.exports = async function handler(req, res) {
                 // the Sat→Sun rollover. Always prefer the DB row when present.
                 if (z.parsha) data.zmanim.parshat = z.parsha;
                 if (z.candle_lighting) data.zmanim.candleLighting = z.candle_lighting;
+                if (z.plag_hamincha) data.zmanim.plag = z.plag_hamincha;
                 if (z.mincha_erev_shabbos) data.zmanim.minchaFriday = z.mincha_erev_shabbos;
                 if (z.mincha_a) data.zmanim.minchaFridayA = z.mincha_a;
                 if (z.shacharit) data.zmanim.shacharit = z.shacharit;

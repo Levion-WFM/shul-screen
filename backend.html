@@ -104,6 +104,7 @@ tailwind.config = {
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div><label class="block text-xs text-gray-500 mb-1">Candle Lighting</label><input id="zCandleLighting" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Auto"/></div>
                 <div><label class="block text-xs text-gray-500 mb-1">Mincha (Fri A)</label><input id="zMinchaFridayA" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Auto"/></div>
+                <div><label class="block text-xs text-gray-500 mb-1">Plag HaMincha</label><input id="zPlag" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Auto"/></div>
                 <div><label class="block text-xs text-gray-500 mb-1">Mincha (Fri B)</label><input id="zMinchaFriday" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Auto"/></div>
                 <div><label class="block text-xs text-gray-500 mb-1">Shacharit (Shabbat)</label><input id="zShacharit" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Auto"/></div>
                 <div><label class="block text-xs text-gray-500 mb-1">Mincha (Sat)</label><input id="zMinchaSaturday" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Auto"/></div>
@@ -1081,6 +1082,7 @@ async function loadDataInner() {
         document.getElementById('zHebrewDate').value = z.hebrewDate || '';
         document.getElementById('zCandleLighting').value = z.candleLighting || '';
         document.getElementById('zMinchaFridayA').value = z.minchaFridayA || '';
+        document.getElementById('zPlag').value = z.plag || '';
         document.getElementById('zMinchaFriday').value = z.minchaFriday || '';
         document.getElementById('zShacharit').value = z.shacharit || '';
         document.getElementById('zMinchaSaturday').value = z.minchaSaturday || '';
@@ -1187,6 +1189,7 @@ async function saveAll() {
         parsha: document.getElementById('zParshat').value.trim(),
         candle_lighting: document.getElementById('zCandleLighting').value.trim(),
         mincha_a: document.getElementById('zMinchaFridayA').value.trim(),
+        plag_hamincha: document.getElementById('zPlag').value.trim(),
         mincha_erev_shabbos: document.getElementById('zMinchaFriday').value.trim(),
         shacharit: document.getElementById('zShacharit').value.trim(),
         mincha_shabbos: document.getElementById('zMinchaSaturday').value.trim(),
