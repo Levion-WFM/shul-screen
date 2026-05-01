@@ -928,8 +928,16 @@ function copyZmanimAsText() {
 
     var zRemote = weeklyScheduleCache || {};
 
-    // Parsha — English/transliterated preferred for SMS readability.
-    var parsha = (zRemote.parashaEnglish || zRemote.parashaDb || parshatHebrew || '').trim();
+    // Parsha — Hebrew per operator preference. Prefer the gabbai's
+    // in-memory input, then the API's parashaDb (gabbai source), then
+    // Hebcal's parashaHebrew. English transliteration is a last-resort
+    // fallback so the SMS still ships if no Hebrew source resolves.
+    var parshaName = (parshatHebrew || zRemote.parashaDb || zRemote.parashaHebrew || zRemote.parashaEnglish || '').trim();
+    // Match the kiosk convention: prefix "פרשת " when the name is
+    // Hebrew script. Skip the prefix on the English fallback so it
+    // doesn't read "פרשת Emor".
+    var hasHebrew = /[֐-׿]/.test(parshaName);
+    var parsha = parshaName ? (hasHebrew ? 'פרשת ' + parshaName : parshaName) : '';
 
     // Shkia: gabbai input wins, then daily_zmanim sunset (Friday/Shabbos).
     var shkiaFriday = shkiaFridayInput || zRemote.shkiaFriday || null;
