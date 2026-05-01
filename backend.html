@@ -930,8 +930,9 @@ function copyZmanimAsText() {
 
     // Parsha — Hebrew per operator preference. Prefer the gabbai's
     // in-memory input, then the API's parashaDb (gabbai source), then
-    // Hebcal's parashaHebrew. English transliteration is a last-resort
-    // fallback so the SMS still ships if no Hebrew source resolves.
+    // MyZmanim's parashaHebrew (seed for daily_zmanim). The
+    // transliterated parashaEnglish is a last-resort fallback so the
+    // SMS still ships if no Hebrew source resolves.
     var parshaName = (parshatHebrew || zRemote.parashaDb || zRemote.parashaHebrew || zRemote.parashaEnglish || '').trim();
     // Match the kiosk convention: prefix "פרשת " when the name is
     // Hebrew script. Skip the prefix on the English fallback so it
@@ -976,7 +977,7 @@ function copyZmanimAsText() {
     lines.push("Beis Medrash D'Jackson 21");
     if (parsha) lines.push(parsha);
     lines.push('');
-    if (candle) lines.push('(Hadlakas Neiros: ' + candle + ')');
+    if (candle) lines.push('Hadlakas Neiros: ' + candle);
     lines.push('');
     if (minchaFridayA) lines.push('Mincha 1: ' + minchaFridayA);
     if (plag) lines.push('Plag Hamincha: ' + plag);
