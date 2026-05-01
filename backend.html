@@ -930,9 +930,8 @@ function copyZmanimAsText() {
 
     // Parsha — Hebrew per operator preference. Prefer the gabbai's
     // in-memory input, then the API's parashaDb (gabbai source), then
-    // MyZmanim's parashaHebrew (seed for daily_zmanim). The
-    // transliterated parashaEnglish is a last-resort fallback so the
-    // SMS still ships if no Hebrew source resolves.
+    // Hebcal's parashaHebrew. English transliteration is a last-resort
+    // fallback so the SMS still ships if no Hebrew source resolves.
     var parshaName = (parshatHebrew || zRemote.parashaDb || zRemote.parashaHebrew || zRemote.parashaEnglish || '').trim();
     // Match the kiosk convention: prefix "פרשת " when the name is
     // Hebrew script. Skip the prefix on the English fallback so it
@@ -964,48 +963,36 @@ function copyZmanimAsText() {
     // ── Layout ──
     // Header (2 lines: shul name + parsha)
     //   blank
-    // Candles (Hadlakas Neiros)
+    // Candles single line in parens
     //   blank
     // Erev Shabbos block (4 lines: Mincha 1, Plag, Mincha 2, Shkiya)
     //   blank
     // Shabbos day block (Shachris through Mariv, shiurim toggle-gated)
     //
-    // Label/time pairs are padded so the colons line up vertically. In
-    // monospace renderers (most SMS apps' default font, Apple Notes,
-    // Slack code blocks, etc.) this produces a clean column. In
-    // proportional renderers the alignment is approximate but still
-    // reads cleaner than ragged left.
-    //
-    // The label "Halacha shiur from the Rav Shlita" intentionally
-    // exceeds the column width — its colon falls beyond the column,
-    // which is the trade-off for keeping the gabbai's full wording.
-    var COL = 15; // matches "Hadlakas Neiros" — the longest short label.
-    function pad(label) {
-        return label.length >= COL ? label : label + ' '.repeat(COL - label.length);
-    }
-    function row(label, time) { return pad(label) + ': ' + time; }
-
+    // Separator is colon-space (": ") for label/time pairs per gabbai
+    // preference. The "(Hadlakas Neiros: 7:27)" line keeps the
+    // parenthetical wrapper that mirrors the historical SMS exactly.
     var lines = [];
     lines.push("Beis Medrash D'Jackson 21");
     if (parsha) lines.push(parsha);
     lines.push('');
-    if (candle) lines.push(row('Hadlakas Neiros', candle));
+    if (candle) lines.push('(Hadlakas Neiros: ' + candle + ')');
     lines.push('');
-    if (minchaFridayA) lines.push(row('Mincha 1', minchaFridayA));
-    if (plag) lines.push(row('Plag Hamincha', plag));
+    if (minchaFridayA) lines.push('Mincha 1: ' + minchaFridayA);
+    if (plag) lines.push('Plag Hamincha: ' + plag);
     if (minchaFriday) {
         var fridayMinchaLabel = minchaFridayA ? 'Mincha 2' : 'Mincha';
-        lines.push(row(fridayMinchaLabel, minchaFriday));
+        lines.push(fridayMinchaLabel + ': ' + minchaFriday);
     }
-    if (shkiaFriday) lines.push(row('Shkiya', shkiaFriday));
+    if (shkiaFriday) lines.push('Shkiya: ' + shkiaFriday);
     lines.push('');
-    if (shacharit) lines.push(row('Shachris', shacharit));
-    if (sofZmanShema) lines.push(row('Sof Z"K Shma', sofZmanShema));
-    if (shiurMinchaOn && halachaTime) lines.push(row('Halacha shiur from the Rav Shlita', halachaTime));
-    if (minchaSat) lines.push(row('Mincha', minchaSat));
-    if (shkiaShabbos) lines.push(row('Shkiya', shkiaShabbos));
-    if (shiurMaarivOn && pirkeiAvosTime) lines.push(row('Pirkei Avos', pirkeiAvosTime));
-    if (havdalah) lines.push(row('Mariv', havdalah));
+    if (shacharit) lines.push('Shachris: ' + shacharit);
+    if (sofZmanShema) lines.push('Sof Z"K Shma: ' + sofZmanShema);
+    if (shiurMinchaOn && halachaTime) lines.push('Halacha shiur from the Rav Shlita: ' + halachaTime);
+    if (minchaSat) lines.push('Mincha: ' + minchaSat);
+    if (shkiaShabbos) lines.push('Shkiya: ' + shkiaShabbos);
+    if (shiurMaarivOn && pirkeiAvosTime) lines.push('Pirkei Avos: ' + pirkeiAvosTime);
+    if (havdalah) lines.push('Mariv: ' + havdalah);
 
     // Collapse any accidental run of 3+ blank lines down to a single
     // blank, then trim leading/trailing whitespace.
