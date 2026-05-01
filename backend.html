@@ -885,54 +885,96 @@ async function refreshWeeklyScheduleCache() {
     } catch (e) { /* leave previous cache in place */ }
 }
 
-// Build a plain-text summary of this week's Shabbos zmanim (bilingual, line-based,
-// no emojis) and push it to the clipboard so the gabbai can paste into a group chat.
-// Reads directly from the in-memory admin inputs so any un-saved overrides are included.
-// Shkia (Fri/Shabbos) + computed shiur times come from the pre-fetched cache.
+// Build the gabbai's weekly SMS as plain text and push to the clipboard.
+// Layout mirrors the historical hand-typed text exactly:
+//   Beis Medrash D'Jackson 21
+//   <Parsha (English/transliterated)>
+//
+//   (Hadlakas Neiros - 7:27)
+//
+//   Mincha 1 - 6:36
+//   Plag Hamincha 6:56                  ← no dash before time
+//   Mincha 2 - 7:30
+//   Shkiya - 7:45
+//
+//   Shachris - 8:30
+//   Sof Z"K Shma - 8:54/9:30
+//   Halacha shiur from the Rav Shlita - 6:40   (toggle-gated)
+//   Mincha - 7:00
+//   Shkiya - 7:46
+//   Pirkei Avos - 8:30                          (toggle-gated)
+//   Mariv - 8:46
+//
+// Reads in-memory admin inputs first so any un-saved override is
+// reflected; falls back to weeklyScheduleCache (computed daily_zmanim
+// + parsha) for fields the gabbai hasn't filled in yet. Shiurim stay
+// behind the toggles per operator instruction.
 function copyZmanimAsText() {
-    var parshat = document.getElementById('zParshat').value.trim();
-    var hebrewDate = document.getElementById('zHebrewDate').value.trim();
+    var parshatHebrew = document.getElementById('zParshat').value.trim();
     var candle = document.getElementById('zCandleLighting').value.trim();
     var minchaFridayA = document.getElementById('zMinchaFridayA').value.trim();
+    var plagInput = document.getElementById('zPlag').value.trim();
     var minchaFriday = document.getElementById('zMinchaFriday').value.trim();
+    var shkiaFridayInput = document.getElementById('zShkiaFriday').value.trim();
     var shacharit = document.getElementById('zShacharit').value.trim();
+    var sofZmanShemaInput = document.getElementById('zSofZmanShema').value.trim();
+    var halachaInput = document.getElementById('zHalachaShiur').value.trim();
     var minchaSat = document.getElementById('zMinchaSaturday').value.trim();
+    var shkiaShabbosInput = document.getElementById('zShkiaShabbos').value.trim();
+    var pirkeiAvosInput = document.getElementById('zPirkeiAvos').value.trim();
     var havdalah = document.getElementById('zHavdalah').value.trim();
     var shiurMinchaOn = document.getElementById('shabbosShiurMinchaToggle').checked;
     var shiurMaarivOn = document.getElementById('shabbosShiurMaarivToggle').checked;
-    var shiurChumashOn = document.getElementById('shabbosShiurChumashToggle').checked;
 
     var zRemote = weeklyScheduleCache || {};
-    var shkiaFriday = zRemote.shkiaFriday || null;
-    var shkiaShabbos = zRemote.shkia || null;
+
+    // Parsha — English/transliterated preferred for SMS readability.
+    var parsha = (zRemote.parashaEnglish || zRemote.parashaDb || parshatHebrew || '').trim();
+
+    // Shkia: gabbai input wins, then daily_zmanim sunset (Friday/Shabbos).
+    var shkiaFriday = shkiaFridayInput || zRemote.shkiaFriday || null;
+    var shkiaShabbos = shkiaShabbosInput || zRemote.shkia || null;
+
+    // Plag: gabbai input wins, then daily_zmanim plag.
+    var plag = plagInput || zRemote.plag || null;
+
+    // Sof Z"K Shma: gabbai free-text input wins, else combine MGA/GRA from daily.
+    var sofZmanShema = sofZmanShemaInput || zRemote.sofZmanKriasShema || (
+        (zRemote.shemaMa && zRemote.shemaGra)
+            ? (zRemote.shemaMa + '/' + zRemote.shemaGra)
+            : (zRemote.shemaGra || zRemote.shemaMa || null)
+    );
+
+    // Shiurim: pull from cache (which already applies the toggle gate),
+    // but admin in-memory override columns win when set.
     var byLabel = {};
     (zRemote.shiurim || []).forEach(function(s) { byLabel[s.label] = s.time; });
-    var halachaTime = byLabel['שיעור הלכה'] || null;
-    var pirkeiAvosTime = byLabel['פרקי אבות'] || null;
+    var halachaTime = halachaInput || byLabel['שיעור הלכה'] || null;
+    var pirkeiAvosTime = pirkeiAvosInput || byLabel['פרקי אבות'] || null;
 
     var lines = [];
-    var header = 'Beis Medrash D\'Jackson 21';
-    if (parshat) header += ' — פרשת ' + parshat;
-    lines.push(header);
-    if (hebrewDate) lines.push('Shabbos ' + hebrewDate);
+    lines.push("Beis Medrash D'Jackson 21");
+    if (parsha) lines.push(parsha);
     lines.push('');
-    if (candle) lines.push('Candle Lighting: ' + candle);
-    if (minchaFridayA) {
-        lines.push('Mincha A: ' + minchaFridayA);
-        if (minchaFriday) lines.push('Mincha B: ' + minchaFriday);
-    } else if (minchaFriday) {
-        lines.push('Mincha Erev Shabbos: ' + minchaFriday);
+    if (candle) lines.push('(Hadlakas Neiros - ' + candle + ')');
+    lines.push('');
+    if (minchaFridayA) lines.push('Mincha 1 - ' + minchaFridayA);
+    if (plag) lines.push('Plag Hamincha ' + plag);
+    if (minchaFriday) {
+        var fridayMinchaLabel = minchaFridayA ? 'Mincha 2' : 'Mincha';
+        lines.push(fridayMinchaLabel + ' - ' + minchaFriday);
     }
-    if (shkiaFriday) lines.push('Shkia (Friday): ' + shkiaFriday);
-    if (shacharit) lines.push('Shacharis: ' + shacharit);
-    if (shiurChumashOn) lines.push('שיעור חומש: אחר הקידוש');
-    if (shiurMinchaOn && halachaTime) lines.push('שיעור הלכה: ' + halachaTime);
-    if (minchaSat) lines.push('Mincha (Shabbos): ' + minchaSat);
-    if (shkiaShabbos) lines.push('Shkia (Shabbos): ' + shkiaShabbos);
-    if (shiurMaarivOn && pirkeiAvosTime) lines.push('פרקי אבות: ' + pirkeiAvosTime);
-    if (havdalah) lines.push('Maariv: ' + havdalah);
+    if (shkiaFriday) lines.push('Shkiya - ' + shkiaFriday);
+    lines.push('');
+    if (shacharit) lines.push('Shachris - ' + shacharit);
+    if (sofZmanShema) lines.push('Sof Z"K Shma - ' + sofZmanShema);
+    if (shiurMinchaOn && halachaTime) lines.push('Halacha shiur from the Rav Shlita - ' + halachaTime);
+    if (minchaSat) lines.push('Mincha - ' + minchaSat);
+    if (shkiaShabbos) lines.push('Shkiya - ' + shkiaShabbos);
+    if (shiurMaarivOn && pirkeiAvosTime) lines.push('Pirkei Avos - ' + pirkeiAvosTime);
+    if (havdalah) lines.push('Mariv - ' + havdalah);
 
-    var text = lines.join('\n');
+    var text = lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
 
     function fallbackCopy() {
         try {
