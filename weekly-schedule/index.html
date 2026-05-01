@@ -341,6 +341,7 @@
     <a href="https://www.bmj21.com/schedules.html" id="back-link">← Back to Schedules</a>
     <div class="actions">
       <button class="btn" id="copy-link">Copy Link</button>
+      <button class="btn" id="copy-text">Copy as Text</button>
       <button class="btn btn-accent" id="download-png" data-embed-keep>Download as Image</button>
     </div>
   </div>
@@ -370,15 +371,13 @@
            so there's no dead middle zone. -->
       <div class="content-column">
 
-        <!-- Erev Shabbos. Each row uses label + dotted leader + time, all
-             rendered in deep navy — no gold tint, no per-row emphasis.
-             Matches the printed-flier reference where every line reads
-             with equal weight and the leader does the alignment. -->
+        <!-- Erev Shabbos. JS-built so that summer weeks (Mincha A + B
+             bracketing the Plag) and winter weeks (single Mincha) render
+             the right number of rows. The reference SMS flier orders this
+             block as: Candles → Mincha 1 → Plag → Mincha 2 → Shkia. -->
         <div class="list-group list-friday">
           <div class="section-title">ערב שבת קודש</div>
-          <div class="row"><span class="label">הדלקת נרות</span><span class="leader"></span><span class="time" id="t-candles">—</span></div>
-          <div class="row"><span class="label">פלג</span><span class="leader"></span><span class="time" id="t-plag">—</span></div>
-          <div class="row" id="row-mincha-erev"><span class="label" id="t-mincha-erev-label">מנחה ערב שבת</span><span class="leader"></span><span class="time" id="t-mincha-erev">—</span></div>
+          <div id="list-friday"></div>
         </div>
 
         <!-- Shabbos list — JS-built so rabbinic shiurim slot in
@@ -426,6 +425,11 @@
   const $ = (id) => document.getElementById(id);
   const set = (id, v) => { const el = $(id); if (el) el.textContent = v || '—'; };
 
+  // Last zmanim payload — captured by load() so the Copy-as-Text handler
+  // can format the same data without re-fetching.
+  let lastZmanim = null;
+  let lastParshaName = '';
+
   // Embed mode: when iframed (or explicit ?embed=1), hide page chrome that
   // doesn't belong outside this origin (Back link, Copy Link). Keep the
   // Download button so the embedding site still gets image-export capability.
@@ -460,6 +464,7 @@
       if (!data.ok) throw new Error(data.error || 'Unknown error');
 
       const z = data.zmanim;
+      lastZmanim = z;
 
       // Parasha — prefer the DB parsha (matches how the shul writes it),
       // fall back to Hebcal's Hebrew name. The static title "זמנים לשבת
@@ -467,23 +472,43 @@
       // double-parshiyos wrap onto a second line via text-wrap:balance
       // rather than overflowing the parchment.
       const parshaName = z.parashaDb || z.parashaHebrew || '';
+      // SMS text is English-context (Hebrew renders poorly in most chat
+      // apps), so for the text version we prefer MyZmanim's transliterated
+      // parsha_english. The source-of-truth rule (shabbos_zmanim first)
+      // applies to TIMES, not to parsha-name language: the gabbai's
+      // shabbos_zmanim.parsha is in Hebrew script, so using it here would
+      // mix scripts in the SMS. Fall back to parashaDb / parashaHebrew
+      // only when MyZmanim is empty.
+      lastParshaName = z.parashaEnglish || z.parashaDb || z.parashaHebrew || '';
       const parshaEl = $('parsha-name');
       if (parshaEl) parshaEl.textContent = parshaName ? 'פרשת ' + parshaName : '';
 
-      // Friday slots stay in static HTML.
-      set('t-candles', z.candles);
-      set('t-plag', z.plag);
-      // Friday Mincha: during summer early-shabbos season the shul has both
-      // Mincha A (early) and Mincha B (late). When A is set, render both
-      // slash-separated with a dual label; otherwise fall back to the single
-      // value layout (B, or plag as last resort).
-      const minchaB = z.minchaErevShabbos || z.plag;
-      const minchaErevLabelEl = $('t-mincha-erev-label');
-      if (z.minchaErevShabbosA) {
-        set('t-mincha-erev', z.minchaErevShabbosA + ' / ' + (minchaB || '—'));
-        if (minchaErevLabelEl) minchaErevLabelEl.textContent = 'מנחה א / מנחה ב';
-      } else {
-        set('t-mincha-erev', minchaB);
+      // Erev Shabbos rows — built dynamically so the early-shabbos season
+      // (Mincha A + B bracketing the Plag) and winter weeks (single Mincha)
+      // each render with the right number of lines.
+      //   Hadlakas Neiros → Mincha 1 → Plag → Mincha 2 → Shkia
+      // When Mincha A isn't set, the row collapses to a single "מנחה"
+      // entry positioned where Mincha 2 would otherwise be.
+      const minchaA = z.minchaErevShabbosA || null;
+      const minchaB = z.minchaErevShabbos || null;
+      const fridayRows = [
+        { label: 'הדלקת נרות', time: z.candles },
+        minchaA ? { label: 'מנחה א׳', time: minchaA } : null,
+        { label: 'פלג המנחה', time: z.plag },
+        minchaA
+          ? { label: 'מנחה ב׳', time: minchaB || '—' }
+          : { label: 'מנחה',    time: minchaB || '—' },
+        { label: 'שקיעה', time: z.shkiaFriday || z.shkia }
+      ].filter(Boolean);
+      const listFridayEl = $('list-friday');
+      if (listFridayEl) {
+        listFridayEl.innerHTML = fridayRows.map(r =>
+          '<div class="row">' +
+            '<span class="label">' + r.label + '</span>' +
+            '<span class="leader"></span>' +
+            '<span class="time">' + (r.time || '—') + '</span>' +
+          '</div>'
+        ).join('');
       }
 
       // Kids' learning — Pirchei + Avos uBanim times. Same dotted-leader
@@ -527,8 +552,16 @@
       const halacha = shiurByLabel['שיעור הלכה'] || null;
       const pirkeiAvos = shiurByLabel['פרקי אבות'] || null;
 
+      // Sof Zman Krias Shema — render MA / GRA on a single row, slash-
+      // separated, when both are present. MyZmanim's daily_zmanim is the
+      // only source (shabbos_zmanim doesn't carry it).
+      const krishemaTime = (z.shemaMa && z.shemaGra)
+        ? (z.shemaMa + ' / ' + z.shemaGra)
+        : (z.shemaGra || z.shemaMa || null);
+
       const shabbosRows = [
         { label: 'שחרית',            time: z.shacharis },
+        krishemaTime ? { label: 'סוף זמן ק״ש', time: krishemaTime } : null,
         halacha ? { label: 'שיעור הלכה', time: halacha, tint: true } : null,
         { label: 'מנחה',             time: z.minchaShabbos },
         { label: 'שקיעה',            time: z.shkia },
@@ -552,14 +585,17 @@
         ).join('');
       }
 
-      // When content is at its maximum density — 6-row Shabbos list (both
-      // shiurim) AND kids section visible — flip a class that shrinks row
-      // type slightly so the block clears the parchment footer.
+      // When content is at its maximum density — adding Krias Shema and a
+      // 5-row Erev block pushes the count up, so the threshold tightens to
+      // any week with the Shema row + a long Shabbos list, OR any week with
+      // both shiurim, OR kids visible alongside ≥ 6 Shabbos rows.
       const col = document.querySelector('.content-column');
       if (col) {
+        const fridayCount = listFridayEl ? listFridayEl.querySelectorAll('.row').length : 0;
         const shabbosCount = listShabbosEl ? listShabbosEl.querySelectorAll('.row').length : 0;
         const kidsVisible = kidsBoxEl && !kidsBoxEl.classList.contains('hidden');
-        col.classList.toggle('rows-dense', shabbosCount >= 6 && kidsVisible);
+        const total = fridayCount + shabbosCount + (kidsVisible ? 2 : 0);
+        col.classList.toggle('rows-dense', total >= 12);
       }
 
       // Optional schedule note — shul-specific minhag callout (e.g. "לא
@@ -598,6 +634,74 @@
       $('copy-link').textContent = 'Copied!';
       setTimeout(() => { $('copy-link').textContent = 'Copy Link'; }, 1500);
     } catch {}
+  });
+
+  // Build the SMS-friendly text version of the schedule. Format mirrors the
+  // gabbai's existing text-message style:
+  //   Beis Medrash D'Jackson 21
+  //   <Parsha>
+  //   (Hadlakas Neiros - 7:27)
+  //   Mincha 1 - 6:36
+  //   ...
+  // Lines are skipped when their underlying time is missing so winter weeks
+  // don't print "Mincha 1 - —".
+  function buildScheduleText(z, parsha) {
+    if (!z) return '';
+    const lines = [];
+    lines.push("Beis Medrash D'Jackson 21");
+    if (parsha) lines.push(parsha);
+    lines.push('');
+    if (z.candles) lines.push('(Hadlakas Neiros - ' + z.candles + ')');
+    lines.push('');
+    if (z.minchaErevShabbosA) lines.push('Mincha 1 - ' + z.minchaErevShabbosA);
+    if (z.plag) lines.push('Plag Hamincha - ' + z.plag);
+    if (z.minchaErevShabbos) {
+      const label = z.minchaErevShabbosA ? 'Mincha 2' : 'Mincha';
+      lines.push(label + ' - ' + z.minchaErevShabbos);
+    }
+    if (z.shkiaFriday) lines.push('Shkiya - ' + z.shkiaFriday);
+    lines.push('');
+    if (z.shacharis) lines.push('Shachris - ' + z.shacharis);
+    if (z.shemaMa || z.shemaGra) {
+      const sh = (z.shemaMa && z.shemaGra)
+        ? (z.shemaMa + '/' + z.shemaGra)
+        : (z.shemaGra || z.shemaMa);
+      lines.push('Sof Z"K Shma - ' + sh);
+    }
+    const shiurMap = {};
+    (Array.isArray(z.shiurim) ? z.shiurim : []).forEach(s => { shiurMap[s.label] = s.time; });
+    if (shiurMap['שיעור הלכה']) {
+      lines.push('Halacha shiur from the Rav Shlita - ' + shiurMap['שיעור הלכה']);
+    }
+    if (z.minchaShabbos) lines.push('Mincha - ' + z.minchaShabbos);
+    if (z.shkia) lines.push('Shkiya - ' + z.shkia);
+    if (shiurMap['פרקי אבות']) {
+      lines.push('Pirkei Avos - ' + shiurMap['פרקי אבות']);
+    }
+    if (z.maariv) lines.push('Mariv - ' + z.maariv);
+    return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
+
+  $('copy-text').addEventListener('click', async () => {
+    const btn = $('copy-text');
+    const txt = buildScheduleText(lastZmanim, lastParshaName);
+    if (!txt) { btn.textContent = 'No data'; setTimeout(() => { btn.textContent = 'Copy as Text'; }, 1500); return; }
+    try {
+      await navigator.clipboard.writeText(txt);
+      btn.textContent = 'Copied!';
+    } catch {
+      // Fallback for older browsers / non-secure contexts.
+      const ta = document.createElement('textarea');
+      ta.value = txt;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); btn.textContent = 'Copied!'; }
+      catch { btn.textContent = 'Copy failed'; }
+      ta.remove();
+    }
+    setTimeout(() => { btn.textContent = 'Copy as Text'; }, 1500);
   });
 
   $('download-png').addEventListener('click', async () => {

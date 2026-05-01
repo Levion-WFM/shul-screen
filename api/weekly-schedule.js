@@ -1,12 +1,25 @@
 const { neon } = require('@neondatabase/serverless');
 
 // Zmanim payload for the printable weekly schedule poster.
-// All data comes from the kiosk DB — no runtime Hebcal calls:
-//   - shabbos_zmanim : shul-specific times entered by the gabbai
-//                      (parsha, candle_lighting, mincha_erev_shabbos,
-//                      shacharit, mincha_shabbos, maariv)
-//   - daily_zmanim   : MyZmanim-seeded astronomical zmanim
-//                      (plag, sunset, sunrise) — plus parsha fallback
+//
+// Source-of-truth rule: shabbos_zmanim (gabbai-entered) is canonical for
+// every field it carries. daily_zmanim (MyZmanim seed) is consulted ONLY
+// when the canonical row doesn't carry the field, or the field is empty.
+//
+// Field map (canonical name -> fallback, if any):
+//   parsha            : shabbos_zmanim.parsha            -> daily_zmanim.parsha_hebrew / .parsha_english (Saturday row)
+//   candle_lighting   : shabbos_zmanim.candle_lighting   -> daily_zmanim.candle_lighting (Friday row)
+//   plag_hamincha     : shabbos_zmanim.plag_hamincha     -> daily_zmanim.plag (Friday row, then Saturday)
+//                       NOTE: column is named "plag" in daily_zmanim — same concept, different name.
+//   mincha_a          : shabbos_zmanim.mincha_a          (no astronomical equivalent)
+//   mincha_erev_shabbos : shabbos_zmanim.mincha_erev_shabbos (no astronomical equivalent)
+//   shacharit         : shabbos_zmanim.shacharit         (no astronomical equivalent)
+//   mincha_shabbos    : shabbos_zmanim.mincha_shabbos    (no astronomical equivalent)
+//   maariv            : shabbos_zmanim.maariv            (no astronomical equivalent)
+//
+// Astronomical-only (no equivalent in shabbos_zmanim — MyZmanim is the
+// only source by design):
+//   sunset (shkia), sunrise, shema_ma, shema_gra
 //
 // mincha_ketana isn't in either table (MyZmanim's export didn't include it),
 // so we compute it from sunrise + sunset using the proportional/GRA hour:
@@ -91,7 +104,7 @@ module.exports = async function handler(req, res) {
         try {
             const rows = await sql`
                 SELECT shabbos_date, parsha, candle_lighting, mincha_a, mincha_erev_shabbos,
-                       shacharit, mincha_shabbos, maariv
+                       plag_hamincha, shacharit, mincha_shabbos, maariv
                 FROM shabbos_zmanim
                 WHERE shabbos_date = ${shabbosStr}::date
                 LIMIT 1
@@ -101,7 +114,7 @@ module.exports = async function handler(req, res) {
             } else {
                 const next = await sql`
                     SELECT shabbos_date, parsha, candle_lighting, mincha_a, mincha_erev_shabbos,
-                           shacharit, mincha_shabbos, maariv
+                           plag_hamincha, shacharit, mincha_shabbos, maariv
                     FROM shabbos_zmanim
                     WHERE shabbos_date >= ${shabbosStr}::date
                     ORDER BY shabbos_date ASC
@@ -124,7 +137,7 @@ module.exports = async function handler(req, res) {
         let fridayRow = null;
         try {
             const rows = await sql`
-                SELECT civil_date, sunrise, plag, sunset,
+                SELECT civil_date, sunrise, shema_ma, shema_gra, plag, sunset,
                        parsha_hebrew, parsha_english, candle_lighting
                 FROM daily_zmanim
                 WHERE civil_date IN (${targetDate}::date, ${targetDate}::date - INTERVAL '1 day')
@@ -140,16 +153,50 @@ module.exports = async function handler(req, res) {
             console.error('daily_zmanim read failed:', err);
         }
 
-        // Build output. Prefer shabbosRow values (gabbai-entered), fall back to
-        // daily_zmanim for anything shabbosRow doesn't carry.
+        // Build output. shabbos_zmanim is canonical; daily_zmanim is used
+        // only when the canonical row is missing or has the field empty.
+        // Helper: prefer truthy strings (after trim) — treats "" the same as null.
+        const pick = (...vals) => {
+            for (const v of vals) {
+                if (v != null && String(v).trim() !== '') return v;
+            }
+            return null;
+        };
+
+        // Parsha — exposed as three keys so the frontend can pick by language.
+        // parashaDb is the gabbai's entry (canonical, usually Hebrew here).
+        // parashaHebrew / parashaEnglish are MyZmanim's split fields, used
+        // only when the gabbai hasn't entered a parsha.
         // NOTE: the frontend page reads `parashaDb` / `parashaHebrew` (spelled
         // with the extra 'a') so match those exact key names here.
-        const parashaDb = (shabbosRow && shabbosRow.parsha) || '';
-        const parashaHebrew = (dailyRow && dailyRow.parsha_hebrew) || '';
-        const parashaEnglish = (dailyRow && dailyRow.parsha_english) || '';
-        const plag = dailyRow ? clockNoAmPm(dailyRow.plag) : null;
-        const shkia = dailyRow ? clockNoAmPm(dailyRow.sunset) : null;
-        const shkiaFriday = fridayRow ? clockNoAmPm(fridayRow.sunset) : null;
+        const parashaDb = pick(shabbosRow && shabbosRow.parsha) || '';
+        const parashaHebrew = pick(dailyRow && dailyRow.parsha_hebrew) || '';
+        const parashaEnglish = pick(dailyRow && dailyRow.parsha_english) || '';
+
+        // Candle lighting — gabbai's shabbos_zmanim.candle_lighting is
+        // canonical; fall back to MyZmanim's Friday daily_zmanim.candle_lighting
+        // only when the gabbai's value is missing.
+        const candles = clockNoAmPm(pick(
+            shabbosRow && shabbosRow.candle_lighting,
+            fridayRow && fridayRow.candle_lighting
+        ));
+
+        // Plag — gabbai-entered plag_hamincha is canonical (the gabbai may
+        // use a different opinion than MyZmanim). Fall back to MyZmanim's
+        // Friday plag, then Saturday's, only when the gabbai hasn't filled it.
+        // Column-name mismatch: shabbos_zmanim.plag_hamincha vs daily_zmanim.plag.
+        const plag = clockNoAmPm(pick(
+            shabbosRow && shabbosRow.plag_hamincha,
+            fridayRow && fridayRow.plag,
+            dailyRow && dailyRow.plag
+        ));
+
+        // Astronomical-only fields — no equivalent in shabbos_zmanim, so
+        // daily_zmanim (MyZmanim) is the only source by design.
+        const shkia = clockNoAmPm(pick(dailyRow && dailyRow.sunset));
+        const shkiaFriday = clockNoAmPm(pick(fridayRow && fridayRow.sunset));
+        const shemaMa = clockNoAmPm(pick(dailyRow && dailyRow.shema_ma));
+        const shemaGra = clockNoAmPm(pick(dailyRow && dailyRow.shema_gra));
         const minchaKetana = dailyRow
             ? computeMinchaKetana(dailyRow.sunrise, dailyRow.sunset)
             : null;
@@ -193,20 +240,23 @@ module.exports = async function handler(req, res) {
             ok: true,
             date: targetDate,
             zmanim: {
-                // Shul-specific (shabbos_zmanim)
+                // Shul-specific (shabbos_zmanim is canonical; candles falls
+                // back to daily_zmanim Friday row only when missing).
                 parashaDb,
                 parashaHebrew,
                 parashaEnglish,
-                candles: shabbosRow ? (shabbosRow.candle_lighting || null) : null,
-                minchaErevShabbosA: shabbosRow ? (clockNoAmPm(shabbosRow.mincha_a) || null) : null,
-                minchaErevShabbos: shabbosRow ? (shabbosRow.mincha_erev_shabbos || null) : null,
-                shacharis: shabbosRow ? (shabbosRow.shacharit || null) : null,
-                minchaShabbos: shabbosRow ? (shabbosRow.mincha_shabbos || null) : null,
-                maariv: shabbosRow ? (shabbosRow.maariv || null) : null,
+                candles,
+                minchaErevShabbosA: clockNoAmPm(pick(shabbosRow && shabbosRow.mincha_a)),
+                minchaErevShabbos: pick(shabbosRow && shabbosRow.mincha_erev_shabbos),
+                shacharis: pick(shabbosRow && shabbosRow.shacharit),
+                minchaShabbos: pick(shabbosRow && shabbosRow.mincha_shabbos),
+                maariv: pick(shabbosRow && shabbosRow.maariv),
                 // Astronomical (daily_zmanim, seeded from MyZmanim)
                 plag,
                 shkia,
                 shkiaFriday,
+                shemaMa,
+                shemaGra,
                 minchaKetana,
                 // Kids learning (admin free-text in screen_data.zmanim)
                 pircheiTime: pircheiTime || null,
