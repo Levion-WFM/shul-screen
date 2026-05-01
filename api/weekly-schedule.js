@@ -104,7 +104,8 @@ module.exports = async function handler(req, res) {
         try {
             const rows = await sql`
                 SELECT shabbos_date, parsha, candle_lighting, mincha_a, mincha_erev_shabbos,
-                       plag_hamincha, shacharit, mincha_shabbos, maariv
+                       plag_hamincha, shacharit, mincha_shabbos, maariv,
+                       shkia_friday, shkia_shabbos, sof_zman_krias_shema
                 FROM shabbos_zmanim
                 WHERE shabbos_date = ${shabbosStr}::date
                 LIMIT 1
@@ -114,7 +115,8 @@ module.exports = async function handler(req, res) {
             } else {
                 const next = await sql`
                     SELECT shabbos_date, parsha, candle_lighting, mincha_a, mincha_erev_shabbos,
-                           plag_hamincha, shacharit, mincha_shabbos, maariv
+                           plag_hamincha, shacharit, mincha_shabbos, maariv,
+                           shkia_friday, shkia_shabbos, sof_zman_krias_shema
                     FROM shabbos_zmanim
                     WHERE shabbos_date >= ${shabbosStr}::date
                     ORDER BY shabbos_date ASC
@@ -191,10 +193,24 @@ module.exports = async function handler(req, res) {
             dailyRow && dailyRow.plag
         ));
 
-        // Astronomical-only fields — no equivalent in shabbos_zmanim, so
-        // daily_zmanim (MyZmanim) is the only source by design.
-        const shkia = clockNoAmPm(pick(dailyRow && dailyRow.sunset));
-        const shkiaFriday = clockNoAmPm(pick(fridayRow && fridayRow.sunset));
+        // Shkia + Sof Z'man Krias Shema — gabbai-entered shabbos_zmanim
+        // values are canonical so the Copy-as-Text SMS reflects exactly
+        // what the gabbai wants posted. daily_zmanim (MyZmanim) is the
+        // fallback when the gabbai hasn't filled the field.
+        //
+        // sof_zman_krias_shema is a single text column carrying the
+        // gabbai's preferred format (e.g. "8:54/9:30" for MGA/GRA, or
+        // a single time). When empty we synthesize MGA/GRA from
+        // daily_zmanim so older rows keep working.
+        const shkiaFriday = clockNoAmPm(pick(
+            shabbosRow && shabbosRow.shkia_friday,
+            fridayRow && fridayRow.sunset
+        ));
+        const shkia = clockNoAmPm(pick(
+            shabbosRow && shabbosRow.shkia_shabbos,
+            dailyRow && dailyRow.sunset
+        ));
+        const sofZmanKriasShema = pick(shabbosRow && shabbosRow.sof_zman_krias_shema);
         const shemaMa = clockNoAmPm(pick(dailyRow && dailyRow.shema_ma));
         const shemaGra = clockNoAmPm(pick(dailyRow && dailyRow.shema_gra));
         const minchaKetana = dailyRow
@@ -251,12 +267,15 @@ module.exports = async function handler(req, res) {
                 shacharis: pick(shabbosRow && shabbosRow.shacharit),
                 minchaShabbos: pick(shabbosRow && shabbosRow.mincha_shabbos),
                 maariv: pick(shabbosRow && shabbosRow.maariv),
-                // Astronomical (daily_zmanim, seeded from MyZmanim)
+                // Mostly astronomical — shkia + Sof Z'K Shma now prefer
+                // gabbai-entered shabbos_zmanim values, falling back to
+                // daily_zmanim only when the gabbai's row is empty.
                 plag,
                 shkia,
                 shkiaFriday,
                 shemaMa,
                 shemaGra,
+                sofZmanKriasShema,
                 minchaKetana,
                 // Kids learning (admin free-text in screen_data.zmanim)
                 pircheiTime: pircheiTime || null,

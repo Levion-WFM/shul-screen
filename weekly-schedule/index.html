@@ -662,7 +662,12 @@
     if (z.shkiaFriday) lines.push('Shkiya - ' + z.shkiaFriday);
     lines.push('');
     if (z.shacharis) lines.push('Shachris - ' + z.shacharis);
-    if (z.shemaMa || z.shemaGra) {
+    // Prefer the gabbai-entered shabbos_zmanim.sof_zman_krias_shema
+    // (free text — typically "8:54/9:30" for MGA/GRA). Fall back to
+    // computed MGA/GRA from daily_zmanim only when the gabbai's row is empty.
+    if (z.sofZmanKriasShema) {
+      lines.push('Sof Z"K Shma - ' + z.sofZmanKriasShema);
+    } else if (z.shemaMa || z.shemaGra) {
       const sh = (z.shemaMa && z.shemaGra)
         ? (z.shemaMa + '/' + z.shemaGra)
         : (z.shemaGra || z.shemaMa);

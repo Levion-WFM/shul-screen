@@ -106,8 +106,11 @@ tailwind.config = {
                 <div><label class="block text-xs text-gray-500 mb-1">Mincha (Fri A)</label><input id="zMinchaFridayA" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Auto"/></div>
                 <div><label class="block text-xs text-gray-500 mb-1">Plag HaMincha</label><input id="zPlag" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Auto"/></div>
                 <div><label class="block text-xs text-gray-500 mb-1">Mincha (Fri B)</label><input id="zMinchaFriday" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Auto"/></div>
+                <div><label class="block text-xs text-gray-500 mb-1">Shkia (Fri)</label><input id="zShkiaFriday" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="7:45"/></div>
                 <div><label class="block text-xs text-gray-500 mb-1">Shacharit (Shabbat)</label><input id="zShacharit" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Auto"/></div>
+                <div><label class="block text-xs text-gray-500 mb-1">Sof Z"K Sh"ma (MGA/GRA)</label><input id="zSofZmanShema" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="8:54/9:30"/></div>
                 <div><label class="block text-xs text-gray-500 mb-1">Mincha (Sat)</label><input id="zMinchaSaturday" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Auto"/></div>
+                <div><label class="block text-xs text-gray-500 mb-1">Shkia (Sat)</label><input id="zShkiaShabbos" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="7:46"/></div>
                 <div><label class="block text-xs text-gray-500 mb-1">Havdalah / Maariv</label><input id="zHavdalah" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Auto"/></div>
             </div>
             <p class="text-xs text-gold font-semibold mt-4 mb-2">שיעורי שבת (auto-calculated, toggle to show/hide)</p>
@@ -1097,6 +1100,31 @@ async function loadDataInner() {
     // Restore admin token from localStorage
     var savedToken = localStorage.getItem('shulAdminToken');
     if (savedToken) document.getElementById('adminToken').value = savedToken;
+
+    // Pull upcoming Saturday's row from shabbos_zmanim and prefill the
+    // gabbai-owned fields. screen_data.zmanim still carries legacy keys
+    // for the older fields (Parsha, Candle Lighting, etc.) so those load
+    // through the manifest path above; the three SMS-only fields
+    // (Shkia Fri/Sat, Sof Z"K Sh"ma) live ONLY in shabbos_zmanim, so
+    // this is the only place to read them. Failure here is non-fatal —
+    // admin can still fill the fields by hand.
+    try {
+        const upcoming = upcomingShabbosIso();
+        const r = await fetch('/api/shabbos-schedule', { cache: 'no-store' });
+        if (r.ok) {
+            const j = await r.json();
+            const row = (j.rows || []).find(function(x) { return x.shabbos_date === upcoming; })
+                     || (j.rows || []).find(function(x) { return x.shabbos_date >= upcoming; });
+            if (row) {
+                if (row.shkia_friday)         document.getElementById('zShkiaFriday').value = row.shkia_friday;
+                if (row.shkia_shabbos)        document.getElementById('zShkiaShabbos').value = row.shkia_shabbos;
+                if (row.sof_zman_krias_shema) document.getElementById('zSofZmanShema').value = row.sof_zman_krias_shema;
+            }
+        }
+    } catch (e) {
+        // Non-fatal — leave the fields blank for admin to fill.
+        console.warn('shabbos_zmanim prefill failed:', e);
+    }
 }
 
 var saving = false;
@@ -1191,8 +1219,11 @@ async function saveAll() {
         mincha_a: document.getElementById('zMinchaFridayA').value.trim(),
         plag_hamincha: document.getElementById('zPlag').value.trim(),
         mincha_erev_shabbos: document.getElementById('zMinchaFriday').value.trim(),
+        shkia_friday: document.getElementById('zShkiaFriday').value.trim(),
         shacharit: document.getElementById('zShacharit').value.trim(),
+        sof_zman_krias_shema: document.getElementById('zSofZmanShema').value.trim(),
         mincha_shabbos: document.getElementById('zMinchaSaturday').value.trim(),
+        shkia_shabbos: document.getElementById('zShkiaShabbos').value.trim(),
         maariv: document.getElementById('zHavdalah').value.trim(),
     };
     const zmanim = {

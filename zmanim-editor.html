@@ -97,14 +97,17 @@ tailwind.config = {
                         <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Mincha (Fri A)</th>
                         <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Plag HaMincha</th>
                         <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Mincha (Fri B)</th>
+                        <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Shkia (Fri)</th>
                         <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Shacharit</th>
+                        <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Sof Z"K Sh"ma</th>
                         <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Mincha (Sat)</th>
+                        <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Shkia (Sat)</th>
                         <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Maariv</th>
                         <th class="text-center px-2 py-2 border-b border-gray-700 w-10"></th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    <tr><td colspan="10" class="px-4 py-10 text-center text-gray-500">Loading…</td></tr>
+                    <tr><td colspan="13" class="px-4 py-10 text-center text-gray-500">Loading…</td></tr>
                 </tbody>
             </table>
         </div>
@@ -116,7 +119,7 @@ tailwind.config = {
 </main>
 
 <script>
-const FIELD_KEYS = ['parsha', 'candle_lighting', 'mincha_a', 'plag_hamincha', 'mincha_erev_shabbos', 'shacharit', 'mincha_shabbos', 'maariv'];
+const FIELD_KEYS = ['parsha', 'candle_lighting', 'mincha_a', 'plag_hamincha', 'mincha_erev_shabbos', 'shkia_friday', 'shacharit', 'sof_zman_krias_shema', 'mincha_shabbos', 'shkia_shabbos', 'maariv'];
 
 // In-memory row state:
 //   original: server-truth snapshot (null if newly added locally)
@@ -194,8 +197,13 @@ async function loadRows() {
                 parsha: r.parsha, candle_lighting: r.candle_lighting,
                 mincha_a: r.mincha_a,
                 plag_hamincha: r.plag_hamincha,
-                mincha_erev_shabbos: r.mincha_erev_shabbos, shacharit: r.shacharit,
-                mincha_shabbos: r.mincha_shabbos, maariv: r.maariv
+                mincha_erev_shabbos: r.mincha_erev_shabbos,
+                shkia_friday: r.shkia_friday,
+                shacharit: r.shacharit,
+                sof_zman_krias_shema: r.sof_zman_krias_shema,
+                mincha_shabbos: r.mincha_shabbos,
+                shkia_shabbos: r.shkia_shabbos,
+                maariv: r.maariv
             };
             return {
                 key: 'k' + (rowSeq++),
@@ -210,7 +218,7 @@ async function loadRows() {
     } catch (err) {
         showToast('error', err.message);
         document.getElementById('statusMsg').textContent = 'Failed to load.';
-        document.getElementById('tableBody').innerHTML = '<tr><td colspan="10" class="px-4 py-10 text-center text-red-400">' + err.message + '</td></tr>';
+        document.getElementById('tableBody').innerHTML = '<tr><td colspan="13" class="px-4 py-10 text-center text-red-400">' + err.message + '</td></tr>';
     }
 }
 
@@ -227,7 +235,7 @@ function render() {
     });
 
     if (rows.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="10" class="px-4 py-10 text-center text-gray-500">No weeks yet. Click "Add Row" to create one, or "Import CSV" to bulk-load.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="13" class="px-4 py-10 text-center text-gray-500">No weeks yet. Click "Add Row" to create one, or "Import CSV" to bulk-load.</td></tr>';
         updateDirtyBadge();
         return;
     }
@@ -257,7 +265,13 @@ function render() {
             const val = r.current[k] || '';
             const dirty = isDirtyField(r, k) ? ' dirty' : '';
             const dir = k === 'parsha' ? 'rtl' : 'ltr';
-            const placeholder = k === 'parsha' ? 'e.g. שמיני' : (k === 'candle_lighting' ? '7:13' : '—');
+            const placeholder =
+                k === 'parsha' ? 'e.g. שמיני'
+              : k === 'candle_lighting' ? '7:13'
+              : k === 'sof_zman_krias_shema' ? '8:54/9:30'
+              : k === 'shkia_friday' ? '7:45'
+              : k === 'shkia_shabbos' ? '7:46'
+              : '—';
             html += '<td class="px-2 py-1"><input type="text" value="' + escAttr(val) + '" dir="' + dir + '" data-field="' + k + '" class="cell-input' + dirty + '" placeholder="' + placeholder + '"/></td>';
         }
 
@@ -271,7 +285,7 @@ function render() {
     }
 
     if (!html) {
-        html = '<tr><td colspan="10" class="px-4 py-10 text-center text-gray-500">No upcoming weeks. Toggle "Show past weeks" or add a new row.</td></tr>';
+        html = '<tr><td colspan="13" class="px-4 py-10 text-center text-gray-500">No upcoming weeks. Toggle "Show past weeks" or add a new row.</td></tr>';
     }
 
     tbody.innerHTML = html;
@@ -339,7 +353,12 @@ document.getElementById('addRowBtn').addEventListener('click', function() {
         shabbos_date: newDate,
         parsha: '', candle_lighting: '', mincha_a: '', plag_hamincha: '',
         mincha_erev_shabbos: '',
-        shacharit: '', mincha_shabbos: '', maariv: ''
+        shkia_friday: '',
+        shacharit: '',
+        sof_zman_krias_shema: '',
+        mincha_shabbos: '',
+        shkia_shabbos: '',
+        maariv: ''
     };
     rows.push({
         key: 'k' + (rowSeq++),
@@ -427,6 +446,12 @@ const HEADER_RULES = [
     // "פלג המנחה" doesn't get matched by the bare מנחה fallback below.
     { field: 'plag_hamincha', hints: ['plag', 'פלג'] },
     { field: 'mincha_erev_shabbos', hints: ['mincha erev', 'mincha friday', 'mincha fri', 'ערב שבת', 'מנחה ערב'] },
+    // Shkia (sunset) — split Friday vs Shabbos so a CSV with two shkia columns
+    // routes correctly. Friday rule must come before the bare 'shkia' fallback.
+    { field: 'shkia_friday', hints: ['shkia fri', 'shkia friday', 'sunset fri', 'שקיעה ערב', 'שקיעה ו'] },
+    { field: 'shkia_shabbos', hints: ['shkia sat', 'shkia shabbos', 'shkia shabbat', 'sunset sat', 'sunset shabbos', 'שקיעה שבת', 'שקיעה'] },
+    // Sof Z"man Krias Shema — gabbai-entered free text (e.g. "8:54/9:30").
+    { field: 'sof_zman_krias_shema', hints: ['sof zman', 'krias shema', 'shema', 'סוף זמן', 'קריאת שמע', 'ק"ש'] },
     { field: 'shacharit', hints: ['shacharit', 'shacharis', 'שחרית'] },
     { field: 'maariv', hints: ['maariv', 'havdalah', 'מעריב', 'הבדלה'] },
     // Saturday mincha last — includes the bare "מנחה" fallback so it can grab whatever's left.
@@ -567,8 +592,11 @@ function importCsv(text) {
                     mincha_a: incoming.mincha_a || '',
                     plag_hamincha: incoming.plag_hamincha || '',
                     mincha_erev_shabbos: incoming.mincha_erev_shabbos || '',
+                    shkia_friday: incoming.shkia_friday || '',
                     shacharit: incoming.shacharit || '',
+                    sof_zman_krias_shema: incoming.sof_zman_krias_shema || '',
                     mincha_shabbos: incoming.mincha_shabbos || '',
+                    shkia_shabbos: incoming.shkia_shabbos || '',
                     maariv: incoming.maariv || ''
                 },
                 deleted: false,
@@ -611,8 +639,11 @@ document.getElementById('saveBtn').addEventListener('click', async function() {
             mincha_a: r.current.mincha_a,
             plag_hamincha: r.current.plag_hamincha,
             mincha_erev_shabbos: r.current.mincha_erev_shabbos,
+            shkia_friday: r.current.shkia_friday,
             shacharit: r.current.shacharit,
+            sof_zman_krias_shema: r.current.sof_zman_krias_shema,
             mincha_shabbos: r.current.mincha_shabbos,
+            shkia_shabbos: r.current.shkia_shabbos,
             maariv: r.current.maariv
         });
     }
