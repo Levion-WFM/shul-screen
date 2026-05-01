@@ -243,19 +243,21 @@ module.exports = async function handler(req, res) {
         }
         const minchaShabbosRaw = shabbosRow ? (shabbosRow.mincha_shabbos || null) : null;
         const maarivRaw = shabbosRow ? (shabbosRow.maariv || null) : null;
-        // Manual gabbai override wins over the toggle/compute path.
-        // - If shabbos_zmanim.halacha_shiur (or pirkei_avos) is set, use it
-        //   verbatim and surface the row regardless of the manifest toggle.
-        // - Else fall back to the toggle: when ON, compute from
-        //   mincha_shabbos − 20m / maariv − 15m (rounded to 5).
-        // This matches the flier's "manual entry" behavior: the gabbai's
-        // posted time always wins.
+        // Halacha Shiur + Pirkei Avos are part of the gabbai's standing
+        // weekly SMS — they appear every week. Resolution order:
+        //   1. shabbos_zmanim.halacha_shiur / pirkei_avos (gabbai override)
+        //   2. computed from mincha_shabbos − 20m / maariv − 15m (round 5)
+        // The legacy manifestZmanim.shabbosShiur* toggles are intentionally
+        // NOT gating this anymore — they used to silently hide both rows
+        // when off, which left the SMS Copy-as-Text missing two lines on
+        // weeks the gabbai had not flipped them. Operators can still
+        // suppress an individual week by clearing the underlying base
+        // time (mincha_shabbos / maariv) or by entering an explicit blank
+        // override in the bulk editor.
         const halachaManual = pick(shabbosRow && shabbosRow.halacha_shiur);
         const pirkeiManual = pick(shabbosRow && shabbosRow.pirkei_avos);
-        const halachaShiurTime = halachaManual
-            || (manifestZmanim.shabbosShiurMincha ? minusMinutes(minchaShabbosRaw, 20) : null);
-        const pirkeiAvosTime = pirkeiManual
-            || (manifestZmanim.shabbosShiurMaariv ? minusMinutes(maarivRaw, 15, 5) : null);
+        const halachaShiurTime = halachaManual || minusMinutes(minchaShabbosRaw, 20);
+        const pirkeiAvosTime = pirkeiManual || minusMinutes(maarivRaw, 15, 5);
 
         // Kids learning times (entered as free text in the admin, e.g. "4:30 PM").
         const pircheiTime = clockNoAmPm((manifestZmanim.pircheiTime || '').trim());

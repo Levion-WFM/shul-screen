@@ -315,12 +315,14 @@
 </div></div>
 </div>
 </main>
-<!-- Info Bar -->
+<!-- Info Bar — column widths mirror the main grid (4/5/3) so the
+     welcome text (e.g. "bmj21.com") sits centered under the center
+     content column, not at screen-center. -->
 <div class="bg-[#0a0706] border-y-4 gold-border-3d h-12 flex items-center shadow-xl relative z-40 overflow-hidden shrink-0">
-<div class="px-8 text-primary font-headline w-full grid grid-cols-3 items-center gap-4">
-<span id="infoSefirah" dir="rtl" class="font-bold text-xl glow-text-hebrew truncate text-left"></span>
-<span id="infoWelcome" class="label-smallcaps font-bold text-xl text-center truncate"></span>
-<span id="infoReminder" class="italic font-semibold text-xl text-secondary text-right truncate"></span>
+<div class="px-8 text-primary font-headline w-full grid grid-cols-12 items-center gap-4">
+<span id="infoSefirah" dir="rtl" class="col-span-4 font-bold text-xl glow-text-hebrew truncate text-left"></span>
+<span id="infoWelcome" class="col-span-5 label-smallcaps font-bold text-xl text-center truncate"></span>
+<span id="infoReminder" class="col-span-3 italic font-semibold text-xl text-secondary text-right truncate"></span>
 </div>
 </div>
 <!-- Zecher Nishmas dedication (editable via backend) -->
