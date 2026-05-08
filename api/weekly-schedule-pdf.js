@@ -15,6 +15,12 @@ function clockText(s) {
     return m ? m[1] : String(s).trim();
 }
 
+function normalizeHebrewWording(s) {
+    return String(s || '')
+        .replace(/בחוקתי/g, 'בחוקותי')
+        .replace(/בחקתי/g, 'בחוקותי');
+}
+
 function visualRtl(s) {
     const text = String(s || '');
     if (!text) return '';
@@ -146,7 +152,7 @@ async function renderSchedulePdf(payload) {
     const page = pdfDoc.getPages()[0];
     const { width, height } = page.getSize();
 
-    const parshaName = z.parashaDb || z.parashaHebrew || '';
+    const parshaName = normalizeHebrewWording(z.parashaDb || z.parashaHebrew || '');
     drawHeadline(page, font, parshaName, width, height);
 
     const { fridayRows, shabbosRows, kidsRows } = buildRows(z);
