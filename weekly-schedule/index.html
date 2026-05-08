@@ -78,10 +78,10 @@
 </head>
 <body>
   <div class="top-bar">
-    <a href="https://www.bmj21.com/schedules.html">Back to Schedules</a>
+    <button type="button" id="back-button">Back</button>
     <div class="actions">
       <button type="button" id="copy-text">Copy as Text</button>
-      <a class="primary" href="/api/weekly-schedule-pdf">Download PDF</a>
+      <a class="primary" href="/api/weekly-schedule-pdf" download>Download PDF</a>
     </div>
   </div>
 
@@ -99,6 +99,11 @@
     return new URLSearchParams(location.search).has('embed');
   })();
   if (isEmbed) document.body.classList.add('embed');
+
+  document.getElementById('back-button').addEventListener('click', () => {
+    if (history.length > 1) history.back();
+    else location.href = '/backend.html';
+  });
 
   let lastZmanim = null;
   let lastParshaName = '';

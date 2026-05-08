@@ -2,12 +2,10 @@ const fs = require('fs');
 const path = require('path');
 const { PDFDocument, rgb } = require('pdf-lib');
 const fontkit = require('@pdf-lib/fontkit');
-const bidiFactory = require('bidi-js');
 
 const TEMPLATE_PATH = path.join(__dirname, '..', 'weekly-schedule', 'template.pdf');
 const FONT_PATH = path.join(__dirname, '..', 'weekly-schedule', 'fonts', 'FrankRuhlLibre.ttf');
 const INK = rgb(0.08, 0.13, 0.29);
-const bidi = bidiFactory();
 
 function clockText(s) {
     if (!s) return null;
@@ -22,25 +20,7 @@ function normalizeHebrewWording(s) {
 }
 
 function visualRtl(s) {
-    const text = String(s || '');
-    if (!text) return '';
-    const embedding = bidi.getEmbeddingLevels(text, 'rtl');
-    const chars = Array.from(text);
-    const mirrored = bidi.getMirroredCharactersMap(text, embedding);
-    for (const [index, mirroredChar] of mirrored) chars[index] = mirroredChar;
-    const flips = bidi.getReorderSegments(text, embedding);
-    flips.forEach(([start, end]) => {
-        let left = start;
-        let right = end;
-        while (left < right) {
-            const tmp = chars[left];
-            chars[left] = chars[right];
-            chars[right] = tmp;
-            left += 1;
-            right -= 1;
-        }
-    });
-    return chars.join('');
+    return String(s || '');
 }
 
 function textWidth(font, text, size) {
