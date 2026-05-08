@@ -2,10 +2,12 @@ const fs = require('fs');
 const path = require('path');
 const { PDFDocument, rgb } = require('pdf-lib');
 const fontkit = require('@pdf-lib/fontkit');
+const bidiFactory = require('bidi-js');
 
 const TEMPLATE_PATH = path.join(__dirname, '..', 'weekly-schedule', 'template.pdf');
 const FONT_PATH = path.join(__dirname, '..', 'weekly-schedule', 'fonts', 'FrankRuhlLibre.ttf');
-const INK = rgb(0.10, 0.15, 0.31);
+const INK = rgb(0.08, 0.13, 0.29);
+const bidi = bidiFactory();
 
 function clockText(s) {
     if (!s) return null;
@@ -13,48 +15,78 @@ function clockText(s) {
     return m ? m[1] : String(s).trim();
 }
 
-function reverseForPdfRtl(s) {
-    const mirror = { '(': ')', ')': '(', '[': ']', ']': '[', '{': '}', '}': '{' };
-    return Array.from(String(s || '')).reverse().map(ch => mirror[ch] || ch).join('');
+function visualRtl(s) {
+    const text = String(s || '');
+    if (!text) return '';
+    const embedding = bidi.getEmbeddingLevels(text, 'rtl');
+    const chars = Array.from(text);
+    const mirrored = bidi.getMirroredCharactersMap(text, embedding);
+    for (const [index, mirroredChar] of mirrored) chars[index] = mirroredChar;
+    const flips = bidi.getReorderSegments(text, embedding);
+    flips.forEach(([start, end]) => {
+        let left = start;
+        let right = end;
+        while (left < right) {
+            const tmp = chars[left];
+            chars[left] = chars[right];
+            chars[right] = tmp;
+            left += 1;
+            right -= 1;
+        }
+    });
+    return chars.join('');
 }
 
 function textWidth(font, text, size) {
     return font.widthOfTextAtSize(String(text || ''), size);
 }
 
-function drawRtl(page, font, text, xRight, y, size, options = {}) {
-    const visual = reverseForPdfRtl(text);
-    const width = textWidth(font, visual, size);
-    page.drawText(visual, {
-        x: xRight - width,
-        y,
-        size,
-        font,
-        color: options.color || INK,
+function drawTextLayer(page, text, x, y, size, font, options = {}) {
+    const color = options.color || INK;
+    const bold = options.bold || 0;
+    const offsets = bold >= 2
+        ? [[0, 0], [0.24, 0], [-0.16, 0], [0, 0.16], [0.14, 0.10]]
+        : bold >= 1
+            ? [[0, 0], [0.20, 0], [0, 0.12]]
+            : [[0, 0]];
+
+    offsets.forEach(([dx, dy]) => {
+        page.drawText(text, {
+            x: x + dx,
+            y: y + dy,
+            size,
+            font,
+            color,
+        });
     });
+}
+
+function drawRtl(page, font, text, xRight, y, size, options = {}) {
+    const visual = visualRtl(text);
+    const width = textWidth(font, visual, size);
+    drawTextLayer(page, visual, xRight - width, y, size, font, options);
     return width;
 }
 
 function drawCenteredRtl(page, font, text, centerX, y, size, maxWidth, options = {}) {
     let finalSize = size;
-    let visual = reverseForPdfRtl(text);
+    let visual = visualRtl(text);
     while (maxWidth && finalSize > 10 && textWidth(font, visual, finalSize) > maxWidth) {
         finalSize -= 1;
     }
-    page.drawText(visual, {
-        x: centerX - textWidth(font, visual, finalSize) / 2,
-        y,
-        size: finalSize,
-        font,
-        color: options.color || INK,
-    });
+    drawTextLayer(page, visual, centerX - textWidth(font, visual, finalSize) / 2, y, finalSize, font, options);
     return finalSize;
+}
+
+function drawHeadline(page, font, parshaName, width, height) {
+    const singleLine = parshaName ? `זמנים לשבת קודש פרשת ${parshaName}` : 'זמנים לשבת קודש';
+    drawCenteredRtl(page, font, singleLine, width / 2, height * 0.682, 31, width * 0.73, { bold: 2 });
 }
 
 function drawDots(page, x1, x2, y) {
     if (x2 <= x1) return;
-    for (let x = x1; x <= x2; x += 5.2) {
-        page.drawCircle({ x, y, size: 0.75, color: INK, opacity: 0.82 });
+    for (let x = x1; x <= x2; x += 4.6) {
+        page.drawCircle({ x, y, size: 0.82, color: INK, opacity: 0.88 });
     }
 }
 
@@ -95,25 +127,13 @@ function buildRows(z) {
 function drawRow(page, font, row, y, metrics) {
     const time = clockText(row.time) || '—';
     const timeWidth = textWidth(font, time, metrics.rowSize);
-    page.drawText(time, {
-        x: metrics.rowLeft,
-        y,
-        size: metrics.rowSize,
-        font,
-        color: INK,
-    });
+    drawTextLayer(page, time, metrics.rowLeft, y, metrics.rowSize, font, { bold: 2 });
 
-    const labelVisual = reverseForPdfRtl(row.label);
+    const labelVisual = visualRtl(row.label);
     const labelWidth = textWidth(font, labelVisual, metrics.rowSize);
     const labelLeft = metrics.rowRight - labelWidth;
-    drawDots(page, metrics.rowLeft + timeWidth + 8, labelLeft - 8, y + metrics.rowSize * 0.22);
-    page.drawText(labelVisual, {
-        x: labelLeft,
-        y,
-        size: metrics.rowSize,
-        font,
-        color: INK,
-    });
+    drawDots(page, metrics.rowLeft + timeWidth + 8, labelLeft - 10, y + metrics.rowSize * 0.22);
+    drawTextLayer(page, labelVisual, labelLeft, y, metrics.rowSize, font, { bold: 2 });
 }
 
 async function renderSchedulePdf(payload) {
@@ -127,27 +147,25 @@ async function renderSchedulePdf(payload) {
     const { width, height } = page.getSize();
 
     const parshaName = z.parashaDb || z.parashaHebrew || '';
-    drawRtl(page, font, 'בס״ד', width * 0.91, height * 0.765, 12);
-    drawCenteredRtl(page, font, 'זמנים לשבת קודש', width / 2, height * 0.705, 15, width * 0.75);
-    drawCenteredRtl(page, font, parshaName ? ('פרשת ' + parshaName) : '', width / 2, height * 0.655, 34, width * 0.78);
+    drawHeadline(page, font, parshaName, width, height);
 
     const { fridayRows, shabbosRows, kidsRows } = buildRows(z);
     const totalRows = fridayRows.length + shabbosRows.length + kidsRows.length;
     const dense = totalRows >= 12;
     const metrics = {
-        rowSize: dense ? 25 : 29,
-        lineHeight: dense ? 30 : 35,
-        rowLeft: width * 0.205,
-        rowRight: width * 0.795,
+        rowSize: dense ? 24.5 : 27,
+        lineHeight: dense ? 29 : 32.5,
+        rowLeft: width * 0.252,
+        rowRight: width * 0.735,
     };
 
     const groups = [fridayRows, shabbosRows];
     if (kidsRows.length) groups.push(kidsRows);
-    const topY = height * 0.605;
-    const bottomY = height * 0.175;
+    const topY = height * 0.603;
+    const bottomY = height * 0.185;
     const groupHeights = groups.map(rows => rows.length * metrics.lineHeight);
     const used = groupHeights.reduce((a, b) => a + b, 0);
-    const between = groups.length > 1 ? Math.max(14, (topY - bottomY - used) / (groups.length - 1)) : 0;
+    const between = groups.length > 1 ? Math.max(19, (topY - bottomY - used) / (groups.length - 1)) : 0;
 
     let y = topY;
     groups.forEach((rows, groupIndex) => {
@@ -181,8 +199,9 @@ module.exports = async function handler(req, res) {
         if (!dataRes.ok || !data.ok) throw new Error(data.error || 'Could not load weekly schedule');
 
         const pdfBytes = await renderSchedulePdf(data);
+        const disposition = req.query && req.query.inline ? 'inline' : 'attachment';
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="bmj21-schedule-${data.date || new Date().toISOString().slice(0, 10)}.pdf"`);
+        res.setHeader('Content-Disposition', `${disposition}; filename="bmj21-schedule-${data.date || new Date().toISOString().slice(0, 10)}.pdf"`);
         res.setHeader('Cache-Control', 'no-store');
         return res.status(200).send(Buffer.from(pdfBytes));
     } catch (err) {

@@ -1,649 +1,108 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>זמנים לשבת — Beis Medrash DJackson 21</title>
+<title>BMJ21 Weekly Schedule PDF</title>
 <meta name="robots" content="noindex, nofollow"/>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Suez+One&family=Frank+Ruhl+Libre:wght@300;400;500;700;900&family=David+Libre:wght@400;500;700&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
-  :root {
-    --poster-width: 1024px;
-    --poster-height: 1536px;
-    /* Deep navy tuned to the reference flier — a hair darker and less
-       blue-purple than the prior #1e2a55 so it sits flat against the
-       parchment's blue-grey midtones rather than vibrating against them. */
-    --parchment-ink: #1a2750;
-    --parchment-ink-soft: #2b3870;
-    --parchment-accent: #8a6a2a;
-    --parchment-accent-bright: #b48e3f;
-  }
-
-  * { box-sizing: border-box; margin: 0; }
+  * { box-sizing: border-box; }
   html, body {
+    margin: 0;
+    min-height: 100%;
     background: #0c1326;
-    color: #fff;
-    font-family: 'Manrope', sans-serif;
-    min-height: 100vh;
-    -webkit-font-smoothing: antialiased;
+    color: #eef2ff;
+    font-family: Arial, sans-serif;
   }
-
-  .page {
-    padding: 1rem 1rem 5rem;
+  body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1.25rem;
+    gap: 14px;
+    padding: 14px;
   }
   .top-bar {
-    width: 100%;
-    max-width: 1024px;
-    display: flex; justify-content: space-between; align-items: center;
-    color: #bcc3d4;
-    font-size: 0.85rem;
-    padding: 0.5rem 0.25rem;
-  }
-  .top-bar a { color: #bcc3d4; text-decoration: none; border-bottom: 1px solid transparent; }
-  .top-bar a:hover { border-color: currentColor; }
-  .actions { display: flex; gap: 0.75rem; align-items: center; }
-  .btn {
-    font-family: 'Manrope', sans-serif;
-    font-size: 0.8125rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 0.6rem 1.1rem;
-    border: 1px solid rgba(255,255,255,0.25);
-    color: #fff;
-    background: transparent;
-    cursor: pointer;
-    border-radius: 2px;
-    transition: background .2s ease, border-color .2s ease;
-  }
-  .btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.45); }
-  .btn-accent { background: #8a6a2a; border-color: #8a6a2a; }
-  .btn-accent:hover { background: #a67e33; border-color: #a67e33; }
-
-  .poster-wrap {
-    width: 100%;
-    max-width: var(--poster-width);
-    aspect-ratio: 1024 / 1536;
-    position: relative;
-  }
-  .poster {
-    position: absolute; inset: 0;
-    background-image: url('./template.png');
-    background-size: cover;
-    background-position: center center;
-    background-repeat: no-repeat;
-    background-color: #1e2a55;
-    overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 4px 10px rgba(0,0,0,0.3);
-    border-radius: 2px;
-    direction: rtl;
-    font-family: 'Frank Ruhl Libre', 'David Libre', serif;
-    color: var(--parchment-ink);
-    /* Container-query context so children can size text with cqw (percentage
-       of the poster's actual width). Without this, font-size: 3.4% resolved
-       against the parent's 16px root and collapsed to 0.5px — hence the
-       microscopic text in the first downloaded render. */
-    container-type: inline-size;
-  }
-
-  /* Template has the shul name ("בית מדרש דגקסן 21 אשכנז"), the rav-name
-     line, and the address baked into the PNG. Content sits inside the
-     parchment inner area: roughly 22%-85% vertically, 10%-90% horizontally.
-     Design intent: let the parchment + its baked ornamentation do the
-     decorative work. No overlay frames, boxes, gradient rules, or ornaments
-     layered on top of the template — those read as "dropped-in widgets"
-     rather than part of the poster. Type alone carries the hierarchy. */
-
-  /* Header — kicker + hero. Top:27% centers the title block in the
-     band between the parchment's top ornamental flourish (~24%) and
-     the lower silver divider beneath the title (~35%) — previous
-     25.5% sat the kicker too close to the upper flourish. */
-  .header {
-    position: absolute;
-    top: 27%; left: 6%; right: 6%;
-    text-align: center;
-    color: var(--parchment-ink);
-    font-family: 'Suez One', 'Frank Ruhl Libre', 'David Libre', serif;
-  }
-  .header .kicker {
-    font-family: 'Frank Ruhl Libre', 'David Libre', serif;
-    font-weight: 500;
-    font-size: 2.4cqw;
-    letter-spacing: 0.06em;
-    line-height: 1.1;
-    color: var(--parchment-ink);
-    opacity: 0.78;
-    margin-bottom: 0.15em;
-  }
-  .header .hero {
-    font-family: 'Suez One', 'Frank Ruhl Libre', serif;
-    font-weight: 400;             /* Suez One ships only at 400 — its weight is in the design itself */
-    font-size: 5.8cqw;
-    letter-spacing: 0.005em;
-    line-height: 1.05;
-    color: var(--parchment-ink);
-    text-wrap: balance;
-  }
-
-  /* Content column — the schedule zone. Top:36% gives the lowered
-     title block room above. min-height:0 cascade lets the rows-dense
-     variant shrink without overflow. */
-  .content-column {
-    position: absolute;
-    top: 36%;
-    bottom: 15%;
-    left: 13%;
-    right: 13%;
+    width: min(100%, 1024px);
     display: flex;
-    flex-direction: column;
+    align-items: center;
     justify-content: space-between;
-    align-items: stretch;
-    gap: 2.4%;
-    color: var(--parchment-ink);
-    min-height: 0;
+    gap: 12px;
+    color: #cbd5e1;
+    font-size: 13px;
   }
-  .content-column > * { min-height: 0; }
-
-  /* Section titles ("ערב שבת קודש", "שבת קודש") — hidden by default.
-     The reference flier renders one continuous list with no eyebrow
-     subtitles; the visual gap between the Erev block and the Shabbos
-     block is the only divider, and the parchment-template's silver rule
-     under the title carries the rest. Eyebrows above sub-blocks were the
-     biggest "this is an AI mockup" tell on the previous pass.
-
-     The Erev / Shabbos titles in the static HTML still render as
-     <div class="section-title"> for semantic clarity, but `display:none`
-     drops them visually. Kids learning ("לימוד ילדים") opts back in
-     via .section-title.kids when admin has set kids times — at that
-     point the section is structurally a separate block worth labeling. */
-  .section-title { display: none; }
-  .section-title.kids {
-    display: block;
-    font-family: 'Frank Ruhl Libre', serif;
-    font-weight: 700;
-    font-size: 2.4cqw;
-    letter-spacing: 0.16em;
-    color: var(--parchment-ink);
-    opacity: 0.8;
-    text-align: center;
-    margin-bottom: 0.5%;
-  }
-
-  /* List group — a section of rows (Erev, Shabbos, Limud). max-width
-     78% pulls each row toward the center of the parchment so the
-     Hebrew label and the time aren't stranded at the parchment's
-     left/right edges with a long sparse leader between them. */
-  .list-group {
-    font-weight: 400;
-    color: var(--parchment-ink);
+  .actions {
     display: flex;
-    flex-direction: column;
-    gap: 0.55em;             /* breathes between rows (was 0.3em — too cramped) */
-    max-width: 78%;
-    margin-left: auto;
-    margin-right: auto;
-    width: 100%;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
   }
-
-  /* Row: Hebrew label on the right (RTL), time on the left, dotted leader
-     between them. Items align to baseline so the dot leader sits like
-     a dotted underline beneath the type rather than running through
-     the middle. Font bumped to 4.9cqw — previous 4.4cqw read as small
-     against the parchment's available band, especially after the
-     title block was lowered. */
-  .list-group .row {
-    display: flex;
-    align-items: baseline;
-    gap: 0.45em;
-    font-size: 4.9cqw;
-    line-height: 1.18;
-    color: var(--parchment-ink);
+  a, button {
+    color: #f4d35e;
+    background: transparent;
+    border: 1px solid rgba(244, 211, 94, 0.5);
+    border-radius: 3px;
+    padding: 8px 11px;
+    text-decoration: none;
+    font: 700 12px/1 Arial, sans-serif;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
   }
-  .list-group .row .label {
-    font-family: 'Frank Ruhl Libre', 'David Libre', serif;
-    font-weight: 700;
-    color: var(--parchment-ink);
-    flex-shrink: 0;
-    line-height: 1.15;
+  a.primary {
+    background: #8a6a2a;
+    border-color: #8a6a2a;
+    color: #fff;
   }
-  .list-group .row .leader {
-    flex: 1;
-    /* Dots at the baseline — the leader's bottom edge sits at the
-       row's baseline, so the dots fall just below the Hebrew letters
-       instead of through their middle. Negative margin-bottom drops
-       the strip below the baseline by another ~0.05em so the dots
-       read as a dotted underline rather than overlapping the type. */
-    height: 0.28em;
-    margin-bottom: -0.06em;
-    /* Dense fine dots — 0.12em diameter at 0.22em pitch (edge-to-edge
-       gap ~0.10em, about one dot-width). */
-    background-image: radial-gradient(circle, var(--parchment-ink) 0.06em, transparent 0.07em);
-    background-size: 0.22em 0.22em;
-    background-position: center;
-    background-repeat: repeat-x;
-    min-width: 0.8em;
-  }
-  .list-group .row .time {
-    direction: ltr;
-    text-align: left;
-    font-feature-settings: 'tnum' on, 'lnum' on;
-    font-variant-numeric: tabular-nums lining-nums;
-    font-weight: 700;
-    font-size: 1em;
-    color: var(--parchment-ink);
-    letter-spacing: 0.01em;
-    flex-shrink: 0;
-    line-height: 1.15;
-  }
-
-  /* Shiur callout — Pirkei Avos by the Rav shlit"a etc. The reference
-     flier renders this as a barely-there parchment-tint band: slightly
-     darker cream than the page, no border, no shadow, near-flat. Drops
-     the bordered-card look that read as "web widget" rather than
-     "printed callout". */
-  .shiur-box {
-    align-self: center;
-    margin: 0.6% 0;
-    padding: 0.5em 1.4em;
-    /* Parchment-darker tint, no stroke. The 18% navy mixed into the
-       cream gives the band-of-tint that reads as a printed highlight
-       overlay rather than an outlined box. */
-    background: rgba(26,39,80,0.10);
+  .pdf-frame {
+    width: min(100%, 1024px);
+    aspect-ratio: 612 / 810.1982;
+    min-height: 70vh;
     border: 0;
-    border-radius: 2px;
-    text-align: center;
-    color: var(--parchment-ink);
-    font-family: 'Frank Ruhl Libre', 'David Libre', serif;
-    font-size: 3.2cqw;
-    line-height: 1.3;
-    font-weight: 700;
-    max-width: 78%;
+    background: #fff;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
   }
-  .shiur-box .shiur-time {
-    font-feature-settings: 'tnum' on, 'lnum' on;
-    font-variant-numeric: tabular-nums lining-nums;
-    margin-inline-start: 0.4em;
+  .embed body, body.embed {
+    padding: 0;
+    gap: 0;
+    background: transparent;
+    overflow: hidden;
   }
-
-  /* Footer note — Hebrew has no real italic so we DON'T set
-     `font-style: italic` (slanted Hebrew letters look broken). Instead
-     mark the note with a smaller size + lighter weight + slight muting,
-     which is how heimish print designers typeset minhag callouts like
-     "לא ברישת אבא". Hidden until populated. */
-  .footer-note {
-    margin-top: 1.4%;
-    text-align: center;
-    font-family: 'Frank Ruhl Libre', 'David Libre', serif;
-    font-weight: 400;
-    font-size: 2.4cqw;
-    color: #5a6378;
-  }
-  .footer-note.hidden { display: none; }
-
-  /* בס״ד top-right — required on heimish/yeshivish fliers, omission
-     reads as "non-frum design". Sits inside the parchment area, not
-     overlapping the template's top arch. */
-  .bsd {
-    position: absolute;
-    top: 21%; right: 9%;
-    font-family: 'Frank Ruhl Libre', serif;
-    font-weight: 500;
-    font-size: 1.9cqw;
-    color: var(--parchment-ink);
-    opacity: 0.82;
-    letter-spacing: 0.02em;
-  }
-
-  /* Dense fallback (6+ Shabbos rows AND kids visible) — tightens the
-     base 4.9cqw / 0.55em gap to fit a fuller schedule without
-     overflowing the parchment footer. */
-  .content-column.rows-dense .list-group .row { font-size: 4.3cqw; }
-  .content-column.rows-dense .list-group { gap: 0.35em; }
-
-  .list-kids.hidden { display: none; }
-
-  .loading {
-    position: absolute;
-    inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    color: #bcc3d4; font-size: 1rem; font-family: Manrope, sans-serif;
-    direction: ltr;
-  }
-  .loading.hidden { display: none; }
-  .spin {
-    width: 20px; height: 20px; border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.15); border-top-color: #d9c88a;
-    animation: spin 1s linear infinite; margin-left: 0.6rem;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  @media (max-width: 640px) {
-    .page { padding: 0.5rem 0.5rem 4rem; }
-    .top-bar { font-size: 0.75rem; flex-wrap: wrap; gap: 0.5rem; }
-    .btn { padding: 0.5rem 0.8rem; font-size: 0.72rem; }
+  body.embed .top-bar { display: none; }
+  body.embed .pdf-frame {
+    width: 100vw;
+    height: 100vh;
+    min-height: 0;
+    box-shadow: none;
   }
 </style>
 </head>
 <body>
-
-<div class="page">
-  <!-- Top-bar is hidden when the page is iframed (e.g. embedded on
-       beismedrashdjackson21.com/schedules.html). The Download button alone
-       stays visible via the data-embed-keep attribute. Detection happens in
-       script below on `?embed=1` query param OR window.self !== window.top. -->
-  <div class="top-bar" id="top-bar">
-    <a href="https://www.bmj21.com/schedules.html" id="back-link">← Back to Schedules</a>
+  <div class="top-bar">
+    <a href="https://www.bmj21.com/schedules.html">Back to Schedules</a>
     <div class="actions">
-      <button class="btn" id="copy-link">Copy Link</button>
-      <button class="btn" id="copy-text">Copy as Text</button>
-      <button class="btn btn-accent" id="download-png" data-embed-keep>Download PDF</button>
+      <button type="button" id="copy-text">Copy as Text</button>
+      <a class="primary" href="/api/weekly-schedule-pdf">Download PDF</a>
     </div>
   </div>
 
-  <div class="poster-wrap">
-    <div class="poster" id="poster">
-      <div class="loading" id="loading"><span>Loading zmanim…</span><span class="spin"></span></div>
-
-      <!-- בס״ד — required on heimish/yeshivish fliers; omitted reads as
-           non-frum-designed. -->
-      <div class="bsd">בס״ד</div>
-
-      <!-- Title — small kicker ("זמנים לשבת קודש") above a heavy parsha
-           hero ("פרשת [name]"). The parsha name is the visual anchor of
-           the flier; the times-for-Shabbos phrase is contextual frame.
-           Real shul fliers always lead with the parsha for exactly this
-           reason — five-words-equal-weight on one line had no focal
-           point and read as awkward. -->
-      <div class="header">
-        <div class="kicker">זמנים לשבת קודש</div>
-        <div class="hero" id="parsha-name">&nbsp;</div>
-      </div>
-
-      <!-- Content column — flex-distributes Erev Shabbos, Shabbos, and the
-           optional Kids learning list across the parchment's inner area.
-           When kids is hidden the remaining two blocks take the space back
-           so there's no dead middle zone. -->
-      <div class="content-column">
-
-        <!-- Erev Shabbos. JS-built so that summer weeks (Mincha A + B
-             bracketing the Plag) and winter weeks (single Mincha) render
-             the right number of rows. The reference SMS flier orders this
-             block as: Candles → Mincha 1 → Plag → Mincha 2 → Shkia. -->
-        <div class="list-group list-friday">
-          <div class="section-title">ערב שבת קודש</div>
-          <div id="list-friday"></div>
-        </div>
-
-        <!-- Shabbos list — JS-built so rabbinic shiurim slot in
-             chronologically (Shiur Halacha before Mincha, Pirkei Avos
-             between Shkia and Maariv). Shiur rows get .tint styling so
-             they read as supplementary to the tefilla times. -->
-        <div class="list-group list-shabbos">
-          <div class="section-title">שבת קודש</div>
-          <div id="list-shabbos"></div>
-        </div>
-
-        <!-- Kids learning — Pirchei + Avos uBanim. Rendered as plain
-             rows in the same continuous list flow, no "לימוד ילדים"
-             section heading (the per-row labels read clearly enough
-             without a categorical eyebrow above them). Hidden when
-             neither time is populated. -->
-        <div class="list-group list-kids hidden" id="kids-box">
-          <div id="kids-rows"></div>
-        </div>
-
-        <!-- Optional minhag/announcement footer note (e.g. "לא ברישת אבא"
-             on weeks the seudah is at the rav's house). Wired from
-             data.zmanim.scheduleNote — hidden when the field is empty.
-             Kept inside the content-column so it sits above the
-             template's baked-in address line. -->
-        <div class="footer-note hidden" id="schedule-note"></div>
-
-      </div>
-
-      <!-- Address + rav name are baked into template.png (בנשיאות הרב יעקב
-           יוסף גוורצמן  /  15 Avalon Lane, Jackson N.J. 08527). No absolute
-           elements needed here — the PNG carries that footer region. -->
-    </div>
-  </div>
-
-  <p style="color:#8e96ae; font-size:0.75rem; text-align:center; max-width: 36rem;">
-    All times sourced from the kiosk database. Shul-specific times (candles,
-    mincha, shacharis, maariv) are gabbai-entered; astronomical zmanim
-    (plag, shkia) come from the 2-year MyZmanim-seeded schedule; mincha
-    ketana is computed from sunrise + sunset (GRA proportional hours).
-  </p>
-</div>
+  <object
+    class="pdf-frame"
+    id="pdf-frame"
+    type="application/pdf"
+    data="/api/weekly-schedule-pdf?inline=1#toolbar=0&navpanes=0&scrollbar=0&view=FitH">
+    <a class="primary" href="/api/weekly-schedule-pdf">Open Weekly Schedule PDF</a>
+  </object>
 
 <script>
-  const $ = (id) => document.getElementById(id);
-  const set = (id, v) => { const el = $(id); if (el) el.textContent = v || '—'; };
+  const isEmbed = (() => {
+    try { if (window.self !== window.top) return true; } catch { return true; }
+    return new URLSearchParams(location.search).has('embed');
+  })();
+  if (isEmbed) document.body.classList.add('embed');
 
-  // Last zmanim payload — captured by load() so the Copy-as-Text handler
-  // can format the same data without re-fetching.
   let lastZmanim = null;
   let lastParshaName = '';
 
-  // Embed mode: when iframed (or explicit ?embed=1), hide page chrome that
-  // doesn't belong outside this origin (Back link, Copy Link). Keep the
-  // Download button so the embedding site still gets image-export capability.
-  const isEmbed = (() => {
-    try { if (window.self !== window.top) return true; } catch { return true; /* cross-origin access throws → iframe */ }
-    return new URLSearchParams(location.search).has('embed');
-  })();
-  if (isEmbed) {
-    // In embed mode the poster should look like a static image — the host
-    // page (shul-website) provides its own download button. Hide the entire
-    // top bar (back link, copy link, Download) plus footer tip, strip the
-    // dark page background, and remove all padding so the iframe is
-    // flush-to-edge with no scrollbars.
-    document.documentElement.classList.add('embed');
-    const topBar = $('top-bar');
-    if (topBar) topBar.style.display = 'none';
-    const tip = document.querySelector('p[style*="#8e96ae"]');
-    if (tip) tip.style.display = 'none';
-    document.documentElement.style.background = 'transparent';
-    document.body.style.background = 'transparent';
-    const page = document.querySelector('.page');
-    if (page) { page.style.padding = '0'; page.style.gap = '0'; }
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
-  }
-
-  async function load() {
-    try {
-      const res = await fetch('/api/weekly-schedule', { cache: 'no-store' });
-      if (!res.ok) throw new Error('Failed to load zmanim (HTTP ' + res.status + ')');
-      const data = await res.json();
-      if (!data.ok) throw new Error(data.error || 'Unknown error');
-
-      const z = data.zmanim;
-      lastZmanim = z;
-
-      // Parasha — prefer the DB parsha (matches how the shul writes it),
-      // fall back to Hebcal's Hebrew name. The static title "זמנים לשבת
-      // קודש" continues with "פרשת [name]" inline on a single line; long
-      // double-parshiyos wrap onto a second line via text-wrap:balance
-      // rather than overflowing the parchment.
-      const parshaName = z.parashaDb || z.parashaHebrew || '';
-      // SMS text is English-context (Hebrew renders poorly in most chat
-      // apps), so for the text version we prefer MyZmanim's transliterated
-      // parsha_english. The source-of-truth rule (shabbos_zmanim first)
-      // applies to TIMES, not to parsha-name language: the gabbai's
-      // shabbos_zmanim.parsha is in Hebrew script, so using it here would
-      // mix scripts in the SMS. Fall back to parashaDb / parashaHebrew
-      // only when MyZmanim is empty.
-      lastParshaName = z.parashaEnglish || z.parashaDb || z.parashaHebrew || '';
-      const parshaEl = $('parsha-name');
-      if (parshaEl) parshaEl.textContent = parshaName ? 'פרשת ' + parshaName : '';
-
-      // Erev Shabbos rows — built dynamically so the early-shabbos season
-      // (Mincha A + B bracketing the Plag) and winter weeks (single Mincha)
-      // each render with the right number of lines.
-      //   Hadlakas Neiros → Mincha 1 → Plag → Mincha 2 → Shkia
-      // When Mincha A isn't set, the row collapses to a single "מנחה"
-      // entry positioned where Mincha 2 would otherwise be.
-      const minchaA = z.minchaErevShabbosA || null;
-      const minchaB = z.minchaErevShabbos || null;
-      const fridayRows = [
-        { label: 'הדלקת נרות', time: z.candles },
-        minchaA ? { label: 'מנחה א׳', time: minchaA } : null,
-        { label: 'פלג המנחה', time: z.plag },
-        minchaA
-          ? { label: 'מנחה ב׳', time: minchaB || '—' }
-          : { label: 'מנחה',    time: minchaB || '—' },
-        { label: 'שקיעה', time: z.shkiaFriday || z.shkia }
-      ].filter(Boolean);
-      const listFridayEl = $('list-friday');
-      if (listFridayEl) {
-        listFridayEl.innerHTML = fridayRows.map(r =>
-          '<div class="row">' +
-            '<span class="label">' + r.label + '</span>' +
-            '<span class="leader"></span>' +
-            '<span class="time">' + (r.time || '—') + '</span>' +
-          '</div>'
-        ).join('');
-      }
-
-      // Kids' learning — Pirchei + Avos uBanim times. Same dotted-leader
-      // row treatment as the davening times; section hides itself when
-      // neither time is set so a no-kids-learning week doesn't render an
-      // empty "לימוד ילדים" heading.
-      const kidsRowsEl = $('kids-rows');
-      const kidsBoxEl = $('kids-box');
-      if (kidsRowsEl && kidsBoxEl) {
-        kidsRowsEl.innerHTML = '';
-        const kids = [];
-        if (z.pircheiTime)    kids.push({ label: 'פרחי',        time: z.pircheiTime });
-        if (z.avosUbanimTime) kids.push({ label: 'אבות ובנים', time: z.avosUbanimTime });
-        if (kids.length) {
-          kidsBoxEl.classList.remove('hidden');
-          kidsRowsEl.innerHTML = kids.map(k =>
-            '<div class="row">' +
-              '<span class="label">' + k.label + '</span>' +
-              '<span class="leader"></span>' +
-              '<span class="time">' + k.time + '</span>' +
-            '</div>'
-          ).join('');
-        } else {
-          kidsBoxEl.classList.add('hidden');
-        }
-      }
-
-      // Shabbos list — built dynamically so active shiurim slot into their
-      // chronological position:
-      //   Shacharis → [Shiur Halacha ~20m before Mincha] → Mincha → Shkia
-      //   → [Pirkei Avos ~15m before Maariv] → Maariv
-      // Mincha Ketana is intentionally omitted — the shul doesn't post it
-      // on the flier; what matters is the Mincha minyan time. Shiurim not
-      // toggled on are omitted, so the list is 4–6 rows on any week.
-      // Shiur rows carry `tint: true` so the renderer applies the .tint
-      // class — gold-tinted italic label, smaller gold time — visually
-      // differentiating them from actual tefilla rows without boxes.
-      const shiurim = Array.isArray(z.shiurim) ? z.shiurim : [];
-      const shiurByLabel = {};
-      shiurim.forEach(s => { shiurByLabel[s.label] = s.time; });
-      const halacha = shiurByLabel['שיעור הלכה'] || null;
-      const pirkeiAvos = shiurByLabel['פרקי אבות'] || null;
-
-      // Sof Zman Krias Shema — render MA / GRA on a single row, slash-
-      // separated, when both are present. MyZmanim's daily_zmanim is the
-      // only source (shabbos_zmanim doesn't carry it).
-      const krishemaTime = (z.shemaMa && z.shemaGra)
-        ? (z.shemaMa + ' / ' + z.shemaGra)
-        : (z.shemaGra || z.shemaMa || null);
-
-      const shabbosRows = [
-        { label: 'שחרית',            time: z.shacharis },
-        krishemaTime ? { label: 'סוף זמן ק״ש', time: krishemaTime } : null,
-        halacha ? { label: 'שיעור הלכה', time: halacha, tint: true } : null,
-        { label: 'מנחה',             time: z.minchaShabbos },
-        { label: 'שקיעה',            time: z.shkia },
-        pirkeiAvos ? { label: 'פרקי אבות', time: pirkeiAvos, tint: true } : null,
-        { label: 'מעריב',            time: z.maariv }
-      ].filter(Boolean);
-
-      const listShabbosEl = $('list-shabbos');
-      if (listShabbosEl) {
-        // All entries — davening AND shiurim — render as the same
-        // dotted-leader row. Earlier pass had shiurim in a centered
-        // tinted-band callout box, but that read as awkward visually
-        // intrusive. Inline rows match the rest of the schedule and
-        // the chronological position alone is enough context.
-        listShabbosEl.innerHTML = shabbosRows.map(r =>
-          '<div class="row">' +
-            '<span class="label">' + r.label + '</span>' +
-            '<span class="leader"></span>' +
-            '<span class="time">' + (r.time || '—') + '</span>' +
-          '</div>'
-        ).join('');
-      }
-
-      // When content is at its maximum density — adding Krias Shema and a
-      // 5-row Erev block pushes the count up, so the threshold tightens to
-      // any week with the Shema row + a long Shabbos list, OR any week with
-      // both shiurim, OR kids visible alongside ≥ 6 Shabbos rows.
-      const col = document.querySelector('.content-column');
-      if (col) {
-        const fridayCount = listFridayEl ? listFridayEl.querySelectorAll('.row').length : 0;
-        const shabbosCount = listShabbosEl ? listShabbosEl.querySelectorAll('.row').length : 0;
-        const kidsVisible = kidsBoxEl && !kidsBoxEl.classList.contains('hidden');
-        const total = fridayCount + shabbosCount + (kidsVisible ? 2 : 0);
-        col.classList.toggle('rows-dense', total >= 12);
-      }
-
-      // Optional schedule note — shul-specific minhag callout (e.g. "לא
-      // ברישת אבא"). Pulled from z.scheduleNote when present; the field
-      // is admin-editable in the kiosk's zmanim editor. Hidden when blank
-      // so the parchment doesn't carry an empty-line ghost.
-      const noteEl = $('schedule-note');
-      if (noteEl) {
-        const note = (z.scheduleNote || '').trim();
-        if (note) {
-          noteEl.textContent = note;
-          noteEl.classList.remove('hidden');
-        } else {
-          noteEl.classList.add('hidden');
-          noteEl.textContent = '';
-        }
-      }
-
-      $('loading').classList.add('hidden');
-
-      // If ?autodownload=1 was passed (from the admin "Download Image" button),
-      // fire the download once fonts have actually loaded — otherwise the
-      // @fontface Hebrew serif can fall back to system fonts mid-snapshot.
-      if (new URLSearchParams(location.search).has('autodownload')) {
-        if (document.fonts && document.fonts.ready) await document.fonts.ready;
-        $('download-png').click();
-      }
-    } catch (err) {
-      $('loading').innerHTML = '<span style="color:#ff9a9a;">' + err.message + '</span>';
-    }
-  }
-
-  $('copy-link').addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText(location.href);
-      $('copy-link').textContent = 'Copied!';
-      setTimeout(() => { $('copy-link').textContent = 'Copy Link'; }, 1500);
-    } catch {}
-  });
-
-  // Build the SMS-friendly text version of the schedule. Format mirrors the
-  // gabbai's existing text-message style:
-  //   Beis Medrash D'Jackson 21
-  //   <Parsha>
-  //   (Hadlakas Neiros - 7:27)
-  //   Mincha 1 - 6:36
-  //   ...
-  // Lines are skipped when their underlying time is missing so winter weeks
-  // don't print "Mincha 1 - —".
   function buildScheduleText(z, parsha) {
     if (!z) return '';
     const lines = [];
@@ -654,81 +113,48 @@
     lines.push('');
     if (z.minchaErevShabbosA) lines.push('Mincha 1 - ' + z.minchaErevShabbosA);
     if (z.plag) lines.push('Plag Hamincha - ' + z.plag);
-    if (z.minchaErevShabbos) {
-      const label = z.minchaErevShabbosA ? 'Mincha 2' : 'Mincha';
-      lines.push(label + ' - ' + z.minchaErevShabbos);
-    }
+    if (z.minchaErevShabbos) lines.push((z.minchaErevShabbosA ? 'Mincha 2' : 'Mincha') + ' - ' + z.minchaErevShabbos);
     if (z.shkiaFriday) lines.push('Shkiya - ' + z.shkiaFriday);
     lines.push('');
     if (z.shacharis) lines.push('Shachris - ' + z.shacharis);
-    // Prefer the gabbai-entered shabbos_zmanim.sof_zman_krias_shema
-    // (free text — typically "8:54/9:30" for MGA/GRA). Fall back to
-    // computed MGA/GRA from daily_zmanim only when the gabbai's row is empty.
     if (z.sofZmanKriasShema) {
       lines.push('Sof Z"K Shma - ' + z.sofZmanKriasShema);
     } else if (z.shemaMa || z.shemaGra) {
-      const sh = (z.shemaMa && z.shemaGra)
-        ? (z.shemaMa + '/' + z.shemaGra)
-        : (z.shemaGra || z.shemaMa);
-      lines.push('Sof Z"K Shma - ' + sh);
+      lines.push('Sof Z"K Shma - ' + ((z.shemaMa && z.shemaGra) ? (z.shemaMa + '/' + z.shemaGra) : (z.shemaGra || z.shemaMa)));
     }
     const shiurMap = {};
     (Array.isArray(z.shiurim) ? z.shiurim : []).forEach(s => { shiurMap[s.label] = s.time; });
-    if (shiurMap['שיעור הלכה']) {
-      lines.push('Halacha shiur from the Rav Shlita - ' + shiurMap['שיעור הלכה']);
-    }
+    if (shiurMap['שיעור הלכה']) lines.push('Halacha shiur from the Rav Shlita - ' + shiurMap['שיעור הלכה']);
     if (z.minchaShabbos) lines.push('Mincha - ' + z.minchaShabbos);
     if (z.shkia) lines.push('Shkiya - ' + z.shkia);
-    if (shiurMap['פרקי אבות']) {
-      lines.push('Pirkei Avos - ' + shiurMap['פרקי אבות']);
-    }
+    if (shiurMap['פרקי אבות']) lines.push('Pirkei Avos - ' + shiurMap['פרקי אבות']);
     if (z.maariv) lines.push('Mariv - ' + z.maariv);
     return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
   }
 
-  $('copy-text').addEventListener('click', async () => {
-    const btn = $('copy-text');
-    const txt = buildScheduleText(lastZmanim, lastParshaName);
-    if (!txt) { btn.textContent = 'No data'; setTimeout(() => { btn.textContent = 'Copy as Text'; }, 1500); return; }
+  async function loadTextData() {
+    const res = await fetch('/api/weekly-schedule', { cache: 'no-store' });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data.ok) return;
+    lastZmanim = data.zmanim;
+    lastParshaName = data.zmanim.parashaEnglish || data.zmanim.parashaDb || data.zmanim.parashaHebrew || '';
+  }
+
+  document.getElementById('copy-text').addEventListener('click', async () => {
+    if (!lastZmanim) await loadTextData();
+    const text = buildScheduleText(lastZmanim, lastParshaName);
+    const btn = document.getElementById('copy-text');
     try {
-      await navigator.clipboard.writeText(txt);
-      btn.textContent = 'Copied!';
+      await navigator.clipboard.writeText(text);
+      btn.textContent = 'Copied';
     } catch {
-      // Fallback for older browsers / non-secure contexts.
-      const ta = document.createElement('textarea');
-      ta.value = txt;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      try { document.execCommand('copy'); btn.textContent = 'Copied!'; }
-      catch { btn.textContent = 'Copy failed'; }
-      ta.remove();
+      btn.textContent = 'Copy Failed';
     }
     setTimeout(() => { btn.textContent = 'Copy as Text'; }, 1500);
   });
 
-  $('download-png').addEventListener('click', async () => {
-    const btn = $('download-png');
-    const orig = btn.textContent;
-    btn.textContent = 'Preparing...';
-    btn.disabled = true;
-    try {
-      const a = document.createElement('a');
-      a.href = new URL('/api/weekly-schedule-pdf', location.origin).href;
-      a.download = 'bmj21-schedule-' + new Date().toISOString().slice(0,10) + '.pdf';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    } catch (err) {
-      alert('Export failed: ' + err.message);
-    } finally {
-      btn.textContent = orig;
-      btn.disabled = false;
-    }
-  });
-
-  load();
+  loadTextData();
 </script>
 </body>
 </html>
