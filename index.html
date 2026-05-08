@@ -99,6 +99,10 @@
                 0 1px 1px rgba(30, 15, 0, 0.7),
                 0 2px 4px rgba(0, 0, 0, 0.35);
         }
+        .flier-pdf {
+            background: #fff;
+            display: block;
+        }
         /* Elegant script for center-column section titles ("Shul", "Community") */
         .font-cursive {
             font-family: 'Great Vibes', cursive;
@@ -332,6 +336,12 @@
 // DATA LAYER
 // ========================================
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function pdfEmbedSrc(url) {
+    if (!url) return '';
+    var base = String(url).split('#')[0];
+    return base + '#toolbar=0&navpanes=0&scrollbar=0&view=Fit&page=1';
+}
 
 // Parse "7:00" or "7:00 PM" to minutes since midnight
 function parseTimeToMin(t) {
@@ -742,7 +752,7 @@ async function loadScreenData() {
         if (Array.isArray(data.announcements)) legacy = legacy.concat(data.announcements);
         if (Array.isArray(data.communityFliers)) legacy = legacy.concat(data.communityFliers);
         fliers = legacy.filter(function(f) {
-            return f && (f.imageData || f.title || f.description);
+            return f && (f.imageData || f.imageUrl || f.pdfUrl || f.title || f.description);
         }).slice(0, 2);
     }
 
@@ -759,17 +769,23 @@ async function loadScreenData() {
             // new flow, but the migration goal is for this branch to be the
             // exception and the imageUrl branch to be the rule.
             var imgSrc = '';
+            var pdfSrc = '';
             if (f && typeof f.imageUrl === 'string' && f.imageUrl.indexOf('http') === 0) {
                 imgSrc = f.imageUrl;
             } else if (f && typeof f.imageData === 'string' &&
                        f.imageData.length > 10 && f.imageData.startsWith('data:')) {
                 imgSrc = f.imageData;
             }
+            if (f && typeof f.pdfUrl === 'string' && f.pdfUrl.length > 4) {
+                pdfSrc = f.pdfUrl;
+            }
             // Each slot: flex-1 so 2 fliers split 50/50; min-w-0 / min-h-0 lets
             // the image actually shrink to fit (without these the flex child
             // takes its content size and max-h-full has nothing to clamp to).
             fHtml += '<div class="flex-1 min-w-0 min-h-0 flex items-center justify-center overflow-hidden">';
-            if (imgSrc) {
+            if (pdfSrc) {
+                fHtml += '<object class="max-h-full max-w-full h-full aspect-[8.5/11] flier-pdf elevated-3d border-4 border-primary/60 rounded-sm" data="' + esc(pdfEmbedSrc(pdfSrc)) + '" type="application/pdf"></object>';
+            } else if (imgSrc) {
                 // max-h-full + max-w-full + object-contain together: image
                 // fills the larger dimension first while staying inside the
                 // box; aspect ratio is preserved; no letterbox bars get baked
