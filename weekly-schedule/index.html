@@ -8,7 +8,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Suez+One&family=Frank+Ruhl+Libre:wght@300;400;500;700;900&family=David+Libre:wght@400;500;700&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <style>
   :root {
     --poster-width: 1024px;
@@ -342,7 +341,7 @@
     <div class="actions">
       <button class="btn" id="copy-link">Copy Link</button>
       <button class="btn" id="copy-text">Copy as Text</button>
-      <button class="btn btn-accent" id="download-png" data-embed-keep>Download as Image</button>
+      <button class="btn btn-accent" id="download-png" data-embed-keep>Download PDF</button>
     </div>
   </div>
 
@@ -712,28 +711,12 @@
   $('download-png').addEventListener('click', async () => {
     const btn = $('download-png');
     const orig = btn.textContent;
-    btn.textContent = 'Rendering…';
+    btn.textContent = 'Preparing...';
     btn.disabled = true;
     try {
-      if (document.fonts && document.fonts.ready) await document.fonts.ready;
-      const poster = $('poster');
-      const rect = poster.getBoundingClientRect();
-      // Pin html2canvas to the poster's actual rendered box so the export is
-      // deterministic across viewport widths. Without width/windowWidth the
-      // canvas picks up the surrounding page geometry and produces slightly
-      // different layouts per-device.
-      const canvas = await html2canvas(poster, {
-        useCORS: true,
-        backgroundColor: null,
-        scale: 2,
-        width: rect.width,
-        height: rect.height,
-        windowWidth: rect.width,
-        windowHeight: rect.height
-      });
       const a = document.createElement('a');
-      a.href = canvas.toDataURL('image/png');
-      a.download = 'bmj21-schedule-' + new Date().toISOString().slice(0,10) + '.png';
+      a.href = new URL('/api/weekly-schedule-pdf', location.origin).href;
+      a.download = 'bmj21-schedule-' + new Date().toISOString().slice(0,10) + '.pdf';
       document.body.appendChild(a);
       a.click();
       a.remove();
