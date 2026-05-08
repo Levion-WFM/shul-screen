@@ -4,8 +4,9 @@ const { PDFDocument, rgb } = require('pdf-lib');
 const fontkit = require('@pdf-lib/fontkit');
 
 const TEMPLATE_PATH = path.join(__dirname, '..', 'weekly-schedule', 'template.pdf');
-const FONT_PATH = path.join(__dirname, '..', 'weekly-schedule', 'fonts', 'FrankRuhlLibre.ttf');
+const BODY_FONT_PATH = path.join(__dirname, '..', 'weekly-schedule', 'fonts', 'FrankRuhlLibre.ttf');
 const INK = rgb(0.08, 0.13, 0.29);
+const PARSHA_PREFIX = '\u05e4\u05e8\u05e9\u05ea';
 
 function clockText(s) {
     if (!s) return null;
@@ -17,6 +18,11 @@ function normalizeHebrewWording(s) {
     return String(s || '')
         .replace(/בחוקתי/g, 'בחוקותי')
         .replace(/בחקתי/g, 'בחוקותי');
+}
+
+function formatParshaTitle(parshaName) {
+    const clean = normalizeHebrewWording(parshaName).trim().replace(/^פרשת\s+/, '');
+    return clean ? `${PARSHA_PREFIX} ${clean}` : '\u05e9\u05d1\u05ea \u05e7\u05d5\u05d3\u05e9';
 }
 
 function visualRtl(s) {
@@ -31,9 +37,9 @@ function drawTextLayer(page, text, x, y, size, font, options = {}) {
     const color = options.color || INK;
     const bold = options.bold || 0;
     const offsets = bold >= 2
-        ? [[0, 0], [0.24, 0], [-0.16, 0], [0, 0.16], [0.14, 0.10]]
+        ? [[0, 0], [0.13, 0], [0, 0.09]]
         : bold >= 1
-            ? [[0, 0], [0.20, 0], [0, 0.12]]
+            ? [[0, 0], [0.08, 0]]
             : [[0, 0]];
 
     offsets.forEach(([dx, dy]) => {
@@ -65,14 +71,13 @@ function drawCenteredRtl(page, font, text, centerX, y, size, maxWidth, options =
 }
 
 function drawHeadline(page, font, parshaName, width, height) {
-    const singleLine = parshaName ? `זמנים לשבת קודש פרשת ${parshaName}` : 'זמנים לשבת קודש';
-    drawCenteredRtl(page, font, singleLine, width / 2, height * 0.682, 31, width * 0.73, { bold: 2 });
+    drawCenteredRtl(page, font, formatParshaTitle(parshaName), width / 2, height * 0.679, 40, width * 0.66, { bold: 1 });
 }
 
 function drawDots(page, x1, x2, y) {
     if (x2 <= x1) return;
-    for (let x = x1; x <= x2; x += 4.6) {
-        page.drawCircle({ x, y, size: 0.82, color: INK, opacity: 0.88 });
+    for (let x = x1; x <= x2; x += 4.4) {
+        page.drawCircle({ x, y, size: 0.62, color: INK, opacity: 0.72 });
     }
 }
 
@@ -113,36 +118,36 @@ function buildRows(z) {
 function drawRow(page, font, row, y, metrics) {
     const time = clockText(row.time) || '—';
     const timeWidth = textWidth(font, time, metrics.rowSize);
-    drawTextLayer(page, time, metrics.rowLeft, y, metrics.rowSize, font, { bold: 2 });
+    drawTextLayer(page, time, metrics.rowLeft, y, metrics.rowSize, font, { bold: 1 });
 
     const labelVisual = visualRtl(row.label);
     const labelWidth = textWidth(font, labelVisual, metrics.rowSize);
     const labelLeft = metrics.rowRight - labelWidth;
     drawDots(page, metrics.rowLeft + timeWidth + 8, labelLeft - 10, y + metrics.rowSize * 0.22);
-    drawTextLayer(page, labelVisual, labelLeft, y, metrics.rowSize, font, { bold: 2 });
+    drawTextLayer(page, labelVisual, labelLeft, y, metrics.rowSize, font, { bold: 1 });
 }
 
 async function renderSchedulePdf(payload) {
     const z = payload.zmanim || {};
     const templateBytes = fs.readFileSync(TEMPLATE_PATH);
-    const fontBytes = fs.readFileSync(FONT_PATH);
+    const bodyFontBytes = fs.readFileSync(BODY_FONT_PATH);
     const pdfDoc = await PDFDocument.load(templateBytes);
     pdfDoc.registerFontkit(fontkit);
-    const font = await pdfDoc.embedFont(fontBytes, { subset: true });
+    const bodyFont = await pdfDoc.embedFont(bodyFontBytes, { subset: true });
     const page = pdfDoc.getPages()[0];
     const { width, height } = page.getSize();
 
     const parshaName = normalizeHebrewWording(z.parashaDb || z.parashaHebrew || '');
-    drawHeadline(page, font, parshaName, width, height);
+    drawHeadline(page, bodyFont, parshaName, width, height);
 
     const { fridayRows, shabbosRows, kidsRows } = buildRows(z);
     const totalRows = fridayRows.length + shabbosRows.length + kidsRows.length;
     const dense = totalRows >= 12;
     const metrics = {
-        rowSize: dense ? 24.5 : 27,
-        lineHeight: dense ? 29 : 32.5,
-        rowLeft: width * 0.252,
-        rowRight: width * 0.735,
+        rowSize: dense ? 24 : 26,
+        lineHeight: dense ? 29.5 : 32.5,
+        rowLeft: width * 0.258,
+        rowRight: width * 0.73,
     };
 
     const groups = [fridayRows, shabbosRows];
@@ -156,7 +161,7 @@ async function renderSchedulePdf(payload) {
     let y = topY;
     groups.forEach((rows, groupIndex) => {
         rows.forEach(row => {
-            drawRow(page, font, row, y, metrics);
+            drawRow(page, bodyFont, row, y, metrics);
             y -= metrics.lineHeight;
         });
         if (groupIndex < groups.length - 1) y -= between;
@@ -164,7 +169,7 @@ async function renderSchedulePdf(payload) {
 
     const note = (z.scheduleNote || '').trim();
     if (note) {
-        drawCenteredRtl(page, font, note, width / 2, height * 0.13, 15, width * 0.7, {
+        drawCenteredRtl(page, bodyFont, note, width / 2, height * 0.13, 15, width * 0.7, {
             color: rgb(0.28, 0.32, 0.43),
         });
     }
