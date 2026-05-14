@@ -5,8 +5,8 @@ const fontkit = require('@pdf-lib/fontkit');
 
 const TEMPLATE_PATH = path.join(__dirname, '..', 'weekly-schedule', 'template.pdf');
 const BODY_FONT_PATH = path.join(__dirname, '..', 'weekly-schedule', 'fonts', 'FrankRuhlLibre.ttf');
-const TIME_FONT_PATH = path.join(__dirname, '..', 'weekly-schedule', 'fonts', 'FrankRuhlLibre.ttf');
-const TITLE_FONT_PATH = path.join(__dirname, '..', 'weekly-schedule', 'fonts', 'NotoSerifHebrew.ttf');
+const TIME_FONT_PATH = path.join(__dirname, '..', 'weekly-schedule', 'fonts', 'FrankRuhlLibre-Medium.ttf');
+const TITLE_FONT_PATH = path.join(__dirname, '..', 'weekly-schedule', 'fonts', 'FrankRuhlLibre-Black.ttf');
 const INK = rgb(0.08, 0.13, 0.29);
 const PARSHA_PREFIX = '\u05e4\u05e8\u05e9\u05ea';
 
@@ -64,13 +64,13 @@ function drawCenteredRtl(page, font, text, centerX, y, size, maxWidth, options =
 }
 
 function drawHeadline(page, font, parshaName, width, height) {
-    drawCenteredRtl(page, font, formatParshaTitle(parshaName), width / 2, height * 0.679, 40, width * 0.68);
+    drawCenteredRtl(page, font, formatParshaTitle(parshaName), width / 2, height * 0.681, 42, width * 0.66);
 }
 
 function drawDots(page, x1, x2, y) {
     if (x2 <= x1) return;
-    for (let x = x1; x <= x2; x += 4.2) {
-        page.drawCircle({ x, y, size: 0.52, color: INK, opacity: 0.62 });
+    for (let x = x1; x <= x2; x += 5.6) {
+        page.drawCircle({ x, y, size: 0.78, color: INK, opacity: 0.42 });
     }
 }
 
@@ -116,7 +116,7 @@ function drawRow(page, fonts, row, y, metrics) {
     const labelVisual = visualRtl(row.label);
     const labelWidth = textWidth(fonts.body, labelVisual, metrics.rowSize);
     const labelLeft = metrics.rowRight - labelWidth;
-    drawDots(page, metrics.rowLeft + timeWidth + 8, labelLeft - 10, y + metrics.rowSize * 0.22);
+    drawDots(page, metrics.rowLeft + timeWidth + 12, labelLeft - 14, y + metrics.rowSize * 0.20);
     drawTextLayer(page, labelVisual, labelLeft, y, metrics.rowSize, fonts.body);
 }
 
@@ -141,19 +141,19 @@ async function renderSchedulePdf(payload) {
     const totalRows = fridayRows.length + shabbosRows.length + kidsRows.length;
     const dense = totalRows >= 12;
     const metrics = {
-        rowSize: dense ? 25.5 : 27,
-        lineHeight: dense ? 29.8 : 32.5,
-        rowLeft: width * 0.258,
-        rowRight: width * 0.727,
+        rowSize: dense ? 20 : 24,
+        lineHeight: dense ? 22.5 : 28,
+        rowLeft: width * 0.255,
+        rowRight: width * 0.730,
     };
 
     const groups = [fridayRows, shabbosRows];
     if (kidsRows.length) groups.push(kidsRows);
-    const topY = height * 0.603;
-    const bottomY = height * 0.185;
+    const topY = height * 0.625;
+    const bottomY = height * 0.175;
     const groupHeights = groups.map(rows => rows.length * metrics.lineHeight);
     const used = groupHeights.reduce((a, b) => a + b, 0);
-    const between = groups.length > 1 ? Math.max(19, (topY - bottomY - used) / (groups.length - 1)) : 0;
+    const between = groups.length > 1 ? Math.max(16, (topY - bottomY - used) / (groups.length - 1)) : 0;
 
     let y = topY;
     const fonts = { body: bodyFont, time: timeFont };
@@ -167,8 +167,8 @@ async function renderSchedulePdf(payload) {
 
     const note = (z.scheduleNote || '').trim();
     if (note) {
-        drawCenteredRtl(page, bodyFont, note, width / 2, height * 0.13, 15, width * 0.7, {
-            color: rgb(0.28, 0.32, 0.43),
+        drawCenteredRtl(page, bodyFont, note, width / 2, height * 0.115, 13, width * 0.68, {
+            color: rgb(0.40, 0.44, 0.54),
         });
     }
 
