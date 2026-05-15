@@ -146,16 +146,20 @@ async function renderSchedulePdf(payload) {
     const totalRows = fridayRows.length + shabbosRows.length + kidsRows.length;
     const dense = totalRows >= 12;
     const metrics = {
-        rowSize: dense ? 20 : 24,
-        lineHeight: dense ? 22.5 : 28,
+        rowSize: dense ? 22 : 26,
+        lineHeight: dense ? 24.5 : 30,
         rowLeft: width * 0.255,
         rowRight: width * 0.730,
     };
 
     const groups = [fridayRows, shabbosRows];
     if (kidsRows.length) groups.push(kidsRows);
-    const topY = height * 0.625;
-    const bottomY = height * 0.175;
+    // topY is the baseline of the first zman; lower it to open up space
+    // between the divider line under the parsha title and the first row.
+    // bottomY is dropped too so inter-group gaps stay larger than intra-group
+    // line spacing (the cream panel has empty room above the address footer).
+    const topY = height * 0.610;
+    const bottomY = height * 0.150;
     const groupHeights = groups.map(rows => rows.length * metrics.lineHeight);
     const used = groupHeights.reduce((a, b) => a + b, 0);
     const between = groups.length > 1 ? Math.max(16, (topY - bottomY - used) / (groups.length - 1)) : 0;
