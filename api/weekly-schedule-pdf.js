@@ -145,11 +145,14 @@ async function renderSchedulePdf(payload) {
     const { fridayRows, shabbosRows, kidsRows } = buildRows(z);
     const totalRows = fridayRows.length + shabbosRows.length + kidsRows.length;
     const dense = totalRows >= 12;
+    // rowLeft/rowRight bracket the time + dot-leader + Hebrew label horizontally.
+    // Tightening that bracket pulls the time and the label visually toward each
+    // other so the row doesn't read as two columns floating across the page.
     const metrics = {
-        rowSize: dense ? 22 : 26,
-        lineHeight: dense ? 24.5 : 30,
-        rowLeft: width * 0.255,
-        rowRight: width * 0.730,
+        rowSize: dense ? 24 : 28,
+        lineHeight: dense ? 26.5 : 32,
+        rowLeft: width * 0.320,
+        rowRight: width * 0.680,
     };
 
     const groups = [fridayRows, shabbosRows];
@@ -159,7 +162,7 @@ async function renderSchedulePdf(payload) {
     // bottomY is dropped too so inter-group gaps stay larger than intra-group
     // line spacing (the cream panel has empty room above the address footer).
     const topY = height * 0.610;
-    const bottomY = height * 0.150;
+    const bottomY = height * 0.130;
     const groupHeights = groups.map(rows => rows.length * metrics.lineHeight);
     const used = groupHeights.reduce((a, b) => a + b, 0);
     const between = groups.length > 1 ? Math.max(16, (topY - bottomY - used) / (groups.length - 1)) : 0;
