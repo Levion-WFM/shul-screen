@@ -4,16 +4,18 @@ const { PDFDocument, rgb } = require('pdf-lib');
 const fontkit = require('@pdf-lib/fontkit');
 
 const TEMPLATE_PATH = path.join(__dirname, '..', 'weekly-schedule', 'template.pdf');
-const BODY_FONT_PATH = path.join(__dirname, '..', 'weekly-schedule', 'fonts', 'FrankRuhlLibre.ttf');
-const TIME_FONT_PATH = path.join(__dirname, '..', 'weekly-schedule', 'fonts', 'FrankRuhlLibre-Medium.ttf');
-const TITLE_FONT_PATH = path.join(__dirname, '..', 'weekly-schedule', 'fonts', 'FrankRuhlLibre-Black.ttf');
+const BODY_FONT_PATH = path.join(__dirname, '..', 'weekly-schedule', 'fonts', 'DavidLibre-Regular.ttf');
+const TIME_FONT_PATH = path.join(__dirname, '..', 'weekly-schedule', 'fonts', 'DavidLibre-Medium.ttf');
+const TITLE_FONT_PATH = path.join(__dirname, '..', 'weekly-schedule', 'fonts', 'DavidLibre-Bold.ttf');
 const INK = rgb(0.08, 0.13, 0.29);
 const PARSHA_PREFIX = '\u05e4\u05e8\u05e9\u05ea';
 
+// Strip AM/PM but preserve compound times (e.g. MGA/GRA "8:54/9:30") so the
+// PDF shows whatever the gabbai entered, exactly like Copy-as-Text does.
 function clockText(s) {
     if (!s) return null;
-    const m = /^(\d{1,2}:\d{2})/.exec(String(s).trim());
-    return m ? m[1] : String(s).trim();
+    const cleaned = String(s).trim().replace(/\s*(AM|PM)\b/gi, '').replace(/\s+/g, ' ').trim();
+    return cleaned || null;
 }
 
 function normalizeHebrewWording(s) {
@@ -89,8 +91,11 @@ function buildRows(z) {
 
     const shiurMap = {};
     (Array.isArray(z.shiurim) ? z.shiurim : []).forEach(s => { shiurMap[s.label] = s.time; });
+    // Mirror Copy-as-Text exactly (weekly-schedule/index.html buildScheduleText):
+    //   sofZmanKriasShema is the source of truth when set; otherwise synthesize
+    //   MGA/GRA from daily_zmanim with `/` separator (no spaces) to match SMS.
     const krishemaTime = z.sofZmanKriasShema
-        || ((z.shemaMa && z.shemaGra) ? (z.shemaMa + ' / ' + z.shemaGra) : (z.shemaGra || z.shemaMa || null));
+        || ((z.shemaMa && z.shemaGra) ? (z.shemaMa + '/' + z.shemaGra) : (z.shemaGra || z.shemaMa || null));
     const shabbosRows = [
         { label: 'שחרית', time: z.shacharis },
         krishemaTime ? { label: 'סוף זמן ק״ש', time: krishemaTime } : null,
