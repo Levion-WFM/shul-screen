@@ -151,8 +151,8 @@ async function renderSchedulePdf(payload) {
     const metrics = {
         rowSize: dense ? 24 : 28,
         lineHeight: dense ? 26.5 : 32,
-        rowLeft: width * 0.320,
-        rowRight: width * 0.680,
+        rowLeft: width * 0.285,
+        rowRight: width * 0.710,
     };
 
     const groups = [fridayRows, shabbosRows];
