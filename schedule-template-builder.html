@@ -120,7 +120,7 @@ input, textarea, select { font-size: 16px; }
    the bottom flourish. */
 .print-title-block {
     text-align: center;
-    margin: 0 auto 26px;
+    margin: 0 auto 16px;
     color: var(--navy);
     flex-shrink: 0;
     padding: 0;
@@ -187,16 +187,14 @@ input, textarea, select { font-size: 16px; }
 }
 
 /* Body schedule
-   The boxes sit centered vertically. Each box is responsible for its own
-   border + header; the rows table within is sized to a FIXED width and
-   FIXED column widths so that labels and times align across every box on
-   the page — the previous content-sized tables let each box drift to a
-   different visual axis. */
+   Boxes sit at the top of the body's allocated space (below the title
+   block) rather than vertically-centered, so the schedule reads as a
+   list anchored under the title rather than floating mid-page. */
 .print-body {
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 12px;
     min-height: 0;
 }
@@ -216,11 +214,11 @@ input, textarea, select { font-size: 16px; }
     background: linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%);
     color: #f8e9b6;
     text-align: center;
-    height: 32px;
-    line-height: 32px;
+    height: 36px;
+    line-height: 36px;
     padding: 0 36px;
     font-weight: 700;
-    font-size: 18px;
+    font-size: 20px;
     letter-spacing: 0.02em;
     border-bottom: 1px solid var(--gold);
     position: relative;
@@ -231,9 +229,9 @@ input, textarea, select { font-size: 16px; }
     top: 0;
     bottom: 0;
     color: var(--gold);
-    font-size: 11px;
+    font-size: 12px;
     opacity: 0.95;
-    line-height: 32px;
+    line-height: 36px;
     user-select: none;
 }
 .print-box-header-side.start { right: 14px; }   /* RTL: visually on right */
@@ -267,10 +265,10 @@ input, textarea, select { font-size: 16px; }
 .print-row-dav {
     display: flex;
     align-items: center;
-    height: 28px;
-    line-height: 28px;
+    height: 32px;
+    line-height: 32px;
     padding: 0 140px;
-    font-size: 17px;
+    font-size: 19px;
     box-sizing: border-box;
     overflow: hidden;
 }
@@ -902,10 +900,10 @@ function autoFitBody() {
     // height + line-height pairs (deterministic vertical centering);
     // free-text and inline-title rows use padding-based sizing.
     const BASE = {
-        header: { font: 18, height: 32 },
-        dav:    { font: 17, height: 28 },
-        free:   { font: 17, pad: 7 },
-        inline: { font: 18, pad: 8 },
+        header: { font: 20, height: 36 },
+        dav:    { font: 19, height: 32 },
+        free:   { font: 18, pad: 7 },
+        inline: { font: 19, pad: 8 },
     };
     function applyFixedHeight(els, base, f) {
         const h = (base.height * f).toFixed(2) + 'px';
