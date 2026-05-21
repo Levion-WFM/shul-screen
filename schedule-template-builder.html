@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Schedule Template Builder — Shul Screen Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700;900&family=David+Libre:wght@400;500;700&family=Cormorant+Garamond:wght@400;500;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+tailwind.config = {
+    theme: { extend: { colors: { gold: "#e9c349", dark: "#1a1a1a" }, fontFamily: { body: ["Work Sans", "sans-serif"], hebrew: ["Frank Ruhl Libre", "David Libre", "serif"] } } }
+}
+</script>
+<style>
+input, textarea, select { font-size: 16px; }
+
+/* ===========================
+   PRINT PAGE STYLING
+   The .print-page is rendered at a fixed 816 × 1056 px (8.5×11 in at 96 DPI).
+   html2canvas captures it at scale=2.5 for ~240 DPI output quality.
+   The .stage scales the whole page down to fit viewport via CSS transform.
+
+   Spacing strategy:
+   - Top band (logo + title) reserves ~28% of the page.
+   - Schedule body fills remaining height with tight rows by default
+     so a typical chag schedule (~25 items) fits without auto-shrinking.
+   - autoFitBody only kicks in if the user adds even more content.
+   =========================== */
+:root {
+    --ink: #1a2a52;
+    --ink-deep: #14224a;
+    --ink-soft: #2d3a52;
+    --gold: #c9a04d;
+    --gold-soft: rgba(201, 160, 77, 0.35);
+    --navy: #1d3a8a;
+    --navy-deep: #14296b;
+    --cream: #faf6e9;
+    --cream-soft: #fffdf3;
+}
+
+.print-page {
+    width: 816px;
+    height: 1056px;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Frank Ruhl Libre', 'David Libre', serif;
+    direction: rtl;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+}
+.print-page-border {
+    position: absolute;
+    inset: 24px;
+    border: 3px double var(--navy);
+    border-radius: 5px;
+    pointer-events: none;
+}
+.print-page-border::before {
+    content: "";
+    position: absolute;
+    inset: 5px;
+    border: 1px solid var(--gold);
+    border-radius: 3px;
+    pointer-events: none;
+}
+.print-page-bsd {
+    position: absolute;
+    top: 38px;
+    left: 50px;
+    font-size: 14px;
+    color: var(--navy);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    z-index: 1;
+}
+.print-page-inner {
+    position: absolute;
+    inset: 44px;
+    padding: 32px 36px 24px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Header area: logo + titles */
+.print-logo-wrap {
+    text-align: center;
+    margin: 0 0 10px;
+    flex-shrink: 0;
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.print-logo-wrap img {
+    max-height: 230px;
+    width: auto;
+    display: inline-block;
+    /* The source PNG has whitespace around the emblem — scale up so the
+       logo itself reads at a reasonable size on the printed schedule. */
+    transform: scale(1.05);
+    transform-origin: center center;
+}
+.print-title-block {
+    text-align: center;
+    margin: 0 0 18px;
+    color: var(--navy);
+    flex-shrink: 0;
+    position: relative;
+}
+.print-title-block::after {
+    content: "";
+    display: block;
+    width: 220px;
+    height: 1px;
+    margin: 14px auto 0;
+    background: linear-gradient(90deg, transparent, var(--gold) 25%, var(--gold) 75%, transparent);
+}
+.print-title-line {
+    font-family: 'Frank Ruhl Libre', 'David Libre', serif;
+    line-height: 1.1;
+    word-break: normal;
+}
+.print-title-line.size-major  { font-size: 46px; font-weight: 700; margin-bottom: 4px; }
+.print-title-line.size-large  { font-size: 34px; font-weight: 700; }
+.print-title-line.size-medium { font-size: 24px; font-weight: 500; color: var(--ink-soft); }
+.print-title-line.size-small  { font-size: 18px; font-weight: 400; color: var(--ink-soft); }
+
+/* Body schedule */
+.print-body {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    min-height: 0;
+}
+.print-box {
+    border: 1.5px solid var(--gold);
+    border-radius: 5px;
+    background: var(--cream-soft);
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 1px 0 rgba(201, 160, 77, 0.15);
+}
+.print-box-header {
+    background: linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%);
+    color: #f8e9b6;
+    text-align: center;
+    padding: 6px 28px;
+    font-weight: 700;
+    font-size: 19px;
+    letter-spacing: 0.02em;
+    border-bottom: 1px solid var(--gold);
+    position: relative;
+}
+.print-box-header::before,
+.print-box-header::after {
+    content: "❖";
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gold);
+    font-size: 12px;
+    opacity: 0.9;
+}
+.print-box-header::before { right: 12px; }
+.print-box-header::after  { left: 12px; }
+.print-row {
+    display: flex;
+    align-items: center;
+    padding: 4px 14px;
+    border-bottom: 1px solid var(--gold-soft);
+    font-size: 17px;
+    line-height: 1.2;
+}
+.print-row:last-child { border-bottom: none; }
+.print-row:nth-child(odd) { background: rgba(201, 160, 77, 0.04); }
+.print-row-label {
+    flex: 1;
+    text-align: right;
+    font-weight: 600;
+    color: var(--ink);
+    padding-left: 10px;
+}
+.print-row-marker {
+    color: var(--gold);
+    font-size: 11px;
+    padding: 0 6px;
+    opacity: 0.8;
+}
+.print-row-time {
+    min-width: 90px;
+    text-align: center;
+    font-weight: 500;
+    color: var(--ink);
+    direction: ltr;
+    font-variant-numeric: tabular-nums;
+}
+.print-row-freetext {
+    text-align: center;
+    padding: 6px 14px;
+    font-weight: 600;
+    font-size: 17px;
+    color: var(--ink);
+    border-bottom: 1px solid var(--gold-soft);
+    background: rgba(29, 58, 138, 0.04);
+}
+.print-row-freetext:last-child { border-bottom: none; }
+
+/* "Inline title" — a title that's not the first item in its box. Renders
+   like a sub-header within the box rather than the navy banner. */
+.print-row-inline-title {
+    text-align: center;
+    padding: 6px 14px;
+    font-weight: 700;
+    font-size: 19px;
+    color: var(--navy);
+    background: rgba(29, 58, 138, 0.06);
+    border-bottom: 1px solid var(--gold-soft);
+    border-top: 1px solid var(--gold-soft);
+    letter-spacing: 0.02em;
+}
+
+.print-bottom-text {
+    text-align: center;
+    margin-top: 10px;
+    padding-top: 8px;
+    font-size: 16px;
+    color: var(--navy);
+    font-weight: 500;
+    flex-shrink: 0;
+    font-style: italic;
+    border-top: 1px solid var(--gold-soft);
+}
+.print-empty-cta {
+    text-align: center;
+    margin: auto;
+    color: #6b7d9e;
+    font-size: 22px;
+    direction: ltr;
+    font-family: 'Work Sans', sans-serif;
+}
+.print-empty-cta .material-symbols-outlined {
+    font-size: 56px;
+    color: var(--gold);
+    margin-bottom: 12px;
+    display: block;
+}
+
+/* ===========================
+   STAGE — scales the page to fit
+   stage-fit takes the visual scaled size; stage-inner is the natural-sized
+   page that's CSS-transformed down to fit. This way the stage layout
+   reserves the right amount of space for the scaled-down page on any
+   viewport width (including mobile).
+   =========================== */
+.stage {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 24px 12px 48px;
+    min-height: calc(100vh - 60px);
+}
+.stage-fit {
+    position: relative;
+    width: 816px;     /* JS overrides on init / resize */
+    height: 1056px;
+}
+.stage-inner {
+    transform-origin: top left;
+    width: 816px;
+    height: 1056px;
+}
+
+/* ===========================
+   MODAL
+   =========================== */
+[hidden] { display: none !important; }
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    z-index: 60;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    overflow-y: auto;
+    padding: 16px;
+}
+.modal-card {
+    background: #111827;
+    border: 1px solid rgba(233, 195, 73, 0.25);
+    border-radius: 10px;
+    width: 100%;
+    max-width: 880px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+    margin: 12px 0 80px;
+}
+
+/* item card in editor */
+.item-card {
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 6px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+}
+.item-card.is-davening { border-left: 3px solid #e9c349; }
+.item-card.is-title    { border-left: 3px solid #60a5fa; }
+.item-card.is-freetext { border-left: 3px solid #34d399; }
+.item-card.is-linebreak {
+    border-left: 3px solid #f87171;
+    background: #1a1f2e;
+    padding: 8px 12px;
+}
+
+.type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #9ca3af;
+    font-weight: 600;
+}
+
+/* Add-button menu */
+.add-menu {
+    position: absolute;
+    background: #111827;
+    border: 1px solid #374151;
+    border-radius: 6px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+    padding: 4px;
+    min-width: 200px;
+    z-index: 80;
+}
+.add-menu button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    text-align: left;
+    padding: 8px 10px;
+    border-radius: 4px;
+    color: #e5e7eb;
+    font-size: 13px;
+}
+.add-menu button:hover { background: #1f2937; color: #e9c349; }
+
+/* Scrollbar tweak inside modal */
+.modal-body { max-height: calc(100vh - 200px); overflow-y: auto; }
+
+.btn-input {
+    background: #111827;
+    border: 1px solid #374151;
+    border-radius: 4px;
+    padding: 8px 10px;
+    color: #f3f4f6;
+    width: 100%;
+    font-size: 14px;
+}
+.btn-input:focus { border-color: #e9c349; outline: none; }
+
+/* prevent iOS auto-zoom on inputs */
+.modal-card input, .modal-card textarea, .modal-card select { font-size: 16px !important; }
+</style>
+</head>
+<body class="bg-gray-950 text-gray-100 font-body min-h-screen">
+
+<!-- Header -->
+<header class="bg-gray-900 border-b border-gold/30 py-3 px-4 sm:px-6 sticky top-0 z-30">
+    <div class="flex items-center justify-between gap-4 flex-wrap">
+        <div class="flex items-center gap-3">
+            <a href="backend.html" class="text-gray-400 hover:text-gold transition flex items-center gap-1 text-sm">
+                <span class="material-symbols-outlined text-lg">arrow_back</span>
+                <span class="hidden sm:inline">Admin</span>
+            </a>
+            <div class="h-6 w-px bg-gray-700"></div>
+            <span class="material-symbols-outlined text-gold text-2xl" style="font-variation-settings: 'FILL' 1;">description</span>
+            <div>
+                <h1 class="text-base sm:text-lg font-bold text-gold tracking-wide">Schedule Template Builder</h1>
+                <p class="text-[11px] text-gray-500 hidden sm:block">Build a printable schedule for any occasion — chag, fast day, special davening — and download it as JPG.</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+            <button id="openEditorBtn" class="bg-gold text-black font-bold px-3 py-2 rounded text-xs sm:text-sm hover:bg-yellow-400 transition flex items-center gap-1">
+                <span class="material-symbols-outlined text-base">edit_note</span>
+                <span id="openEditorLabel">Generate Schedule</span>
+            </button>
+            <button id="downloadJpgBtn" class="bg-gray-800 text-gold border border-gold/60 font-bold px-3 py-2 rounded text-xs sm:text-sm hover:bg-gray-700 transition flex items-center gap-1">
+                <span class="material-symbols-outlined text-base">image</span>
+                <span>Download JPG</span>
+            </button>
+            <button id="downloadPdfBtn" class="bg-gray-800 text-gray-200 border border-gray-700 font-bold px-3 py-2 rounded text-xs sm:text-sm hover:bg-gray-700 transition flex items-center gap-1">
+                <span class="material-symbols-outlined text-base">picture_as_pdf</span>
+                <span>PDF</span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- Toasts -->
+<div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 bg-green-600 text-white px-4 py-3 rounded shadow-lg font-bold text-sm hidden z-50 items-center gap-2">
+    <span class="material-symbols-outlined text-lg">check_circle</span>
+    <span id="toastMsg">Saved!</span>
+</div>
+
+<!-- Preview stage -->
+<main class="stage" id="stage">
+    <div class="stage-fit" id="stageFit">
+        <div class="stage-inner" id="stageInner">
+            <div class="print-page" id="printPage">
+                <div class="print-page-border"></div>
+                <div class="print-page-bsd">בס״ד</div>
+                <div class="print-page-inner" id="printPageInner">
+                    <!-- Rendered by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- ===========================
+     EDIT MODAL
+     =========================== -->
+<div id="editModal" class="modal-overlay" hidden>
+    <div class="modal-card">
+        <!-- Modal header -->
+        <div class="flex items-center justify-between px-5 py-3 border-b border-gray-800 sticky top-0 bg-gray-900 rounded-t-[10px] z-10">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-gold">edit_note</span>
+                <h2 class="text-lg font-bold text-gold">Generate Schedule</h2>
+            </div>
+            <button id="closeModalBtn" class="text-gray-400 hover:text-gold transition p-1">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <div class="modal-body p-5 space-y-6">
+            <!-- Title section -->
+            <section>
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-bold text-gold uppercase tracking-wider">Title</h3>
+                    <button id="addTitleLineBtn" class="text-xs text-gold hover:text-yellow-300 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-base">add_circle</span> Add title line
+                    </button>
+                </div>
+                <p class="text-[11px] text-gray-500 mb-3">First line is the largest. Add more lines for subtitles (e.g., "לזמן מתן תורתנו תשפ״ו").</p>
+                <div id="titleLinesContainer" class="space-y-2"></div>
+            </section>
+
+            <!-- Schedule section -->
+            <section>
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-bold text-gold uppercase tracking-wider">Schedule</h3>
+                    <span id="itemCount" class="text-[11px] text-gray-500"></span>
+                </div>
+                <p class="text-[11px] text-gray-500 mb-3">
+                    Add lines for davening times (Hebrew label + time), centered titles, free-text lines, or a line break to start a new box.
+                </p>
+                <div id="itemsContainer" class="space-y-2"></div>
+                <div class="relative mt-3">
+                    <button id="addItemBtn" class="bg-gray-800 text-gold border border-gold/40 px-3 py-2 rounded text-xs font-bold hover:bg-gray-700 transition flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-base">add_circle</span>
+                        Add line
+                    </button>
+                    <div id="addItemMenu" class="add-menu" hidden></div>
+                </div>
+            </section>
+
+            <!-- Bottom blessing -->
+            <section>
+                <h3 class="text-sm font-bold text-gold uppercase tracking-wider mb-2">Bottom Text <span class="text-gray-500 font-normal normal-case">(optional)</span></h3>
+                <p class="text-[11px] text-gray-500 mb-2">A blessing or reminder shown centered at the bottom (e.g., "צבי ואתרעי בן ומסר לו אוריתא").</p>
+                <input id="bottomTextInput" type="text" class="btn-input" dir="rtl" placeholder="Optional bottom line"/>
+            </section>
+        </div>
+
+        <!-- Modal footer -->
+        <div class="flex items-center justify-between gap-3 px-5 py-3 border-t border-gray-800 sticky bottom-0 bg-gray-900 rounded-b-[10px] flex-wrap">
+            <button id="clearBtn" class="text-xs text-red-400 hover:text-red-300 flex items-center gap-1">
+                <span class="material-symbols-outlined text-base">restart_alt</span> Clear all
+            </button>
+            <div class="flex items-center gap-2 ml-auto">
+                <button id="loadSampleBtn" class="bg-gray-800 text-gray-200 px-3 py-2 rounded text-xs font-bold hover:bg-gray-700 transition">Load Shavuos sample</button>
+                <button id="saveCloseBtn" class="bg-gold text-black font-bold px-5 py-2 rounded text-sm hover:bg-yellow-400 transition flex items-center gap-1">
+                    <span class="material-symbols-outlined text-base">check</span> Save & Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+'use strict';
+
+// ===========================================================================
+// STATE
+// ===========================================================================
+const STORAGE_KEY = 'shul-schedule-template-v1';
+const LOGO_PATH = '/shul-logo.png';
+
+const ITEM_TYPES = {
+    davening: { label: 'Davening', icon: 'event', color: '#e9c349',
+                desc: 'Hebrew label on the right, time on the left' },
+    title:    { label: 'Title',    icon: 'title', color: '#60a5fa',
+                desc: 'Section header banner inside the current box' },
+    free_text:{ label: 'Free text',icon: 'short_text', color: '#34d399',
+                desc: 'Centered text line within the current box' },
+    line_break: { label: 'Line break (new box)', icon: 'page_break', color: '#f87171',
+                desc: 'Ends the current box and starts a new one' },
+};
+
+const SAMPLE_DATA = {
+    titleLines: [
+        { text: 'סדר תפילה' },
+        { text: 'לזמן מתן תורתנו תשפ״ו' }
+    ],
+    items: [
+        { type: 'davening', label: 'הדלקת נרות', time: '7:53' },
+        { type: 'davening', label: 'מנחה', time: '7:56' },
+        { type: 'davening', label: 'שקיעה', time: '8:11' },
+        { type: 'davening', label: 'מעריב', time: '9:00' },
+        { type: 'davening', label: 'שיעור מאת הרב שליט״א', time: '3:00 AM' },
+        { type: 'line_break' },
+        { type: 'title', text: 'יום ראשון של שבועות' },
+        { type: 'davening', label: 'עלות השחר', time: '4:24' },
+        { type: 'davening', label: 'ברכת השחר', time: '4:46' },
+        { type: 'davening', label: 'משיכיר', time: '4:51' },
+        { type: 'davening', label: 'הנץ החמה', time: '5:36' },
+        { type: 'davening', label: 'סוק״ש', time: '8:39/9:15' },
+        { type: 'davening', label: 'חצות היום', time: '12:54' },
+        { type: 'davening', label: 'שיעור מאת הרב שליט״א', time: '7:54' },
+        { type: 'davening', label: 'מנחה', time: '7:25' },
+        { type: 'davening', label: 'שקיעה', time: '7:50' },
+        { type: 'davening', label: 'מעריב', time: '8:30' },
+        { type: 'line_break' },
+        { type: 'title', text: 'יום שני של שבועות' },
+        { type: 'davening', label: 'שחרית', time: '8:30' },
+        { type: 'davening', label: 'סוק״ש', time: '8:38/9:14' },
+        { type: 'davening', label: 'מנחה', time: '7:40' },
+        { type: 'free_text', text: 'נעילת חג בבית המדרש' },
+        { type: 'davening', label: 'שקיעה', time: '8:13' },
+        { type: 'davening', label: 'מעריב', time: '9:13' },
+    ],
+    bottomText: 'צבי ואתרעי בן ומסר לו אוריתא'
+};
+
+const EMPTY_DATA = {
+    titleLines: [{ text: '' }],
+    items: [],
+    bottomText: ''
+};
+
+let data = loadFromStorage();
+
+// ===========================================================================
+// STORAGE
+// ===========================================================================
+function loadFromStorage() {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return clone(SAMPLE_DATA);
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object') return clone(SAMPLE_DATA);
+        // sanity defaults
+        parsed.titleLines = Array.isArray(parsed.titleLines) ? parsed.titleLines : [{ text: '' }];
+        parsed.items = Array.isArray(parsed.items) ? parsed.items : [];
+        parsed.bottomText = typeof parsed.bottomText === 'string' ? parsed.bottomText : '';
+        return parsed;
+    } catch (err) {
+        console.warn('loadFromStorage failed', err);
+        return clone(SAMPLE_DATA);
+    }
+}
+
+function saveToStorage() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+    catch (err) { console.warn('saveToStorage failed', err); }
+}
+
+function clone(o) { return JSON.parse(JSON.stringify(o)); }
+
+// ===========================================================================
+// PREVIEW RENDERING
+// ===========================================================================
+function htmlEscape(s) {
+    return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+function isEmptyData(d) {
+    const noTitle = !d.titleLines.some(t => t.text && t.text.trim());
+    const noItems = d.items.length === 0;
+    return noTitle && noItems;
+}
+
+function renderTitleLines(lines) {
+    const filtered = lines.filter(l => l && l.text && l.text.trim());
+    if (!filtered.length) return '';
+    // Size scaling: first line is biggest, second smaller, third smallest.
+    // If there's only one line, it gets the "large" size (single-line poster).
+    function sizeFor(i, total) {
+        if (total === 1) return 'size-large';
+        if (i === 0) return 'size-major';
+        if (i === 1) return 'size-medium';
+        return 'size-small';
+    }
+    return `<div class="print-title-block">${
+        filtered.map((l, i) => `<div class="print-title-line ${sizeFor(i, filtered.length)}">${htmlEscape(l.text)}</div>`).join('')
+    }</div>`;
+}
+
+// Group items into boxes, splitting on line_break.
+function groupIntoBoxes(items) {
+    const boxes = [];
+    let current = [];
+    items.forEach(item => {
+        if (item.type === 'line_break') {
+            if (current.length) boxes.push(current);
+            current = [];
+        } else {
+            current.push(item);
+        }
+    });
+    if (current.length) boxes.push(current);
+    return boxes;
+}
+
+function renderBox(boxItems) {
+    // If the first item is a title, render as the navy banner box header.
+    // Other titles inside the box render as styled inline sub-headers.
+    let headerHtml = '';
+    let rowItems = boxItems;
+    if (boxItems.length && boxItems[0].type === 'title') {
+        headerHtml = `<div class="print-box-header">${htmlEscape(boxItems[0].text || '')}</div>`;
+        rowItems = boxItems.slice(1);
+    }
+    const rowsHtml = rowItems.map(item => {
+        if (item.type === 'davening') {
+            return `<div class="print-row">
+                <div class="print-row-label">${htmlEscape(item.label || '')}</div>
+                <span class="print-row-marker">⚜</span>
+                <div class="print-row-time">${htmlEscape(item.time || '')}</div>
+            </div>`;
+        }
+        if (item.type === 'title') {
+            return `<div class="print-row-inline-title">${htmlEscape(item.text || '')}</div>`;
+        }
+        if (item.type === 'free_text') {
+            return `<div class="print-row-freetext">${htmlEscape(item.text || '')}</div>`;
+        }
+        return '';
+    }).join('');
+    return `<div class="print-box">${headerHtml}${rowsHtml}</div>`;
+}
+
+function renderPreview() {
+    const inner = document.getElementById('printPageInner');
+    if (isEmptyData(data)) {
+        inner.innerHTML = `
+            <div class="print-empty-cta">
+                <span class="material-symbols-outlined">edit_document</span>
+                <div>Your schedule will appear here.</div>
+                <div style="font-size:16px; color:#94a3b8; margin-top:6px;">Click <b>Generate Schedule</b> to start.</div>
+            </div>`;
+        document.getElementById('openEditorLabel').textContent = 'Generate Schedule';
+        return;
+    }
+    document.getElementById('openEditorLabel').textContent = 'Edit Schedule';
+
+    const boxes = groupIntoBoxes(data.items);
+    const boxesHtml = boxes.map(renderBox).join('');
+    const bottom = (data.bottomText || '').trim();
+
+    inner.innerHTML = `
+        <div class="print-logo-wrap">
+            <img src="${LOGO_PATH}" alt="Logo" crossorigin="anonymous"
+                 onload="window.__autoFit && window.__autoFit()"
+                 onerror="this.style.display='none'; window.__autoFit && window.__autoFit()"/>
+        </div>
+        ${renderTitleLines(data.titleLines)}
+        <div class="print-body">
+            ${boxesHtml}
+        </div>
+        ${bottom ? `<div class="print-bottom-text">${htmlEscape(bottom)}</div>` : ''}
+    `;
+
+    // Run fit on next frame for the initial layout, plus we re-run on the
+    // logo image's onload/onerror so the second pass sees the real logo
+    // height. Both calls are idempotent.
+    requestAnimationFrame(autoFitBody);
+}
+window.__autoFit = autoFitBody;
+
+// If the schedule has lots of rows, scale them down so the whole thing fits
+// the page bounds without clipping. We measure the natural body content
+// height (with boxes set to flex-shrink: 0) against the body's allocated
+// height inside the flex column, then compute a single scale factor.
+function autoFitBody() {
+    const inner = document.getElementById('printPageInner');
+    if (!inner) return;
+    const body = inner.querySelector('.print-body');
+    const rows = inner.querySelectorAll(
+        '.print-row, .print-row-freetext, .print-row-inline-title, .print-box-header'
+    );
+    if (!body || !rows.length) return;
+
+    rows.forEach(r => {
+        r.style.fontSize = '';
+        r.style.paddingTop = '';
+        r.style.paddingBottom = '';
+        r.style.lineHeight = '';
+    });
+    body.style.gap = '';
+
+    // Base values match the CSS defaults — when factor=1 we get exactly
+    // the stylesheet's sizing back.
+    const BASE = {
+        header: { font: 19, pad: 6 },
+        inline: { font: 19, pad: 6 },
+        free:   { font: 17, pad: 6 },
+        row:    { font: 17, pad: 4 },
+    };
+    function baseFor(el) {
+        if (el.classList.contains('print-box-header')) return BASE.header;
+        if (el.classList.contains('print-row-inline-title')) return BASE.inline;
+        if (el.classList.contains('print-row-freetext')) return BASE.free;
+        return BASE.row;
+    }
+    function applyFactor(f) {
+        rows.forEach(r => {
+            const b = baseFor(r);
+            r.style.fontSize = (b.font * f).toFixed(2) + 'px';
+            r.style.paddingTop = (b.pad * f).toFixed(2) + 'px';
+            r.style.paddingBottom = (b.pad * f).toFixed(2) + 'px';
+            r.style.lineHeight = (1.18 + 0.04 * f).toFixed(2);
+        });
+        body.style.gap = (11 * f).toFixed(2) + 'px';
+    }
+
+    if (body.scrollHeight <= body.clientHeight) return;
+    let factor = Math.max(0.5, Math.min(0.98, (body.clientHeight / body.scrollHeight) * 0.97));
+    applyFactor(factor);
+
+    let safety = 5;
+    while (body.scrollHeight > body.clientHeight && safety-- > 0 && factor > 0.45) {
+        factor *= 0.93;
+        applyFactor(factor);
+    }
+}
+
+// ===========================================================================
+// STAGE SCALING — fit the 816px-wide preview to the viewport
+// The .stage-fit wrapper takes the *scaled* visual size so the page layout
+// reserves the correct space; the .stage-inner inside is the natural 816 ×
+// 1056 page that's CSS-transformed down. This way on mobile the page
+// shrinks to fit instead of overflowing horizontally.
+// ===========================================================================
+function fitStage() {
+    const stage = document.getElementById('stage');
+    const fit = document.getElementById('stageFit');
+    const inner = document.getElementById('stageInner');
+    if (!stage || !fit || !inner) return;
+    const padding = 24;
+    const available = Math.max(280, stage.clientWidth - padding);
+    const scale = Math.min(1, available / 816);
+    fit.style.width = (816 * scale) + 'px';
+    fit.style.height = (1056 * scale) + 'px';
+    inner.style.transform = `scale(${scale})`;
+}
+window.addEventListener('resize', fitStage);
+
+// ===========================================================================
+// EDITOR (MODAL) RENDERING
+// ===========================================================================
+function openEditor() {
+    document.getElementById('editModal').hidden = false;
+    document.body.style.overflow = 'hidden';
+    renderEditor();
+}
+
+function closeEditor() {
+    document.getElementById('editModal').hidden = true;
+    document.body.style.overflow = '';
+}
+
+function renderEditor() {
+    renderTitleEditor();
+    renderItemsEditor();
+    document.getElementById('bottomTextInput').value = data.bottomText || '';
+}
+
+// --- Title lines ---
+function renderTitleEditor() {
+    const container = document.getElementById('titleLinesContainer');
+    if (!data.titleLines.length) data.titleLines = [{ text: '' }];
+    container.innerHTML = data.titleLines.map((line, i) => `
+        <div class="flex items-center gap-2">
+            <span class="text-[10px] text-gray-500 w-12 text-right">Line ${i + 1}</span>
+            <input type="text" class="btn-input" dir="rtl" placeholder="${i === 0 ? 'e.g., סדר תפילה' : 'Optional subtitle'}"
+                   value="${htmlEscape(line.text)}" data-title-i="${i}"/>
+            ${data.titleLines.length > 1 ? `
+                <button class="text-gray-500 hover:text-red-400 transition p-1" data-remove-title="${i}" title="Remove line">
+                    <span class="material-symbols-outlined text-lg">delete</span>
+                </button>` : ''}
+        </div>
+    `).join('');
+
+    container.querySelectorAll('input[data-title-i]').forEach(inp => {
+        inp.addEventListener('input', e => {
+            const i = +e.target.dataset.titleI;
+            data.titleLines[i].text = e.target.value;
+        });
+    });
+    container.querySelectorAll('[data-remove-title]').forEach(btn => {
+        btn.addEventListener('click', e => {
+            const i = +e.currentTarget.dataset.removeTitle;
+            data.titleLines.splice(i, 1);
+            renderTitleEditor();
+        });
+    });
+}
+
+// --- Schedule items ---
+function renderItemsEditor() {
+    const container = document.getElementById('itemsContainer');
+    const countEl = document.getElementById('itemCount');
+    countEl.textContent = data.items.length ? `${data.items.length} line${data.items.length === 1 ? '' : 's'}` : '';
+
+    if (!data.items.length) {
+        container.innerHTML = `<div class="text-xs text-gray-500 italic px-1">No lines yet. Click <b>Add line</b> below to start.</div>`;
+        return;
+    }
+
+    container.innerHTML = data.items.map((item, i) => renderItemCard(item, i)).join('');
+
+    container.querySelectorAll('[data-item-action]').forEach(el => {
+        el.addEventListener('click', handleItemAction);
+    });
+    container.querySelectorAll('[data-item-field]').forEach(el => {
+        el.addEventListener('input', handleItemField);
+    });
+    container.querySelectorAll('[data-item-type]').forEach(el => {
+        el.addEventListener('change', handleItemTypeChange);
+    });
+}
+
+function renderItemCard(item, i) {
+    const typeMeta = ITEM_TYPES[item.type] || ITEM_TYPES.davening;
+    const isLB = item.type === 'line_break';
+    const cls = `item-card is-${item.type === 'free_text' ? 'freetext' : (item.type === 'line_break' ? 'linebreak' : item.type)}`;
+    let body = '';
+    if (isLB) {
+        body = `<div class="text-xs text-gray-400 italic flex items-center gap-2">
+                    <span class="material-symbols-outlined text-base">page_break</span>
+                    Line break — items below this will start a new box.
+                </div>`;
+    } else if (item.type === 'davening') {
+        body = `
+            <div class="grid grid-cols-1 sm:grid-cols-[1fr_140px] gap-2">
+                <input type="text" class="btn-input" dir="rtl" placeholder="Hebrew label (e.g., מנחה)"
+                       value="${htmlEscape(item.label || '')}" data-item-field="label" data-i="${i}"/>
+                <input type="text" class="btn-input" dir="ltr" placeholder="Time (e.g., 7:25)"
+                       value="${htmlEscape(item.time || '')}" data-item-field="time" data-i="${i}"/>
+            </div>`;
+    } else if (item.type === 'title') {
+        body = `
+            <input type="text" class="btn-input" dir="rtl" placeholder="Section title (e.g., יום ראשון של שבועות)"
+                   value="${htmlEscape(item.text || '')}" data-item-field="text" data-i="${i}"/>`;
+    } else if (item.type === 'free_text') {
+        body = `
+            <input type="text" class="btn-input" dir="rtl" placeholder="Centered text (e.g., נעילת חג בבית המדרש)"
+                   value="${htmlEscape(item.text || '')}" data-item-field="text" data-i="${i}"/>`;
+    }
+    // Type switcher — only meaningful for davening / title / free_text (not line break).
+    const typeSelector = isLB ? '' : `
+        <select class="btn-input" style="width:auto; padding:6px 8px; font-size:12px;" data-item-type data-i="${i}">
+            <option value="davening" ${item.type === 'davening' ? 'selected' : ''}>Davening</option>
+            <option value="title" ${item.type === 'title' ? 'selected' : ''}>Title</option>
+            <option value="free_text" ${item.type === 'free_text' ? 'selected' : ''}>Free text</option>
+        </select>`;
+    return `
+        <div class="${cls}">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] text-gray-500 w-6 text-right">${i + 1}.</span>
+                    <span class="type-badge" style="color:${typeMeta.color}">
+                        <span class="material-symbols-outlined text-sm">${typeMeta.icon}</span>
+                        ${typeMeta.label}
+                    </span>
+                </div>
+                <div class="flex items-center gap-1">
+                    ${typeSelector}
+                    <button class="text-gray-500 hover:text-gold transition p-1" data-item-action="up" data-i="${i}" title="Move up" ${i === 0 ? 'disabled' : ''}>
+                        <span class="material-symbols-outlined text-base">keyboard_arrow_up</span>
+                    </button>
+                    <button class="text-gray-500 hover:text-gold transition p-1" data-item-action="down" data-i="${i}" title="Move down" ${i === data.items.length - 1 ? 'disabled' : ''}>
+                        <span class="material-symbols-outlined text-base">keyboard_arrow_down</span>
+                    </button>
+                    <button class="text-gray-500 hover:text-gold transition p-1" data-item-action="add-below" data-i="${i}" title="Insert below">
+                        <span class="material-symbols-outlined text-base">add_circle</span>
+                    </button>
+                    <button class="text-gray-500 hover:text-red-400 transition p-1" data-item-action="remove" data-i="${i}" title="Remove">
+                        <span class="material-symbols-outlined text-base">delete</span>
+                    </button>
+                </div>
+            </div>
+            ${body}
+        </div>
+    `;
+}
+
+function handleItemField(e) {
+    const i = +e.target.dataset.i;
+    const f = e.target.dataset.itemField;
+    if (data.items[i]) data.items[i][f] = e.target.value;
+}
+
+function handleItemTypeChange(e) {
+    const i = +e.target.dataset.i;
+    const newType = e.target.value;
+    if (!data.items[i]) return;
+    // Preserve text where reasonable.
+    const cur = data.items[i];
+    if (newType === 'davening') {
+        data.items[i] = { type: 'davening', label: cur.label || cur.text || '', time: cur.time || '' };
+    } else if (newType === 'title') {
+        data.items[i] = { type: 'title', text: cur.text || cur.label || '' };
+    } else if (newType === 'free_text') {
+        data.items[i] = { type: 'free_text', text: cur.text || cur.label || '' };
+    }
+    renderItemsEditor();
+}
+
+function handleItemAction(e) {
+    const i = +e.currentTarget.dataset.i;
+    const action = e.currentTarget.dataset.itemAction;
+    if (action === 'remove') {
+        data.items.splice(i, 1);
+    } else if (action === 'up' && i > 0) {
+        const tmp = data.items[i - 1];
+        data.items[i - 1] = data.items[i];
+        data.items[i] = tmp;
+    } else if (action === 'down' && i < data.items.length - 1) {
+        const tmp = data.items[i + 1];
+        data.items[i + 1] = data.items[i];
+        data.items[i] = tmp;
+    } else if (action === 'add-below') {
+        openAddMenu(e.currentTarget, i + 1);
+        return;
+    }
+    renderItemsEditor();
+}
+
+// --- Add menu ---
+function openAddMenu(anchorEl, insertAt) {
+    const menu = document.getElementById('addItemMenu');
+    menu.innerHTML = Object.entries(ITEM_TYPES).map(([k, m]) => `
+        <button data-add-type="${k}">
+            <span class="material-symbols-outlined text-base" style="color:${m.color}">${m.icon}</span>
+            <span>
+                <div style="font-weight:600;">${m.label}</div>
+                <div style="font-size:11px; color:#9ca3af; font-weight:400;">${m.desc}</div>
+            </span>
+        </button>
+    `).join('');
+    menu.hidden = false;
+
+    // Position the menu below the anchor; for the main "Add line" button at
+    // the bottom we use the default position inside its relative parent.
+    if (anchorEl !== document.getElementById('addItemBtn')) {
+        const rect = anchorEl.getBoundingClientRect();
+        menu.style.position = 'fixed';
+        menu.style.left = Math.min(window.innerWidth - 220, rect.left) + 'px';
+        menu.style.top = (rect.bottom + 4) + 'px';
+        menu.style.bottom = '';
+    } else {
+        menu.style.position = 'absolute';
+        menu.style.left = '0';
+        menu.style.top = '40px';
+        menu.style.bottom = '';
+    }
+    menu.dataset.insertAt = insertAt == null ? data.items.length : insertAt;
+
+    // Click handlers
+    menu.querySelectorAll('[data-add-type]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const t = btn.dataset.addType;
+            const at = +menu.dataset.insertAt;
+            const newItem = newItemOfType(t);
+            data.items.splice(at, 0, newItem);
+            closeAddMenu();
+            renderItemsEditor();
+        });
+    });
+
+    // Click outside closes
+    setTimeout(() => document.addEventListener('click', dismissAddMenu, { once: true }), 0);
+}
+
+function dismissAddMenu(e) {
+    const menu = document.getElementById('addItemMenu');
+    if (!menu || menu.hidden) return;
+    if (menu.contains(e.target) || e.target.closest('[data-item-action="add-below"]') || e.target.id === 'addItemBtn') {
+        // re-arm
+        document.addEventListener('click', dismissAddMenu, { once: true });
+        return;
+    }
+    closeAddMenu();
+}
+
+function closeAddMenu() {
+    const menu = document.getElementById('addItemMenu');
+    if (menu) menu.hidden = true;
+}
+
+function newItemOfType(t) {
+    switch (t) {
+        case 'davening':  return { type: 'davening', label: '', time: '' };
+        case 'title':     return { type: 'title', text: '' };
+        case 'free_text': return { type: 'free_text', text: '' };
+        case 'line_break':return { type: 'line_break' };
+        default:          return { type: 'davening', label: '', time: '' };
+    }
+}
+
+// ===========================================================================
+// DOWNLOADS
+// ===========================================================================
+function todayIso() { return new Date().toISOString().slice(0, 10); }
+
+async function renderToCanvas() {
+    const node = document.getElementById('printPage');
+    // We want a 1:1 capture of the 816×1056 page. Re-zero its transform-origin
+    // wrapper so html2canvas doesn't capture the CSS scale.
+    const inner = document.getElementById('stageInner');
+    const prevTransform = inner.style.transform;
+    inner.style.transform = 'scale(1)';
+    try {
+        const canvas = await html2canvas(node, {
+            scale: 2.5,           // ~240 DPI
+            backgroundColor: '#faf6e9',
+            useCORS: true,
+            logging: false,
+            width: 816,
+            height: 1056,
+            windowWidth: 816,
+            windowHeight: 1056,
+        });
+        return canvas;
+    } finally {
+        inner.style.transform = prevTransform;
+    }
+}
+
+function triggerDownload(blobOrUrl, filename) {
+    const url = blobOrUrl instanceof Blob ? URL.createObjectURL(blobOrUrl) : blobOrUrl;
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    if (blobOrUrl instanceof Blob) setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function downloadJpg() {
+    const btn = document.getElementById('downloadJpgBtn');
+    const orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined text-base animate-spin">progress_activity</span><span>Generating…</span>';
+    try {
+        const canvas = await renderToCanvas();
+        const blob = await new Promise((resolve, reject) => {
+            canvas.toBlob(b => b ? resolve(b) : reject(new Error('toBlob failed')), 'image/jpeg', 0.92);
+        });
+        triggerDownload(blob, `schedule-template-${todayIso()}.jpg`);
+        showToast('JPG downloaded');
+    } catch (err) {
+        console.error('JPG export failed:', err);
+        alert('JPG export failed: ' + (err && err.message || err));
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = orig;
+    }
+}
+
+async function downloadPdf() {
+    const btn = document.getElementById('downloadPdfBtn');
+    const orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined text-base animate-spin">progress_activity</span><span>Generating…</span>';
+    try {
+        const canvas = await renderToCanvas();
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'in', format: 'letter' });
+        pdf.addImage(dataUrl, 'JPEG', 0, 0, 8.5, 11);
+        pdf.save(`schedule-template-${todayIso()}.pdf`);
+        showToast('PDF downloaded');
+    } catch (err) {
+        console.error('PDF export failed:', err);
+        alert('PDF export failed: ' + (err && err.message || err));
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = orig;
+    }
+}
+
+// ===========================================================================
+// TOAST
+// ===========================================================================
+let toastTimer = null;
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    t.classList.remove('hidden');
+    t.classList.add('flex');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.classList.add('hidden'); t.classList.remove('flex'); }, 1800);
+}
+
+// ===========================================================================
+// WIRE UP
+// ===========================================================================
+document.getElementById('openEditorBtn').addEventListener('click', openEditor);
+document.getElementById('closeModalBtn').addEventListener('click', () => {
+    saveToStorage();
+    renderPreview();
+    closeEditor();
+});
+
+document.getElementById('addTitleLineBtn').addEventListener('click', () => {
+    if (data.titleLines.length >= 4) return;
+    data.titleLines.push({ text: '' });
+    renderTitleEditor();
+});
+
+document.getElementById('addItemBtn').addEventListener('click', e => {
+    e.stopPropagation();
+    const menu = document.getElementById('addItemMenu');
+    if (!menu.hidden) { closeAddMenu(); return; }
+    openAddMenu(e.currentTarget, data.items.length);
+});
+
+document.getElementById('bottomTextInput').addEventListener('input', e => {
+    data.bottomText = e.target.value;
+});
+
+document.getElementById('saveCloseBtn').addEventListener('click', () => {
+    saveToStorage();
+    renderPreview();
+    closeEditor();
+    showToast('Schedule saved');
+});
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+    if (!confirm('Clear all title lines, schedule items, and bottom text? This cannot be undone.')) return;
+    data = clone(EMPTY_DATA);
+    saveToStorage();
+    renderEditor();
+});
+
+document.getElementById('loadSampleBtn').addEventListener('click', () => {
+    if (data.items.length && !confirm('Replace the current schedule with the Shavuos sample?')) return;
+    data = clone(SAMPLE_DATA);
+    saveToStorage();
+    renderEditor();
+});
+
+document.getElementById('downloadJpgBtn').addEventListener('click', downloadJpg);
+document.getElementById('downloadPdfBtn').addEventListener('click', downloadPdf);
+
+// Close modal with Esc
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !document.getElementById('editModal').hidden) {
+        saveToStorage();
+        renderPreview();
+        closeEditor();
+    }
+});
+
+// Initial render
+renderPreview();
+fitStage();
+// Re-fit once fonts have loaded so the title block doesn't reflow after capture.
+if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => { renderPreview(); fitStage(); });
+}
+</script>
+</body>
+</html>
