@@ -208,36 +208,39 @@ input, textarea, select { font-size: 16px; }
     flex-shrink: 0;
 }
 /* Box header — navy banner with small gold ornaments at the edges.
-   Absolute-positioned ornaments + simple text-align: center is the
-   reliable way to keep the title text actually centered (flex side
-   slots can render asymmetrically on iOS in some cases). */
+   Uses fixed height + matching line-height for deterministic vertical
+   centering. With line-height equal to the container height, single-
+   line text is centered within its line-box, which IS the container —
+   no flex/baseline alignment quirks across browsers or platforms. */
 .print-box-header {
     background: linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%);
     color: #f8e9b6;
     text-align: center;
-    padding: 6px 36px;
+    height: 32px;
+    line-height: 32px;
+    padding: 0 36px;
     font-weight: 700;
     font-size: 18px;
     letter-spacing: 0.02em;
     border-bottom: 1px solid var(--gold);
-    min-height: 26px;
     position: relative;
-    line-height: 1.2;
+    box-sizing: border-box;
 }
 .print-box-header-side {
     position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
+    top: 0;
+    bottom: 0;
     color: var(--gold);
     font-size: 11px;
     opacity: 0.95;
-    line-height: 1;
+    line-height: 32px;
     user-select: none;
 }
 .print-box-header-side.start { right: 14px; }   /* RTL: visually on right */
 .print-box-header-side.end   { left: 14px; }
 .print-box-header-text {
     display: inline-block;
+    vertical-align: baseline;
 }
 
 /* Row container — every davening row uses identical horizontal padding,
@@ -253,46 +256,49 @@ input, textarea, select { font-size: 16px; }
 }
 .print-row:last-child { border-bottom: none; }
 
-/* Davening row: label hugs the right edge of the schedule axis, time
-   hugs the left, a dotted gold leader runs through the row's vertical
-   center. Identical 140px horizontal padding on every row across every
-   box gives the schedule a single shared vertical axis page-wide.
+/* Davening row: FIXED height + matching line-height is the most
+   browser-deterministic way to vertically center text. The line-box
+   spans the full row height; single-line text is centered inside it
+   regardless of font metrics. align-items: center on the flex layer
+   adds a second-line defense.
 
-   The leader is a pseudo-element absolutely positioned at exactly 50%
-   of row height — robust against any baseline/stretch alignment quirks
-   that previously left the dots floating above the text. Label and
-   time backgrounds match the box bg so they "cover" the dotted line
-   where they overlap, giving the effect of the leader stopping at
-   each end. */
+   Identical horizontal padding (140px) gives every row on the page a
+   shared vertical axis (label right-edge, time left-edge). */
 .print-row-dav {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 5px 140px;
+    height: 28px;
+    line-height: 28px;
+    padding: 0 140px;
     font-size: 17px;
-    line-height: 1.22;
-    position: relative;
-}
-.print-row-dav::before {
-    content: "";
-    position: absolute;
-    left: 140px;
-    right: 140px;
-    top: 50%;
-    border-top: 1.6px dotted rgba(201, 160, 77, 0.65);
-    transform: translateY(-1px);
-    pointer-events: none;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 .row-label {
+    flex: 0 0 auto;
     font-weight: 600;
     color: var(--ink);
     white-space: nowrap;
-    background: var(--cream-soft);
-    padding: 0 8px;
-    position: relative;
-    z-index: 1;
+    line-height: inherit;
+}
+.row-dots {
+    flex: 1 1 auto;
+    overflow: hidden;
+    white-space: nowrap;
+    text-align: center;
+    color: rgba(201, 160, 77, 0.7);
+    font-weight: 700;
+    letter-spacing: 4px;
+    user-select: none;
+    padding: 0 10px;
+    font-size: 0.85em;
+    line-height: inherit;
+    /* Middle-dot characters render above the baseline; a small upward
+       nudge aligns them with the visual centerline of Hebrew text. */
+    transform: translateY(-3px);
 }
 .row-time {
+    flex: 0 0 auto;
     color: var(--ink);
     direction: ltr;
     font-variant-numeric: tabular-nums;
@@ -300,10 +306,7 @@ input, textarea, select { font-size: 16px; }
     white-space: nowrap;
     text-align: left;
     min-width: 60px;
-    background: var(--cream-soft);
-    padding: 0 8px;
-    position: relative;
-    z-index: 1;
+    line-height: inherit;
 }
 
 /* Free-text row: a centered note within the box. Small fading gold
@@ -807,8 +810,13 @@ function renderBox(boxItems) {
     // page-wide.
     const rowsHtml = rowItems.map(item => {
         if (item.type === 'davening') {
+            // 64 middle-dots, overflow:hidden trims to fit available width.
+            // Inline text so the dots share the same baseline as label/time
+            // — alignment is automatic on every browser.
+            const dots = '·'.repeat(64);
             return `<div class="print-row print-row-dav">
                 <span class="row-label">${htmlEscape(item.label || '')}</span>
+                <span class="row-dots">${dots}</span>
                 <span class="row-time">${htmlEscape(item.time || '')}</span>
             </div>`;
         }
@@ -878,9 +886,10 @@ function autoFitBody() {
 
     function resetEl(el) {
         el.style.fontSize = '';
+        el.style.height = '';
+        el.style.lineHeight = '';
         el.style.paddingTop = '';
         el.style.paddingBottom = '';
-        el.style.lineHeight = '';
     }
     headers.forEach(resetEl);
     davRows.forEach(resetEl);
@@ -889,26 +898,36 @@ function autoFitBody() {
     body.style.gap = '';
 
     // Base values match the stylesheet defaults — factor=1 returns the
-    // stylesheet's sizing exactly.
+    // stylesheet's sizing exactly. Headers and davening rows use
+    // height + line-height pairs (deterministic vertical centering);
+    // free-text and inline-title rows use padding-based sizing.
     const BASE = {
-        header: { font: 18, pad: 5 },
-        dav:    { font: 17, pad: 3 },
+        header: { font: 18, height: 32 },
+        dav:    { font: 17, height: 28 },
         free:   { font: 17, pad: 7 },
         inline: { font: 18, pad: 8 },
     };
-    function applyAll(els, base, f) {
+    function applyFixedHeight(els, base, f) {
+        const h = (base.height * f).toFixed(2) + 'px';
+        els.forEach(el => {
+            el.style.fontSize = (base.font * f).toFixed(2) + 'px';
+            el.style.height = h;
+            el.style.lineHeight = h;
+        });
+    }
+    function applyPadded(els, base, f) {
         els.forEach(el => {
             el.style.fontSize = (base.font * f).toFixed(2) + 'px';
             el.style.paddingTop = (base.pad * f).toFixed(2) + 'px';
             el.style.paddingBottom = (base.pad * f).toFixed(2) + 'px';
-            el.style.lineHeight = (1.18 + 0.04 * f).toFixed(2);
+            el.style.lineHeight = (1.2).toFixed(2);
         });
     }
     function applyFactor(f) {
-        applyAll(headers, BASE.header, f);
-        applyAll(davRows, BASE.dav, f);
-        applyAll(freeRows, BASE.free, f);
-        applyAll(inlineTitleRows, BASE.inline, f);
+        applyFixedHeight(headers, BASE.header, f);
+        applyFixedHeight(davRows, BASE.dav, f);
+        applyPadded(freeRows, BASE.free, f);
+        applyPadded(inlineTitleRows, BASE.inline, f);
         body.style.gap = (12 * f).toFixed(2) + 'px';
     }
 
