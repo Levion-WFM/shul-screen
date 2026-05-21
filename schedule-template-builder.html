@@ -197,83 +197,102 @@ input, textarea, select { font-size: 16px; }
     flex-shrink: 0;
     box-shadow: 0 1px 0 rgba(201, 160, 77, 0.15);
 }
+/* Box header — navy banner with small gold ornaments at the edges.
+   Uses flex centering with the ornaments as flex items inside dedicated
+   side slots so the title text is always perfectly centered regardless
+   of label length. */
 .print-box-header {
     background: linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%);
     color: #f8e9b6;
-    text-align: center;
-    padding: 6px 28px;
+    display: flex;
+    align-items: center;
+    padding: 6px 14px;
     font-weight: 700;
     font-size: 19px;
     letter-spacing: 0.02em;
     border-bottom: 1px solid var(--gold);
-    position: relative;
+    min-height: 28px;
 }
-.print-box-header::before,
-.print-box-header::after {
-    content: "❖";
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
+.print-box-header-side {
+    flex: 0 0 24px;
     color: var(--gold);
     font-size: 12px;
     opacity: 0.9;
+    text-align: center;
+    user-select: none;
 }
-.print-box-header::before { right: 12px; }
-.print-box-header::after  { left: 12px; }
-.print-row {
-    display: flex;
-    align-items: center;
-    padding: 4px 14px;
+.print-box-header-text {
+    flex: 1 1 auto;
+    text-align: center;
+    line-height: 1.15;
+}
+
+/* Schedule rows are laid out as a centered table inside the box. This
+   keeps the Hebrew label, the small ornament, and the time clustered
+   close together in the middle of the row instead of being pushed to
+   opposite edges by a stretched flex. The table's columns size to their
+   contents so labels right-align and times left-align consistently
+   across rows. */
+.print-rows {
+    margin: 0 auto;
+    border-collapse: collapse;
+    width: auto;
+    max-width: 100%;
+}
+.print-rows tr.row-dav td {
+    padding: 4px 10px;
     border-bottom: 1px solid var(--gold-soft);
+    vertical-align: middle;
     font-size: 17px;
     line-height: 1.2;
 }
-.print-row:last-child { border-bottom: none; }
-.print-row:nth-child(odd) { background: rgba(201, 160, 77, 0.04); }
-.print-row-label {
-    flex: 1;
+.print-rows tr.row-full td {
+    padding: 6px 14px;
+    border-bottom: 1px solid var(--gold-soft);
+    vertical-align: middle;
+    font-size: 17px;
+    line-height: 1.2;
+}
+.print-rows tr:last-child td { border-bottom: none; }
+.print-cell-label {
     text-align: right;
     font-weight: 600;
     color: var(--ink);
-    padding-left: 10px;
+    padding-right: 8px;
+    white-space: nowrap;
 }
-.print-row-marker {
+.print-cell-marker {
     color: var(--gold);
     font-size: 11px;
-    padding: 0 6px;
+    padding: 0 8px;
     opacity: 0.8;
-}
-.print-row-time {
-    min-width: 90px;
     text-align: center;
+}
+.print-cell-time {
+    text-align: left;
     font-weight: 500;
     color: var(--ink);
     direction: ltr;
     font-variant-numeric: tabular-nums;
+    padding-left: 8px;
+    white-space: nowrap;
+    min-width: 70px;
 }
-.print-row-freetext {
+.print-cell-freetext {
     text-align: center;
-    padding: 6px 14px;
     font-weight: 600;
-    font-size: 17px;
     color: var(--ink);
-    border-bottom: 1px solid var(--gold-soft);
     background: rgba(29, 58, 138, 0.04);
 }
-.print-row-freetext:last-child { border-bottom: none; }
-
-/* "Inline title" — a title that's not the first item in its box. Renders
-   like a sub-header within the box rather than the navy banner. */
-.print-row-inline-title {
+.print-cell-inline-title {
     text-align: center;
-    padding: 6px 14px;
     font-weight: 700;
-    font-size: 19px;
+    font-size: 19px !important;
     color: var(--navy);
     background: rgba(29, 58, 138, 0.06);
-    border-bottom: 1px solid var(--gold-soft);
-    border-top: 1px solid var(--gold-soft);
     letter-spacing: 0.02em;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
 }
 
 .print-bottom-text {
@@ -706,26 +725,38 @@ function renderBox(boxItems) {
     let headerHtml = '';
     let rowItems = boxItems;
     if (boxItems.length && boxItems[0].type === 'title') {
-        headerHtml = `<div class="print-box-header">${htmlEscape(boxItems[0].text || '')}</div>`;
+        headerHtml = `<div class="print-box-header">` +
+            `<span class="print-box-header-side">❖</span>` +
+            `<span class="print-box-header-text">${htmlEscape(boxItems[0].text || '')}</span>` +
+            `<span class="print-box-header-side">❖</span>` +
+            `</div>`;
         rowItems = boxItems.slice(1);
     }
+    // Render rows as a centered <table> so labels and times sit close
+    // together in the middle of the box. Free-text and inline-title rows
+    // span all three columns via colspan="3".
     const rowsHtml = rowItems.map(item => {
         if (item.type === 'davening') {
-            return `<div class="print-row">
-                <div class="print-row-label">${htmlEscape(item.label || '')}</div>
-                <span class="print-row-marker">⚜</span>
-                <div class="print-row-time">${htmlEscape(item.time || '')}</div>
-            </div>`;
+            return `<tr class="row-dav">
+                <td class="print-cell-label">${htmlEscape(item.label || '')}</td>
+                <td class="print-cell-marker">⚜</td>
+                <td class="print-cell-time">${htmlEscape(item.time || '')}</td>
+            </tr>`;
         }
         if (item.type === 'title') {
-            return `<div class="print-row-inline-title">${htmlEscape(item.text || '')}</div>`;
+            return `<tr class="row-full">
+                <td colspan="3" class="print-cell-inline-title">${htmlEscape(item.text || '')}</td>
+            </tr>`;
         }
         if (item.type === 'free_text') {
-            return `<div class="print-row-freetext">${htmlEscape(item.text || '')}</div>`;
+            return `<tr class="row-full">
+                <td colspan="3" class="print-cell-freetext">${htmlEscape(item.text || '')}</td>
+            </tr>`;
         }
         return '';
     }).join('');
-    return `<div class="print-box">${headerHtml}${rowsHtml}</div>`;
+    const tableHtml = rowItems.length ? `<table class="print-rows">${rowsHtml}</table>` : '';
+    return `<div class="print-box">${headerHtml}${tableHtml}</div>`;
 }
 
 function renderPreview() {
@@ -774,40 +805,50 @@ function autoFitBody() {
     const inner = document.getElementById('printPageInner');
     if (!inner) return;
     const body = inner.querySelector('.print-body');
-    const rows = inner.querySelectorAll(
-        '.print-row, .print-row-freetext, .print-row-inline-title, .print-box-header'
-    );
-    if (!body || !rows.length) return;
+    // We tweak the box header (div) and the table rows' <td> cells —
+    // padding lives on the cell, not the <tr>, so addressing tds keeps
+    // the math correct.
+    const headers = inner.querySelectorAll('.print-box-header');
+    const davCells = inner.querySelectorAll('tr.row-dav > td');
+    const fullCells = inner.querySelectorAll('tr.row-full > td');
+    if (!body) return;
 
-    rows.forEach(r => {
-        r.style.fontSize = '';
-        r.style.paddingTop = '';
-        r.style.paddingBottom = '';
-        r.style.lineHeight = '';
-    });
+    function resetEl(el) {
+        el.style.fontSize = '';
+        el.style.paddingTop = '';
+        el.style.paddingBottom = '';
+        el.style.lineHeight = '';
+    }
+    headers.forEach(resetEl);
+    davCells.forEach(resetEl);
+    fullCells.forEach(resetEl);
     body.style.gap = '';
 
-    // Base values match the CSS defaults — when factor=1 we get exactly
-    // the stylesheet's sizing back.
+    // Base values match the CSS defaults — factor=1 returns the
+    // stylesheet's sizing exactly.
     const BASE = {
         header: { font: 19, pad: 6 },
-        inline: { font: 19, pad: 6 },
-        free:   { font: 17, pad: 6 },
-        row:    { font: 17, pad: 4 },
+        dav:    { font: 17, pad: 4 },
+        full:   { font: 17, pad: 6 },
     };
-    function baseFor(el) {
-        if (el.classList.contains('print-box-header')) return BASE.header;
-        if (el.classList.contains('print-row-inline-title')) return BASE.inline;
-        if (el.classList.contains('print-row-freetext')) return BASE.free;
-        return BASE.row;
-    }
     function applyFactor(f) {
-        rows.forEach(r => {
-            const b = baseFor(r);
-            r.style.fontSize = (b.font * f).toFixed(2) + 'px';
-            r.style.paddingTop = (b.pad * f).toFixed(2) + 'px';
-            r.style.paddingBottom = (b.pad * f).toFixed(2) + 'px';
-            r.style.lineHeight = (1.18 + 0.04 * f).toFixed(2);
+        headers.forEach(el => {
+            el.style.fontSize = (BASE.header.font * f).toFixed(2) + 'px';
+            el.style.paddingTop = (BASE.header.pad * f).toFixed(2) + 'px';
+            el.style.paddingBottom = (BASE.header.pad * f).toFixed(2) + 'px';
+            el.style.lineHeight = (1.16 + 0.04 * f).toFixed(2);
+        });
+        davCells.forEach(el => {
+            el.style.fontSize = (BASE.dav.font * f).toFixed(2) + 'px';
+            el.style.paddingTop = (BASE.dav.pad * f).toFixed(2) + 'px';
+            el.style.paddingBottom = (BASE.dav.pad * f).toFixed(2) + 'px';
+            el.style.lineHeight = (1.18 + 0.04 * f).toFixed(2);
+        });
+        fullCells.forEach(el => {
+            el.style.fontSize = (BASE.full.font * f).toFixed(2) + 'px';
+            el.style.paddingTop = (BASE.full.pad * f).toFixed(2) + 'px';
+            el.style.paddingBottom = (BASE.full.pad * f).toFixed(2) + 'px';
+            el.style.lineHeight = (1.18 + 0.04 * f).toFixed(2);
         });
         body.style.gap = (11 * f).toFixed(2) + 'px';
     }
