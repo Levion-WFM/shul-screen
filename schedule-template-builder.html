@@ -53,97 +53,107 @@ input, textarea, select { font-size: 16px; }
     overflow: hidden;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
 }
+/* Single double-line border: a 2px navy outer line with a single hairline
+   gold inner line at 6px offset. The previous treatment stacked three
+   visible lines which read as noisy. */
 .print-page-border {
     position: absolute;
-    inset: 24px;
-    border: 3px double var(--navy);
-    border-radius: 5px;
+    inset: 22px;
+    border: 2px solid var(--navy);
+    border-radius: 4px;
     pointer-events: none;
 }
 .print-page-border::before {
     content: "";
     position: absolute;
-    inset: 5px;
+    inset: 6px;
     border: 1px solid var(--gold);
     border-radius: 3px;
+    opacity: 0.55;
     pointer-events: none;
 }
+/* בס"ד moved into the inner content zone (was sitting in the border
+   gutter). Top: 50px lands it just below the outer border ~6px in. */
 .print-page-bsd {
     position: absolute;
-    top: 38px;
-    left: 50px;
-    font-size: 14px;
+    top: 52px;
+    left: 64px;
+    font-size: 13px;
     color: var(--navy);
     font-weight: 500;
     letter-spacing: 0.04em;
-    z-index: 1;
+    z-index: 2;
 }
 .print-page-inner {
     position: absolute;
     inset: 44px;
-    padding: 32px 36px 24px;
+    padding: 22px 40px 22px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
 }
 
-/* Header area: logo + titles */
+/* Header area: logo + titles.
+   The shul-logo.png source has substantial transparent padding around the
+   actual emblem, which makes the logo read as anemic at any sane size.
+   We crop tighter by giving the wrapper a fixed shorter height with
+   overflow:hidden and displaying the image larger than the wrapper, so
+   the visible window shows the emblem at proper presence. */
 .print-logo-wrap {
-    text-align: center;
-    margin: 0 0 6px;
+    margin: 0 auto 16px;
     flex-shrink: 0;
-    height: 140px;
+    height: 170px;
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
 }
 .print-logo-wrap img {
-    max-height: 220px;
+    height: 260px;
     width: auto;
-    display: inline-block;
-    /* The source PNG has whitespace around the emblem — scale up so the
-       logo itself reads at a reasonable size on the printed schedule. */
-    transform: scale(1.05);
-    transform-origin: center center;
+    flex-shrink: 0;
+    display: block;
 }
+/* Title block sits below the logo with a clear gap above the top
+   flourish and a generous gap below so the body isn't crowded against
+   the bottom flourish. */
 .print-title-block {
     text-align: center;
-    margin: 0 8px 14px;
+    margin: 0 auto 26px;
     color: var(--navy);
     flex-shrink: 0;
-    padding: 6px 0 8px;
+    padding: 0;
     position: relative;
+    width: 76%;
 }
-/* Decorative top + bottom flourishes — gold lines fading toward the
-   margins with a centered diamond ornament. */
+/* Single elegant diamond ornament centered between two fading gold
+   hairlines. Replaces the previous "❖ ✦ ❖" cluster, which had
+   three glyphs at different visual sizes fighting for attention. */
 .print-title-flourish {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 16px;
     color: var(--gold);
-    font-size: 10px;
     line-height: 1;
     user-select: none;
     margin: 0 auto;
-    width: 58%;
 }
 .print-title-flourish::before,
 .print-title-flourish::after {
     content: "";
     flex: 1;
     height: 1px;
-    background: linear-gradient(90deg, transparent, var(--gold) 30%, var(--gold) 70%, transparent);
+    background: linear-gradient(90deg, transparent, rgba(201,160,77,0.9) 25%, rgba(201,160,77,0.9) 75%, transparent);
 }
 .print-title-flourish .orn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    letter-spacing: 0.4em;
-    padding: 0 4px;
+    font-size: 14px;
+    padding: 0;
+    line-height: 1;
 }
-.print-title-flourish-top { margin-bottom: 14px; }
-.print-title-flourish-bot { margin-top: 14px; }
+.print-title-flourish-top { margin-bottom: 10px; }
+.print-title-flourish-bot { margin-top: 10px; }
 
 .print-title-line {
     font-family: 'Frank Ruhl Libre', 'David Libre', serif;
@@ -151,73 +161,71 @@ input, textarea, select { font-size: 16px; }
     word-break: normal;
 }
 .print-title-line.size-major {
-    font-size: 54px;
+    font-size: 52px;
     font-weight: 900;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
     color: var(--navy);
-    letter-spacing: 0.01em;
+    letter-spacing: 0.005em;
 }
 .print-title-line.size-large {
-    font-size: 42px;
+    font-size: 40px;
     font-weight: 700;
     color: var(--navy);
-    letter-spacing: 0.01em;
+    letter-spacing: 0.005em;
 }
 .print-title-line.size-medium {
-    font-size: 24px;
+    font-size: 22px;
     font-weight: 500;
     color: var(--ink-soft);
-    margin-top: 2px;
+    margin-top: 4px;
 }
 .print-title-line.size-small {
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 400;
     color: var(--ink-soft);
-    margin-top: 2px;
+    margin-top: 3px;
 }
 
 /* Body schedule
-   justify-content: center centers the boxes vertically inside the body's
-   flex-allocated space. For short schedules this produces a balanced page
-   (boxes sit in the middle, equal whitespace above and below); for long
-   schedules the boxes fill the area so centering becomes a no-op. */
+   The boxes sit centered vertically. Each box is responsible for its own
+   border + header; the rows table within is sized to a FIXED width and
+   FIXED column widths so that labels and times align across every box on
+   the page — the previous content-sized tables let each box drift to a
+   different visual axis. */
 .print-body {
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 11px;
+    gap: 12px;
     min-height: 0;
 }
 .print-box {
-    border: 1.5px solid var(--gold);
-    border-radius: 5px;
+    border: 1.2px solid var(--gold);
+    border-radius: 4px;
     background: var(--cream-soft);
     overflow: hidden;
     flex-shrink: 0;
-    box-shadow: 0 1px 0 rgba(201, 160, 77, 0.15);
 }
 /* Box header — navy banner with small gold ornaments at the edges.
-   Uses flex centering with the ornaments as flex items inside dedicated
-   side slots so the title text is always perfectly centered regardless
-   of label length. */
+   Flex with dedicated 26px side slots keeps the title centered. */
 .print-box-header {
     background: linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%);
     color: #f8e9b6;
     display: flex;
     align-items: center;
-    padding: 6px 14px;
+    padding: 5px 12px;
     font-weight: 700;
-    font-size: 19px;
+    font-size: 18px;
     letter-spacing: 0.02em;
     border-bottom: 1px solid var(--gold);
-    min-height: 28px;
+    min-height: 26px;
 }
 .print-box-header-side {
-    flex: 0 0 24px;
+    flex: 0 0 26px;
     color: var(--gold);
-    font-size: 12px;
-    opacity: 0.9;
+    font-size: 11px;
+    opacity: 0.95;
     text-align: center;
     user-select: none;
 }
@@ -227,84 +235,124 @@ input, textarea, select { font-size: 16px; }
     line-height: 1.15;
 }
 
-/* Schedule rows are laid out as a centered table inside the box. This
-   keeps the Hebrew label, the small ornament, and the time clustered
-   close together in the middle of the row instead of being pushed to
-   opposite edges by a stretched flex. The table's columns size to their
-   contents so labels right-align and times left-align consistently
-   across rows. */
+/* Row container — every davening row uses identical horizontal padding,
+   which is what makes labels and times line up to the same vertical
+   axes across ALL boxes on the page. Inside each row a dotted gold
+   leader fills the variable middle space, so the label appears tied
+   to its time visually rather than separated by a wide blank gap. */
 .print-rows {
-    margin: 0 auto;
-    border-collapse: collapse;
-    width: auto;
-    max-width: 100%;
+    padding: 0;
 }
-.print-rows tr.row-dav td {
-    padding: 4px 10px;
+.print-row {
     border-bottom: 1px solid var(--gold-soft);
-    vertical-align: middle;
-    font-size: 17px;
-    line-height: 1.2;
 }
-.print-rows tr.row-full td {
-    padding: 6px 14px;
-    border-bottom: 1px solid var(--gold-soft);
-    vertical-align: middle;
+.print-row:last-child { border-bottom: none; }
+
+/* Davening row: label hugs the right edge of the schedule axis, time
+   hugs the left, a dotted gold leader bridges the middle. The 140px
+   side padding (~21% of box width) tightens the axis so labels and
+   times are physically close — without it short labels like "מנחה"
+   would float far from their times across a half-box-wide leader.
+   Identical padding on every row across every box keeps the page
+   coherent (everything lines up to a single vertical axis). */
+.print-row-dav {
+    display: flex;
+    align-items: baseline;
+    padding: 3px 140px;
     font-size: 17px;
-    line-height: 1.2;
+    line-height: 1.22;
 }
-.print-rows tr:last-child td { border-bottom: none; }
-.print-cell-label {
-    text-align: right;
+.row-label {
     font-weight: 600;
     color: var(--ink);
-    padding-right: 8px;
     white-space: nowrap;
 }
-.print-cell-marker {
-    color: var(--gold);
-    font-size: 11px;
-    padding: 0 8px;
-    opacity: 0.8;
-    text-align: center;
+.row-leader {
+    flex: 1 1 auto;
+    margin: 0 14px;
+    border-bottom: 1.6px dotted rgba(201, 160, 77, 0.65);
+    align-self: stretch;
+    /* push the dotted line up so it sits just below the text baseline
+       rather than at the box bottom (which would put it under the
+       descenders). */
+    transform: translateY(-7px);
+    min-width: 24px;
 }
-.print-cell-time {
-    text-align: left;
-    font-weight: 500;
+.row-time {
     color: var(--ink);
     direction: ltr;
     font-variant-numeric: tabular-nums;
-    padding-left: 8px;
+    font-weight: 500;
     white-space: nowrap;
-    min-width: 70px;
-}
-.print-cell-freetext {
-    text-align: center;
-    font-weight: 600;
-    color: var(--ink);
-    background: rgba(29, 58, 138, 0.04);
-}
-.print-cell-inline-title {
-    text-align: center;
-    font-weight: 700;
-    font-size: 19px !important;
-    color: var(--navy);
-    background: rgba(29, 58, 138, 0.06);
-    letter-spacing: 0.02em;
-    padding-top: 8px !important;
-    padding-bottom: 8px !important;
+    text-align: left;
+    min-width: 60px;
 }
 
+/* Free-text row: a centered note within the box. Small fading gold
+   bracket lines either side mark it as an intentional decorative line
+   rather than a misaligned davening row. */
+.print-row-freetext {
+    text-align: center;
+    padding: 7px 14px;
+    font-weight: 600;
+    font-size: 17px;
+    color: var(--ink);
+}
+.print-row-freetext .ft {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+}
+.print-row-freetext .ft::before,
+.print-row-freetext .ft::after {
+    content: "";
+    width: 32px;
+    height: 1px;
+    opacity: 0.55;
+}
+.print-row-freetext .ft::before {
+    background: linear-gradient(90deg, transparent, var(--gold));
+}
+.print-row-freetext .ft::after {
+    background: linear-gradient(90deg, var(--gold), transparent);
+}
+/* Inline title (a "title" item that's not the first item in its box) —
+   smaller than the navy banner but visually distinct. */
+.print-row-inline-title {
+    text-align: center;
+    padding: 8px 14px;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--navy);
+    letter-spacing: 0.02em;
+}
+
+/* Bottom blessing. No italic — Hebrew has no true italic and browser
+   skew-fakes look unprofessional. Distinction comes from lighter weight,
+   a slightly desaturated ink color, and small gold ornaments either
+   side that match the title flourishes. */
 .print-bottom-text {
     text-align: center;
-    margin-top: 10px;
-    padding-top: 8px;
+    margin-top: 14px;
+    padding-top: 12px;
     font-size: 16px;
-    color: var(--navy);
+    color: var(--ink-soft);
     font-weight: 500;
+    letter-spacing: 0.005em;
     flex-shrink: 0;
-    font-style: italic;
     border-top: 1px solid var(--gold-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+.print-bottom-text::before,
+.print-bottom-text::after {
+    content: "❖";
+    color: var(--gold);
+    font-size: 9px;
+    opacity: 0.75;
 }
 .print-empty-cta {
     text-align: center;
@@ -689,11 +737,12 @@ function renderTitleLines(lines) {
         return 'size-small';
     }
     // Top and bottom flourishes bracket the title block — a fading gold
-    // line with a small "❖ ✦ ❖" ornament cluster in the middle. The cluster
-    // mirrors top/bottom so the block feels framed.
+    // hairline with a single diamond ornament in the middle. (Previous
+    // "❖ ✦ ❖" cluster mixed three glyphs of different visual weight that
+    // fought each other; a single mark reads as deliberately decorative.)
     const flourish = (pos) =>
         `<div class="print-title-flourish print-title-flourish-${pos}">` +
-        `<span class="orn">❖ ✦ ❖</span></div>`;
+        `<span class="orn">❖</span></div>`;
     return `<div class="print-title-block">` +
         flourish('top') +
         filtered.map((l, i) =>
@@ -732,31 +781,30 @@ function renderBox(boxItems) {
             `</div>`;
         rowItems = boxItems.slice(1);
     }
-    // Render rows as a centered <table> so labels and times sit close
-    // together in the middle of the box. Free-text and inline-title rows
-    // span all three columns via colspan="3".
+    // Each davening row is a flex row with a dotted gold leader bridging
+    // the variable space between the right-anchored label and the
+    // left-anchored time. Free-text / inline-title rows are simple
+    // full-width centered divs. Identical row-padding across every row
+    // in every box keeps labels and times on the same vertical axis
+    // page-wide.
     const rowsHtml = rowItems.map(item => {
         if (item.type === 'davening') {
-            return `<tr class="row-dav">
-                <td class="print-cell-label">${htmlEscape(item.label || '')}</td>
-                <td class="print-cell-marker">⚜</td>
-                <td class="print-cell-time">${htmlEscape(item.time || '')}</td>
-            </tr>`;
+            return `<div class="print-row print-row-dav">
+                <span class="row-label">${htmlEscape(item.label || '')}</span>
+                <span class="row-leader"></span>
+                <span class="row-time">${htmlEscape(item.time || '')}</span>
+            </div>`;
         }
         if (item.type === 'title') {
-            return `<tr class="row-full">
-                <td colspan="3" class="print-cell-inline-title">${htmlEscape(item.text || '')}</td>
-            </tr>`;
+            return `<div class="print-row print-row-inline-title">${htmlEscape(item.text || '')}</div>`;
         }
         if (item.type === 'free_text') {
-            return `<tr class="row-full">
-                <td colspan="3" class="print-cell-freetext">${htmlEscape(item.text || '')}</td>
-            </tr>`;
+            return `<div class="print-row print-row-freetext"><span class="ft">${htmlEscape(item.text || '')}</span></div>`;
         }
         return '';
     }).join('');
-    const tableHtml = rowItems.length ? `<table class="print-rows">${rowsHtml}</table>` : '';
-    return `<div class="print-box">${headerHtml}${tableHtml}</div>`;
+    const rowsContainerHtml = rowItems.length ? `<div class="print-rows">${rowsHtml}</div>` : '';
+    return `<div class="print-box">${headerHtml}${rowsContainerHtml}</div>`;
 }
 
 function renderPreview() {
@@ -805,12 +853,10 @@ function autoFitBody() {
     const inner = document.getElementById('printPageInner');
     if (!inner) return;
     const body = inner.querySelector('.print-body');
-    // We tweak the box header (div) and the table rows' <td> cells —
-    // padding lives on the cell, not the <tr>, so addressing tds keeps
-    // the math correct.
     const headers = inner.querySelectorAll('.print-box-header');
-    const davCells = inner.querySelectorAll('tr.row-dav > td');
-    const fullCells = inner.querySelectorAll('tr.row-full > td');
+    const davRows = inner.querySelectorAll('.print-row-dav');
+    const freeRows = inner.querySelectorAll('.print-row-freetext');
+    const inlineTitleRows = inner.querySelectorAll('.print-row-inline-title');
     if (!body) return;
 
     function resetEl(el) {
@@ -820,37 +866,33 @@ function autoFitBody() {
         el.style.lineHeight = '';
     }
     headers.forEach(resetEl);
-    davCells.forEach(resetEl);
-    fullCells.forEach(resetEl);
+    davRows.forEach(resetEl);
+    freeRows.forEach(resetEl);
+    inlineTitleRows.forEach(resetEl);
     body.style.gap = '';
 
-    // Base values match the CSS defaults — factor=1 returns the
+    // Base values match the stylesheet defaults — factor=1 returns the
     // stylesheet's sizing exactly.
     const BASE = {
-        header: { font: 19, pad: 6 },
-        dav:    { font: 17, pad: 4 },
-        full:   { font: 17, pad: 6 },
+        header: { font: 18, pad: 5 },
+        dav:    { font: 17, pad: 3 },
+        free:   { font: 17, pad: 7 },
+        inline: { font: 18, pad: 8 },
     };
+    function applyAll(els, base, f) {
+        els.forEach(el => {
+            el.style.fontSize = (base.font * f).toFixed(2) + 'px';
+            el.style.paddingTop = (base.pad * f).toFixed(2) + 'px';
+            el.style.paddingBottom = (base.pad * f).toFixed(2) + 'px';
+            el.style.lineHeight = (1.18 + 0.04 * f).toFixed(2);
+        });
+    }
     function applyFactor(f) {
-        headers.forEach(el => {
-            el.style.fontSize = (BASE.header.font * f).toFixed(2) + 'px';
-            el.style.paddingTop = (BASE.header.pad * f).toFixed(2) + 'px';
-            el.style.paddingBottom = (BASE.header.pad * f).toFixed(2) + 'px';
-            el.style.lineHeight = (1.16 + 0.04 * f).toFixed(2);
-        });
-        davCells.forEach(el => {
-            el.style.fontSize = (BASE.dav.font * f).toFixed(2) + 'px';
-            el.style.paddingTop = (BASE.dav.pad * f).toFixed(2) + 'px';
-            el.style.paddingBottom = (BASE.dav.pad * f).toFixed(2) + 'px';
-            el.style.lineHeight = (1.18 + 0.04 * f).toFixed(2);
-        });
-        fullCells.forEach(el => {
-            el.style.fontSize = (BASE.full.font * f).toFixed(2) + 'px';
-            el.style.paddingTop = (BASE.full.pad * f).toFixed(2) + 'px';
-            el.style.paddingBottom = (BASE.full.pad * f).toFixed(2) + 'px';
-            el.style.lineHeight = (1.18 + 0.04 * f).toFixed(2);
-        });
-        body.style.gap = (11 * f).toFixed(2) + 'px';
+        applyAll(headers, BASE.header, f);
+        applyAll(davRows, BASE.dav, f);
+        applyAll(freeRows, BASE.free, f);
+        applyAll(inlineTitleRows, BASE.inline, f);
+        body.style.gap = (12 * f).toFixed(2) + 'px';
     }
 
     if (body.scrollHeight <= body.clientHeight) return;
