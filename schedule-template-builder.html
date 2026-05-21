@@ -208,31 +208,36 @@ input, textarea, select { font-size: 16px; }
     flex-shrink: 0;
 }
 /* Box header — navy banner with small gold ornaments at the edges.
-   Flex with dedicated 26px side slots keeps the title centered. */
+   Absolute-positioned ornaments + simple text-align: center is the
+   reliable way to keep the title text actually centered (flex side
+   slots can render asymmetrically on iOS in some cases). */
 .print-box-header {
     background: linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%);
     color: #f8e9b6;
-    display: flex;
-    align-items: center;
-    padding: 5px 12px;
+    text-align: center;
+    padding: 6px 36px;
     font-weight: 700;
     font-size: 18px;
     letter-spacing: 0.02em;
     border-bottom: 1px solid var(--gold);
     min-height: 26px;
+    position: relative;
+    line-height: 1.2;
 }
 .print-box-header-side {
-    flex: 0 0 26px;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
     color: var(--gold);
     font-size: 11px;
     opacity: 0.95;
-    text-align: center;
+    line-height: 1;
     user-select: none;
 }
+.print-box-header-side.start { right: 14px; }   /* RTL: visually on right */
+.print-box-header-side.end   { left: 14px; }
 .print-box-header-text {
-    flex: 1 1 auto;
-    text-align: center;
-    line-height: 1.15;
+    display: inline-block;
 }
 
 /* Row container — every davening row uses identical horizontal padding,
@@ -249,34 +254,43 @@ input, textarea, select { font-size: 16px; }
 .print-row:last-child { border-bottom: none; }
 
 /* Davening row: label hugs the right edge of the schedule axis, time
-   hugs the left, a dotted gold leader bridges the middle. The 140px
-   side padding (~21% of box width) tightens the axis so labels and
-   times are physically close — without it short labels like "מנחה"
-   would float far from their times across a half-box-wide leader.
-   Identical padding on every row across every box keeps the page
-   coherent (everything lines up to a single vertical axis). */
+   hugs the left, a dotted gold leader runs through the row's vertical
+   center. Identical 140px horizontal padding on every row across every
+   box gives the schedule a single shared vertical axis page-wide.
+
+   The leader is a pseudo-element absolutely positioned at exactly 50%
+   of row height — robust against any baseline/stretch alignment quirks
+   that previously left the dots floating above the text. Label and
+   time backgrounds match the box bg so they "cover" the dotted line
+   where they overlap, giving the effect of the leader stopping at
+   each end. */
 .print-row-dav {
     display: flex;
-    align-items: baseline;
-    padding: 3px 140px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 140px;
     font-size: 17px;
     line-height: 1.22;
+    position: relative;
+}
+.print-row-dav::before {
+    content: "";
+    position: absolute;
+    left: 140px;
+    right: 140px;
+    top: 50%;
+    border-top: 1.6px dotted rgba(201, 160, 77, 0.65);
+    transform: translateY(-1px);
+    pointer-events: none;
 }
 .row-label {
     font-weight: 600;
     color: var(--ink);
     white-space: nowrap;
-}
-.row-leader {
-    flex: 1 1 auto;
-    margin: 0 14px;
-    border-bottom: 1.6px dotted rgba(201, 160, 77, 0.65);
-    align-self: stretch;
-    /* push the dotted line up so it sits just below the text baseline
-       rather than at the box bottom (which would put it under the
-       descenders). */
-    transform: translateY(-7px);
-    min-width: 24px;
+    background: var(--cream-soft);
+    padding: 0 8px;
+    position: relative;
+    z-index: 1;
 }
 .row-time {
     color: var(--ink);
@@ -286,6 +300,10 @@ input, textarea, select { font-size: 16px; }
     white-space: nowrap;
     text-align: left;
     min-width: 60px;
+    background: var(--cream-soft);
+    padding: 0 8px;
+    position: relative;
+    z-index: 1;
 }
 
 /* Free-text row: a centered note within the box. Small fading gold
@@ -775,9 +793,9 @@ function renderBox(boxItems) {
     let rowItems = boxItems;
     if (boxItems.length && boxItems[0].type === 'title') {
         headerHtml = `<div class="print-box-header">` +
-            `<span class="print-box-header-side">❖</span>` +
+            `<span class="print-box-header-side start">❖</span>` +
             `<span class="print-box-header-text">${htmlEscape(boxItems[0].text || '')}</span>` +
-            `<span class="print-box-header-side">❖</span>` +
+            `<span class="print-box-header-side end">❖</span>` +
             `</div>`;
         rowItems = boxItems.slice(1);
     }
@@ -791,7 +809,6 @@ function renderBox(boxItems) {
         if (item.type === 'davening') {
             return `<div class="print-row print-row-dav">
                 <span class="row-label">${htmlEscape(item.label || '')}</span>
-                <span class="row-leader"></span>
                 <span class="row-time">${htmlEscape(item.time || '')}</span>
             </div>`;
         }
