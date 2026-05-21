@@ -90,15 +90,15 @@ input, textarea, select { font-size: 16px; }
 /* Header area: logo + titles */
 .print-logo-wrap {
     text-align: center;
-    margin: 0 0 10px;
+    margin: 0 0 6px;
     flex-shrink: 0;
-    height: 150px;
+    height: 140px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 .print-logo-wrap img {
-    max-height: 230px;
+    max-height: 220px;
     width: auto;
     display: inline-block;
     /* The source PNG has whitespace around the emblem — scale up so the
@@ -108,34 +108,84 @@ input, textarea, select { font-size: 16px; }
 }
 .print-title-block {
     text-align: center;
-    margin: 0 0 18px;
+    margin: 0 8px 14px;
     color: var(--navy);
     flex-shrink: 0;
+    padding: 6px 0 8px;
     position: relative;
 }
-.print-title-block::after {
-    content: "";
-    display: block;
-    width: 220px;
-    height: 1px;
-    margin: 14px auto 0;
-    background: linear-gradient(90deg, transparent, var(--gold) 25%, var(--gold) 75%, transparent);
+/* Decorative top + bottom flourishes — gold lines fading toward the
+   margins with a centered diamond ornament. */
+.print-title-flourish {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: var(--gold);
+    font-size: 10px;
+    line-height: 1;
+    user-select: none;
+    margin: 0 auto;
+    width: 58%;
 }
+.print-title-flourish::before,
+.print-title-flourish::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold) 30%, var(--gold) 70%, transparent);
+}
+.print-title-flourish .orn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: 0.4em;
+    padding: 0 4px;
+}
+.print-title-flourish-top { margin-bottom: 14px; }
+.print-title-flourish-bot { margin-top: 14px; }
+
 .print-title-line {
     font-family: 'Frank Ruhl Libre', 'David Libre', serif;
-    line-height: 1.1;
+    line-height: 1.05;
     word-break: normal;
 }
-.print-title-line.size-major  { font-size: 46px; font-weight: 700; margin-bottom: 4px; }
-.print-title-line.size-large  { font-size: 34px; font-weight: 700; }
-.print-title-line.size-medium { font-size: 24px; font-weight: 500; color: var(--ink-soft); }
-.print-title-line.size-small  { font-size: 18px; font-weight: 400; color: var(--ink-soft); }
+.print-title-line.size-major {
+    font-size: 54px;
+    font-weight: 900;
+    margin-bottom: 6px;
+    color: var(--navy);
+    letter-spacing: 0.01em;
+}
+.print-title-line.size-large {
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--navy);
+    letter-spacing: 0.01em;
+}
+.print-title-line.size-medium {
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin-top: 2px;
+}
+.print-title-line.size-small {
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--ink-soft);
+    margin-top: 2px;
+}
 
-/* Body schedule */
+/* Body schedule
+   justify-content: center centers the boxes vertically inside the body's
+   flex-allocated space. For short schedules this produces a balanced page
+   (boxes sit in the middle, equal whitespace above and below); for long
+   schedules the boxes fill the area so centering becomes a no-op. */
 .print-body {
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     gap: 11px;
     min-height: 0;
 }
@@ -619,9 +669,19 @@ function renderTitleLines(lines) {
         if (i === 1) return 'size-medium';
         return 'size-small';
     }
-    return `<div class="print-title-block">${
-        filtered.map((l, i) => `<div class="print-title-line ${sizeFor(i, filtered.length)}">${htmlEscape(l.text)}</div>`).join('')
-    }</div>`;
+    // Top and bottom flourishes bracket the title block — a fading gold
+    // line with a small "❖ ✦ ❖" ornament cluster in the middle. The cluster
+    // mirrors top/bottom so the block feels framed.
+    const flourish = (pos) =>
+        `<div class="print-title-flourish print-title-flourish-${pos}">` +
+        `<span class="orn">❖ ✦ ❖</span></div>`;
+    return `<div class="print-title-block">` +
+        flourish('top') +
+        filtered.map((l, i) =>
+            `<div class="print-title-line ${sizeFor(i, filtered.length)}">${htmlEscape(l.text)}</div>`
+        ).join('') +
+        flourish('bot') +
+        `</div>`;
 }
 
 // Group items into boxes, splitting on line_break.
