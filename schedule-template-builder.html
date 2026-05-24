@@ -87,7 +87,7 @@ input, textarea, select { font-size: 16px; }
 .print-page-inner {
     position: absolute;
     inset: 44px;
-    padding: 22px 40px 22px;
+    padding: 14px 40px 20px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -100,9 +100,9 @@ input, textarea, select { font-size: 16px; }
    overflow:hidden and displaying the image larger than the wrapper, so
    the visible window shows the emblem at proper presence. */
 .print-logo-wrap {
-    margin: 0 auto 16px;
+    margin: 0 auto 6px;
     flex-shrink: 0;
-    height: 170px;
+    height: 130px;
     width: 100%;
     display: flex;
     align-items: center;
@@ -110,7 +110,7 @@ input, textarea, select { font-size: 16px; }
     overflow: hidden;
 }
 .print-logo-wrap img {
-    height: 260px;
+    height: 220px;
     width: auto;
     flex-shrink: 0;
     display: block;
@@ -120,7 +120,7 @@ input, textarea, select { font-size: 16px; }
    the bottom flourish. */
 .print-title-block {
     text-align: center;
-    margin: 0 auto 16px;
+    margin: 0 auto 12px;
     color: var(--navy);
     flex-shrink: 0;
     padding: 0;
@@ -187,14 +187,15 @@ input, textarea, select { font-size: 16px; }
 }
 
 /* Body schedule
-   Boxes sit at the top of the body's allocated space (below the title
-   block) rather than vertically-centered, so the schedule reads as a
-   list anchored under the title rather than floating mid-page. */
+   The header zone (logo + title) is intentionally compact so the
+   body's allocated space is large; centering the boxes within that
+   space puts the schedule's visual mass near the page's vertical
+   center, with balanced whitespace above and below. */
 .print-body {
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: center;
     gap: 12px;
     min-height: 0;
 }
@@ -226,12 +227,12 @@ input, textarea, select { font-size: 16px; }
 }
 .print-box-header-side {
     position: absolute;
-    top: 0;
-    bottom: 0;
+    top: 50%;
+    transform: translateY(-50%);
     color: var(--gold);
-    font-size: 12px;
+    font-size: 13px;
     opacity: 0.95;
-    line-height: 36px;
+    line-height: 1;
     user-select: none;
 }
 .print-box-header-side.start { right: 14px; }   /* RTL: visually on right */
@@ -267,7 +268,7 @@ input, textarea, select { font-size: 16px; }
     align-items: center;
     height: 32px;
     line-height: 32px;
-    padding: 0 140px;
+    padding: 0 180px;
     font-size: 19px;
     box-sizing: border-box;
     overflow: hidden;
