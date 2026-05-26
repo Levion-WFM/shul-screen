@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Building Campaign · CSV Import · BMJ21</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<style>
+  body { background:#0a0706; color:#f5efe9; font-family: ui-sans-serif, system-ui, sans-serif; }
+  .gold { color:#e9c349; }
+  .card { background:#120d0b; border:1px solid #281f1d; }
+  input[type=password], input[type=text] {
+    background:#0a0706; border:1px solid #3a2f2b; color:#f5efe9;
+  }
+  table { border-collapse: collapse; }
+  th, td { border-bottom:1px solid #281f1d; padding:6px 10px; text-align:left; }
+  th { color:#9c8d8a; font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.05em; }
+</style>
+</head>
+<body class="min-h-screen">
+<div class="max-w-3xl mx-auto px-6 py-10">
+
+  <h1 class="text-3xl font-bold gold">Building Campaign — CSV Import</h1>
+  <p class="text-sm text-[#9c8d8a] mt-2 leading-relaxed">
+    Re-export the teams list from CharityExtra and drop the CSV here to refresh
+    every team's <b>goal</b> and <b>raised</b> amount on the kiosk. No redeploy —
+    screens reload within ~30 seconds. The CSV is the source of truth: teams not
+    in the file are removed.
+  </p>
+
+  <!-- Admin token -->
+  <div class="card rounded-lg p-5 mt-6">
+    <label class="block text-sm font-semibold mb-1">Admin token</label>
+    <input id="token" type="password" class="w-full rounded px-3 py-2 text-sm" placeholder="ADMIN_TOKEN"/>
+    <p class="text-xs text-[#9c8d8a] mt-1">Same token as the admin panel. Saved in this browser.</p>
+  </div>
+
+  <!-- File picker -->
+  <div class="card rounded-lg p-5 mt-4">
+    <label class="block text-sm font-semibold mb-2">CharityExtra teams CSV</label>
+    <input id="file" type="file" accept=".csv,text/csv"
+           class="block w-full text-sm file:mr-4 file:rounded file:border-0 file:bg-[#e9c349] file:text-[#3c2f00] file:px-4 file:py-2 file:font-semibold file:cursor-pointer"/>
+    <div id="parseMsg" class="text-xs mt-2"></div>
+  </div>
+
+  <!-- Preview -->
+  <div id="preview" class="card rounded-lg p-5 mt-4 hidden">
+    <div class="grid grid-cols-3 gap-3 text-center mb-4">
+      <div><div class="text-2xl font-bold gold" id="sumTeams">—</div><div class="text-xs text-[#9c8d8a]">teams</div></div>
+      <div><div class="text-2xl font-bold gold" id="sumGoal">—</div><div class="text-xs text-[#9c8d8a]">total goal</div></div>
+      <div><div class="text-2xl font-bold gold" id="sumRaised">—</div><div class="text-xs text-[#9c8d8a]">total raised</div></div>
+    </div>
+    <div class="text-xs text-[#9c8d8a] mb-1">Teams with money in:</div>
+    <div id="raisedList" class="text-sm mb-4"></div>
+    <details class="text-sm">
+      <summary class="cursor-pointer text-[#9c8d8a]">Show all teams</summary>
+      <div class="max-h-72 overflow-auto mt-2">
+        <table class="w-full text-sm"><thead><tr><th>Team</th><th>Goal</th><th>Raised</th></tr></thead>
+        <tbody id="allRows"></tbody></table>
+      </div>
+    </details>
+
+    <button id="push" class="mt-5 w-full rounded bg-[#e9c349] text-[#3c2f00] font-bold py-3 hover:brightness-110 disabled:opacity-50">
+      Push to screen
+    </button>
+    <div id="result" class="text-sm mt-3"></div>
+  </div>
+
+</div>
+
+<script>
+  var tokenEl = document.getElementById('token');
+  var TOKEN_KEY = 'shulAdminToken';
+  tokenEl.value = localStorage.getItem(TOKEN_KEY) || '';
+  tokenEl.addEventListener('change', function () {
+    localStorage.setItem(TOKEN_KEY, tokenEl.value.trim());
+  });
+
+  var parsed = [];   // [{team_id,name,goal,raised,hidden}]
+
+  function fmt(n) { return '$' + Number(n || 0).toLocaleString('en-US'); }
+  function norm(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+
+  // Build a case/space/BOM-insensitive column lookup from the CSV header row.
+  function keyMap(fields) {
+    var m = {};
+    (fields || []).forEach(function (f) { m[norm(f)] = f; });
+    return {
+      team_id: m['teamid'] || m['id'],
+      name:    m['name'],
+      goal:    m['goal'],
+      raised:  m['raised'],
+      hidden:  m['hidden']
+    };
+  }
+  function toInt(v) {
+    var n = parseInt(String(v == null ? '' : v).replace(/[^0-9.-]/g, ''), 10);
+    return isFinite(n) ? n : 0;
+  }
+
+  document.getElementById('file').addEventListener('change', function (e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var msg = document.getElementById('parseMsg');
+    msg.textContent = 'Parsing…'; msg.className = 'text-xs mt-2 text-[#9c8d8a]';
+
+    Papa.parse(file, {
+      header: true, skipEmptyLines: true,
+      complete: function (res) {
+        var km = keyMap(res.meta.fields);
+        if (!km.team_id || !km.name) {
+          msg.textContent = 'Could not find TeamId / name columns. Is this the CharityExtra teams export?';
+          msg.className = 'text-xs mt-2 text-red-400';
+          return;
+        }
+        var seen = {};
+        parsed = [];
+        res.data.forEach(function (row) {
+          var id = toInt(row[km.team_id]);
+          var name = String(row[km.name] || '').replace(/\s+/g, ' ').trim();
+          if (!id || !name || seen[id]) return;
+          seen[id] = true;
+          parsed.push({
+            team_id: id, name: name,
+            goal: Math.max(0, toInt(km.goal ? row[km.goal] : 0)),
+            raised: Math.max(0, toInt(km.raised ? row[km.raised] : 0)),
+            hidden: km.hidden ? /^(yes|true|1)$/i.test(String(row[km.hidden] || '')) : false
+          });
+        });
+        if (!parsed.length) {
+          msg.textContent = 'No valid rows found.'; msg.className = 'text-xs mt-2 text-red-400';
+          return;
+        }
+        msg.textContent = 'Parsed ' + parsed.length + ' teams.';
+        msg.className = 'text-xs mt-2 text-green-400';
+        renderPreview();
+      },
+      error: function (err) {
+        msg.textContent = 'Parse error: ' + err.message; msg.className = 'text-xs mt-2 text-red-400';
+      }
+    });
+  });
+
+  function renderPreview() {
+    var visible = parsed.filter(function (t) { return !t.hidden; });
+    var totalGoal = visible.reduce(function (s, t) { return s + t.goal; }, 0);
+    var totalRaised = visible.reduce(function (s, t) { return s + t.raised; }, 0);
+    document.getElementById('sumTeams').textContent = visible.length;
+    document.getElementById('sumGoal').textContent = fmt(totalGoal);
+    document.getElementById('sumRaised').textContent = fmt(totalRaised);
+
+    var raised = visible.filter(function (t) { return t.raised > 0; })
+                        .sort(function (a, b) { return b.raised - a.raised; });
+    document.getElementById('raisedList').innerHTML = raised.length
+      ? raised.map(function (t) { return '· ' + t.name + ' — <span class="gold">' + fmt(t.raised) + '</span>'; }).join('<br>')
+      : '<span class="text-[#9c8d8a]">none yet</span>';
+
+    document.getElementById('allRows').innerHTML = visible
+      .slice().sort(function (a, b) { return a.name.localeCompare(b.name); })
+      .map(function (t) { return '<tr><td>' + t.name + '</td><td>' + fmt(t.goal) + '</td><td>' + fmt(t.raised) + '</td></tr>'; })
+      .join('');
+
+    document.getElementById('preview').classList.remove('hidden');
+  }
+
+  document.getElementById('push').addEventListener('click', async function () {
+    var token = tokenEl.value.trim();
+    var result = document.getElementById('result');
+    if (!token) { result.textContent = 'Enter the admin token first.'; result.className = 'text-sm mt-3 text-red-400'; return; }
+    if (!parsed.length) { result.textContent = 'Load a CSV first.'; result.className = 'text-sm mt-3 text-red-400'; return; }
+
+    var btn = this; btn.disabled = true;
+    result.textContent = 'Pushing…'; result.className = 'text-sm mt-3 text-[#9c8d8a]';
+    localStorage.setItem(TOKEN_KEY, token);
+    try {
+      var res = await fetch('/api/campaign-import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ teams: parsed })
+      });
+      var j = await res.json();
+      if (!res.ok) throw new Error(j.error || ('HTTP ' + res.status));
+      result.innerHTML = '✓ Updated ' + j.teams + ' teams (' + j.raisedTeams + ' with money in). '
+        + 'Total goal ' + fmt(j.totalGoal) + ', raised ' + fmt(j.totalRaised) + '. '
+        + 'Screens will reload shortly.';
+      result.className = 'text-sm mt-3 text-green-400';
+    } catch (err) {
+      result.textContent = '✗ ' + err.message;
+      result.className = 'text-sm mt-3 text-red-400';
+    } finally {
+      btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

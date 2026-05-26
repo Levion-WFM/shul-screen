@@ -150,6 +150,27 @@ module.exports = async function handler(req, res) {
         data.tzeisTime = (data.dailyZmanim && data.dailyZmanim.tzes3stars) || null;
         data.sunsetTime = (data.dailyZmanim && data.dailyZmanim.sunset) || null;
 
+        // ── Building Campaign pledges (the kiosk drum-rolls) ──
+        // Source of truth is the campaign_pledges table, refreshed from the
+        // CharityExtra teams CSV via /api/campaign-import — no redeploy needed.
+        //   data.pledges = every visible team's goal (all teams)
+        //   data.raised  = teams with money in so far (raised > 0)
+        // index.html consumes these; if absent (table empty / DB error) it falls
+        // back to its baked-in arrays so the screen never goes blank.
+        try {
+            var pledgeRows = await sql`
+                SELECT name, goal, raised FROM campaign_pledges
+                WHERE hidden = false ORDER BY name ASC`;
+            if (pledgeRows.length > 0) {
+                data.pledges = pledgeRows.map(function (r) {
+                    return { name: r.name, amount: Number(r.goal) };
+                });
+                data.raised = pledgeRows
+                    .filter(function (r) { return Number(r.raised) > 0; })
+                    .map(function (r) { return { name: r.name, amount: Number(r.raised) }; });
+            }
+        } catch (e) { console.error('campaign_pledges error:', e.message); }
+
         res.json(data);
     } catch (err) {
         console.error('get-data error:', err);
