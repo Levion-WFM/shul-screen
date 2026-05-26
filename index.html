@@ -1186,11 +1186,12 @@ refreshLoop();
         { name: "הרב יעקב יוסף גווירצמאן שליט\"א", amount: 52000 }
     ];
     // Only teams whose raised > 0 — keeps the headline card visually clean
-    // and avoids cycling through 43 "$0" rows.
+    // and avoids cycling through 42 "$0" rows.
     var RAISED = [
-        { name: "Ahron & Sorala Jaffa",    amount: 1500 },
+        { name: "Ahron & Sorala Jaffa",     amount: 1500 },
         { name: "Mordy & Devorah Freimark", amount: 1000 },
-        { name: "Shloimy & Toby Maline",   amount: 180  }
+        { name: "Shloimy & Toby Maline",    amount: 180  },
+        { name: "Zack & Tamara Steel",      amount: 1800 }
     ];
 
     function fmtMoney(n) { return '$' + Number(n).toLocaleString('en-US'); }
