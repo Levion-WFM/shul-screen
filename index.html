@@ -1152,7 +1152,7 @@ refreshLoop();
 // ============================================================
 // BUILDING CAMPAIGN — center modal: paged "Currently Raised" roll
 // ============================================================
-// One drum-roll shows 4 teams per page (teams with raised > 0 only), each row
+// One drum-roll shows 6 teams per page (teams with raised > 0 only), each row
 // carrying the amount raised and its % of that team's goal; pages roll through
 // all such teams. Below, a single progress bar runs $0 → the sum of every
 // team's goal, filled to the share of that total raised so far. Data lives below.
@@ -1350,13 +1350,13 @@ refreshLoop();
             });
         }
 
-        // Currently-raised roll: 4 teams per page, rolling through all of them.
+        // Currently-raised roll: 6 teams per page, rolling through all of them.
         startPagedRoll({
             data: rows,
-            pageSize: 4,
+            pageSize: 6,
             pageA: 'rpageA', pageB: 'rpageB',
             counter: 'raisedRollIndex',
-            displayMs: 5000, rollMs: 800
+            displayMs: 8000, rollMs: 800
         });
     };
 
