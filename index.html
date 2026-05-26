@@ -119,25 +119,25 @@
                 0 1px 2px rgba(30, 15, 0, 0.85);
         }
 
-        /* ── Building Campaign pledges drum-roll ──
-           Two .pledge-row children sit absolutely inside .pledges-stage and
-           swap roles each cycle: current rolls up & out, next rolls in from
-           below. The rotateX + translateY + blur combo reads as one cylinder
-           turning forward by one face. Same engine as the standalone
-           pledges.html, scoped here so it can't collide with anything else. */
-        .pledges-stage {
-            perspective: 1600px;
+        /* ── Building Campaign — paged "Currently Raised" drum-roll ──
+           One .roll-stage holds two .team-page children; each page shows up to
+           4 team rows. They swap roles each cycle: the visible page rolls up &
+           out (rotateX forward) while the next page rolls in from below. Same
+           3D drum engine the single-team roll used, now turning a whole page of
+           4 at a time. Each row carries a team's raised amount and its % of goal. */
+        .roll-stage {
+            perspective: 1800px;
             perspective-origin: 50% 50%;
         }
-        .pledge-row {
+        .team-page {
             position: absolute;
             inset: 0;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 0.1rem;
-            padding: 0 1rem;
+            justify-content: space-evenly;
+            /* Top/bottom padding reserves the header + counter strips; the page
+               fills the whole card (inset:0 ignores the stage's own padding). */
+            padding: 2.7rem 1.5rem 1.6rem;
             transform-style: preserve-3d;
             backface-visibility: hidden;
             will-change: transform, opacity, filter;
@@ -146,68 +146,94 @@
                 opacity 800ms cubic-bezier(0.65, 0.02, 0.32, 1),
                 filter 800ms cubic-bezier(0.65, 0.02, 0.32, 1);
         }
-        .pledge-row.rest {
-            transform: rotateX(0deg) translateY(0);
-            opacity: 1;
-            filter: blur(0);
-        }
-        .pledge-row.roll-out {
-            transform: rotateX(-92deg) translateY(-55%);
-            opacity: 0;
-            filter: blur(3px);
-        }
-        /* Entry pre-state — transition:none so the card jumps offscreen-below
-           instantly. Removing this class (and adding .rest) on the next frame
-           animates the card up into rest position. */
-        .pledge-row.roll-in-start {
-            transform: rotateX(92deg) translateY(55%);
+        .team-page.rest     { transform: rotateX(0deg)   translateY(0);    opacity: 1; filter: blur(0); }
+        .team-page.roll-out { transform: rotateX(-90deg) translateY(-45%); opacity: 0; filter: blur(3px); }
+        /* Entry pre-state — transition:none so the page jumps offscreen-below
+           instantly. Removing this class (and adding .rest) next frame rolls it up. */
+        .team-page.roll-in-start {
+            transform: rotateX(90deg) translateY(45%);
             opacity: 0;
             filter: blur(3px);
             transition: none;
         }
-        .pledge-row .pname {
+        .team-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 1rem;
+            padding-bottom: 0.45rem;
+            border-bottom: 1px solid rgba(233, 195, 73, 0.18);
+        }
+        .team-row .trow-name {
             font-family: 'Cormorant Garamond', 'Frank Ruhl Libre', 'Noto Serif', serif;
             font-style: italic;
             font-weight: 700;
-            font-size: 2rem;
+            font-size: 1.75rem;
             line-height: 1.05;
             color: #ffd95e;
-            text-align: center;
             text-shadow: 0 1px 2px rgba(30,15,0,0.85), 0 3px 8px rgba(0,0,0,0.5);
-            max-width: 100%;
-            word-break: break-word;
+            flex: 1 1 auto;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .pledge-row .pname.pname-hebrew {
+        .team-row .trow-name.trow-name-hebrew {
             font-family: 'Frank Ruhl Libre', 'Noto Serif', serif;
             font-style: normal;
-            font-size: 1.85rem;
-            line-height: 1.2;
+            font-size: 1.6rem;
         }
-        .pledge-row .pamount {
+        .team-row .trow-amt {
             font-family: 'Cormorant Garamond', serif;
             font-weight: 700;
-            font-size: 2.6rem;
+            font-size: 2.1rem;
             line-height: 1;
+            white-space: nowrap;
             background: linear-gradient(135deg, #8b6b00 0%, #ffe088 45%, #e9c349 55%, #8b6b00 100%);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
             filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.5));
             font-feature-settings: "tnum" 1, "lnum" 1;
+            flex: 0 0 auto;
         }
-        /* Currently Raised variant — bigger typography so this card reads as
-           the headline. Name still italic gold; amount jumps to a much larger
-           gold-inlay block to spotlight the dollar number. */
-        .pledge-row.raised-row .pname {
-            font-size: 2.6rem;
-            line-height: 1.05;
+        .team-row .trow-pct {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 700;
+            font-size: 1.35rem;
+            line-height: 1;
+            color: #3c2f00;
+            background: linear-gradient(135deg, #ffe088, #e9c349);
+            border-radius: 9999px;
+            padding: 0.2rem 0.7rem;
+            white-space: nowrap;
+            font-feature-settings: "tnum" 1, "lnum" 1;
+            flex: 0 0 auto;
+            min-width: 3.4rem;
+            text-align: center;
         }
-        .pledge-row.raised-row .pname.pname-hebrew {
-            font-size: 2.3rem;
+        /* ── Campaign progress bar (bottom of the center column) ──
+           $0 on the left, the sum of every team's goal on the right; the fill
+           is the share of that total raised so far. */
+        .campaign-bar-track {
+            position: relative;
+            height: 1.6rem;
+            border-radius: 9999px;
+            background: rgba(0, 0, 0, 0.55);
+            border: 1px solid rgba(233, 195, 73, 0.35);
+            overflow: hidden;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6);
         }
-        .pledge-row.raised-row .pamount {
-            font-size: 5rem;
-            text-shadow: 0 0 24px rgba(233,195,73,0.35);
+        .campaign-bar-fill {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            border-radius: 9999px;
+            background: linear-gradient(90deg, #8b6b00 0%, #e9c349 55%, #ffe088 100%);
+            box-shadow: 0 0 14px rgba(233, 195, 73, 0.55);
+            transition: width 1200ms cubic-bezier(0.4, 0, 0.2, 1);
         }
     </style>
 </head>
@@ -305,64 +331,49 @@
      pt-20 reserves vertical space for the logo badge hanging down from the nav. -->
 <div class="col-span-5 flex flex-col min-h-0 gap-2 pt-20">
 <!-- Building Campaign — center modal replacing the prior #fliersSection
-     image strip. Two stacked rolling displays:
-       1. Top (smaller):  every team's pledge goal — drum-rolls through all
-                          46 teams from the CharityExtra export.
-       2. Bottom (bigger): each team's current raised amount — only teams
-                           with raised > 0 (i.e. real activity to celebrate).
-     Both use the same 3D drum-roll engine; sizes/typography differ so
-     "currently raised" reads as the headline number. #fliersSection is
-     intentionally retained as a hidden sibling so the existing fliers
-     backend code keeps working (just never visible). -->
+     image strip. One paged "Currently Raised" drum-roll: 4 teams at a time
+     (teams with money in only), each showing the amount raised and its % of
+     that team's goal; pages roll through all such teams on the same 3D drum
+     engine. Below it, a single progress bar runs $0 → the sum of every team's
+     goal, filled to the share of that total raised so far. #fliersSection is
+     intentionally retained as a hidden sibling so the existing fliers backend
+     code keeps working (just never visible). -->
 <div id="fliersSection" class="hidden">
 <div id="flierSlots" class="h-full w-full flex items-stretch justify-center gap-3"></div>
 </div>
 <div id="campaignCenter" class="flex-1 min-h-0 flex flex-col gap-3">
-  <!-- Top: Pledges roll (smaller; quieter typography so it reads as supporting context) -->
-  <div id="pledgesRoll" class="flex-[3] min-h-0 bg-black/75 border-4 border-primary/60 rounded-sm elevated-3d overflow-hidden relative">
-    <div class="absolute top-1.5 left-0 right-0 text-center pointer-events-none z-10">
-      <p class="label-smallcaps font-bold text-primary/85 text-base">Building Campaign · Pledged By</p>
-    </div>
-    <div class="absolute bottom-1 right-3 text-[10px] font-bold text-primary/60 tabular-nums label-smallcaps pointer-events-none z-10">
-      <span id="pledgeRollIndex">— / —</span>
-    </div>
-    <div class="pledges-stage absolute inset-0 pt-7 pb-3">
-      <div id="pcardA" class="pledge-row rest">
-        <span class="pname" dir="auto">—</span>
-        <span class="pamount">—</span>
-      </div>
-      <div id="pcardB" class="pledge-row roll-in-start" style="opacity:0;">
-        <span class="pname" dir="auto">—</span>
-        <span class="pamount">—</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Bottom: Currently Raised roll (bigger; the headline number) -->
-  <div id="raisedRoll" class="flex-[5] min-h-0 bg-black/85 border-4 border-primary/80 rounded-sm elevated-3d overflow-hidden relative">
-    <!-- Subtle gold radial glow behind the rolling content to make this card
-         feel more important than the pledges card above it. -->
+  <!-- Currently Raised — paged drum-roll: 4 teams at a time, each showing the
+       amount raised and its % of that team's goal. Teams with money in only. -->
+  <div id="raisedRoll" class="flex-1 min-h-0 bg-black/85 border-4 border-primary/80 rounded-sm elevated-3d overflow-hidden relative">
+    <!-- Subtle gold radial glow behind the rolling content. -->
     <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(ellipse at center, rgba(233,195,73,0.10), transparent 70%);"></div>
     <div class="absolute top-2 left-0 right-0 text-center pointer-events-none z-10">
-      <p class="label-smallcaps font-bold text-primary text-xl glow-text-hebrew">Currently Raised</p>
+      <p class="label-smallcaps font-bold text-primary text-xl glow-text-hebrew">Building Campaign · Currently Raised</p>
     </div>
     <div class="absolute bottom-1.5 right-4 text-xs font-bold text-primary/70 tabular-nums label-smallcaps pointer-events-none z-10">
       <span id="raisedRollIndex">— / —</span>
     </div>
-    <!-- Total raised, opposite corner — gives a campaign-progress anchor that
-         doesn't roll. Populated by JS from the embedded RAISED data. -->
-    <div class="absolute bottom-1.5 left-4 text-xs font-bold text-secondary/80 tabular-nums label-smallcaps pointer-events-none z-10">
-      Total · <span id="raisedRollTotal" class="text-primary">—</span>
+    <div class="roll-stage absolute inset-0">
+      <div id="rpageA" class="team-page rest"></div>
+      <div id="rpageB" class="team-page roll-in-start" style="opacity:0;"></div>
     </div>
-    <div class="pledges-stage absolute inset-0 pt-10 pb-6">
-      <div id="rcardA" class="pledge-row raised-row rest">
-        <span class="pname" dir="auto">—</span>
-        <span class="pamount">—</span>
-      </div>
-      <div id="rcardB" class="pledge-row raised-row roll-in-start" style="opacity:0;">
-        <span class="pname" dir="auto">—</span>
-        <span class="pamount">—</span>
-      </div>
+  </div>
+
+  <!-- Campaign progress bar — $0 → sum of all team goals, filled to the share
+       of that total raised so far. -->
+  <div id="campaignBar" class="shrink-0 bg-black/70 border-4 border-primary/60 rounded-sm elevated-3d px-4 py-2">
+    <div class="flex items-baseline justify-between mb-1">
+      <p class="label-smallcaps font-bold text-primary/85 text-sm">Total Raised</p>
+      <p class="tabular-nums font-bold text-primary text-sm">
+        <span id="campaignRaised">—</span> · <span id="campaignPct">—</span>
+      </p>
+    </div>
+    <div class="campaign-bar-track">
+      <div id="campaignBarFill" class="campaign-bar-fill"></div>
+    </div>
+    <div class="flex items-center justify-between mt-1 text-xs font-bold text-secondary/80 tabular-nums label-smallcaps">
+      <span>$0</span>
+      <span id="campaignGoal">—</span>
     </div>
   </div>
 </div>
@@ -1139,11 +1150,12 @@ refreshLoop();
 })();
 
 // ============================================================
-// BUILDING CAMPAIGN — center modal: two stacked drum-rolls
+// BUILDING CAMPAIGN — center modal: paged "Currently Raised" roll
 // ============================================================
-// Top card: PLEDGES — every team's goal, drum-rolls through all 46 teams.
-// Bottom card: RAISED — only teams with raised > 0 (real activity to
-// spotlight), bigger typography. Both share one engine; data lives below.
+// One drum-roll shows 4 teams per page (teams with raised > 0 only), each row
+// carrying the amount raised and its % of that team's goal; pages roll through
+// all such teams. Below, a single progress bar runs $0 → the sum of every
+// team's goal, filled to the share of that total raised so far. Data lives below.
 (function() {
     // ── Fallback data (baked-in). Used ONLY if /api/get-data doesn't supply
     //    data.pledges — e.g. the campaign_pledges table is empty or the DB is
@@ -1210,41 +1222,71 @@ refreshLoop();
 
     function fmtMoney(n) { return '$' + Number(n).toLocaleString('en-US'); }
     function isHebrew(s) { return /[֐-׿]/.test(s); }
+    // Compact form for the progress-bar goal label, e.g. 421400 → "$421K".
+    function fmtMoneyShort(n) {
+        n = Number(n) || 0;
+        return n >= 1000 ? '$' + Math.round(n / 1000) + 'K' : '$' + n;
+    }
+    // Team names come from the CharityExtra CSV — escape before innerHTML.
+    function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+    function chunk(arr, n) {
+        var out = [];
+        for (var i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n));
+        return out;
+    }
 
-    // ── Single drum-roll engine, parameterised by DOM ids + data ──
-    // Two-slot crossroll: at any moment one card is .rest (visible) and the
-    // other is offscreen. To advance: stage next card with .roll-in-start
-    // (transition:none, jumped offscreen-below), force reflow, then in the
-    // same frame swap current → .roll-out and next → .rest. Both transition
-    // together — reads as one drum face rotating forward.
-    function startRoll(opts) {
-        var data = opts.data;
-        if (!data || !data.length) return;
-        var cardA = document.getElementById(opts.cardA);
-        var cardB = document.getElementById(opts.cardB);
+    // One team row: name (left), amount raised + its % of that team's goal (right).
+    function rowHTML(t) {
+        var heb = isHebrew(t.name);
+        var pct = t.goal > 0 ? Math.round(t.amount / t.goal * 100) : 0;
+        return '<div class="team-row">'
+            +   '<span class="trow-name' + (heb ? ' trow-name-hebrew' : '') + '" dir="' + (heb ? 'rtl' : 'ltr') + '">' + esc(t.name) + '</span>'
+            +   '<span class="trow-amt">' + fmtMoney(t.amount) + '</span>'
+            +   '<span class="trow-pct">' + pct + '%</span>'
+            + '</div>';
+    }
+
+    // ── Paged drum-roll engine ──
+    // Same two-slot crossroll as before, but each slot is a whole .team-page of
+    // up to `pageSize` rows. To advance: stage the next page with .roll-in-start
+    // (transition:none, jumped offscreen-below), force reflow, then swap current
+    // → .roll-out and next → .rest in the same frame so the page turns as one
+    // drum face. With ≤1 page there's nothing to roll, so it renders and stops.
+    function startPagedRoll(opts) {
+        var pages = chunk(opts.data || [], opts.pageSize);
+        var pageA = document.getElementById(opts.pageA);
+        var pageB = document.getElementById(opts.pageB);
         var counter = opts.counter ? document.getElementById(opts.counter) : null;
-        if (!cardA || !cardB) return;
+        if (!pageA || !pageB) return;
 
-        function setCard(el, item) {
-            var nameEl   = el.querySelector('.pname');
-            var amountEl = el.querySelector('.pamount');
-            nameEl.textContent = item.name;
-            var heb = isHebrew(item.name);
-            nameEl.setAttribute('dir', heb ? 'rtl' : 'ltr');
-            nameEl.classList.toggle('pname-hebrew', heb);
-            amountEl.textContent = fmtMoney(item.amount);
+        if (!pages.length) {
+            pageA.innerHTML = '<div class="team-row" style="border:none;justify-content:center;">'
+                + '<span class="trow-name" style="flex:0 0 auto;font-style:normal;">No funds in yet</span></div>';
+            if (counter) counter.textContent = '0 / 0';
+            return;
+        }
+
+        function label(i) {
+            var start = i * opts.pageSize + 1;
+            var end = Math.min(start + opts.pageSize - 1, opts.data.length);
+            return (end > start ? start + '–' + end : '' + start) + ' / ' + opts.data.length;
         }
 
         var idx = 0;
-        var currentEl = cardA;
-        var nextEl = cardB;
-        setCard(currentEl, data[0]);
-        if (counter) counter.textContent = '1 / ' + data.length;
+        var currentEl = pageA;
+        var nextEl = pageB;
+        currentEl.innerHTML = pages[0].map(rowHTML).join('');
+        if (counter) counter.textContent = label(0);
+        if (pages.length < 2) return;   // single page — nothing to roll
 
         function advance() {
-            var nextIdx = (idx + 1) % data.length;
+            var nextIdx = (idx + 1) % pages.length;
 
-            setCard(nextEl, data[nextIdx]);
+            nextEl.innerHTML = pages[nextIdx].map(rowHTML).join('');
             nextEl.classList.remove('rest', 'roll-out');
             nextEl.classList.add('roll-in-start');
             nextEl.style.opacity = '';
@@ -1259,7 +1301,7 @@ refreshLoop();
 
             idx = nextIdx;
             var swap = currentEl; currentEl = nextEl; nextEl = swap;
-            if (counter) counter.textContent = (idx + 1) + ' / ' + data.length;
+            if (counter) counter.textContent = label(idx);
         }
 
         function loop() {
@@ -1272,8 +1314,8 @@ refreshLoop();
     // ── Public starter. Idempotent: the first call wins, so loadScreenData's
     //    live DB data beats the fallback timer below, and later poll-refreshes
     //    are no-ops (the drum keeps its position). When pledges is a non-empty
-    //    array it's authoritative (DB case) and `raised` is used as-is even if
-    //    empty; otherwise both fall back to the baked-in arrays. ──
+    //    array it's authoritative (DB case); otherwise both arrays fall back to
+    //    the baked-in data. ──
     window.__startCampaignRolls = function(pledges, raised) {
         if (window.__campaignRollsStarted) return;
         window.__campaignRollsStarted = true;
@@ -1282,30 +1324,40 @@ refreshLoop();
         var P = useFallback ? FALLBACK_PLEDGES : pledges;
         var R = useFallback ? FALLBACK_RAISED  : (raised || []);
 
-        // Pledges roll (top, all teams)
-        startRoll({
-            data: P,
-            cardA: 'pcardA', cardB: 'pcardB',
-            counter: 'pledgeRollIndex',
-            displayMs: 4000, rollMs: 800
+        // Join each raised team to its goal (by name) so the row can show % of goal.
+        var goalByName = {};
+        P.forEach(function (p) { goalByName[p.name] = p.amount; });
+        var rows = R.map(function (r) {
+            return { name: r.name, amount: r.amount, goal: goalByName[r.name] || 0 };
         });
 
-        // Total raised stat in the corner — non-rolling anchor.
-        var totalEl = document.getElementById('raisedRollTotal');
-        if (totalEl) {
-            totalEl.textContent = fmtMoney(R.reduce(function(s, r) { return s + r.amount; }, 0));
+        // Bottom progress bar: total raised vs. the sum of every team's goal.
+        var totalGoal = P.reduce(function (s, p) { return s + p.amount; }, 0);
+        var totalRaised = R.reduce(function (s, r) { return s + r.amount; }, 0);
+        var overallPct = totalGoal > 0 ? totalRaised / totalGoal * 100 : 0;
+
+        var raisedEl = document.getElementById('campaignRaised');
+        var pctEl    = document.getElementById('campaignPct');
+        var goalEl   = document.getElementById('campaignGoal');
+        var fillEl   = document.getElementById('campaignBarFill');
+        if (raisedEl) raisedEl.textContent = fmtMoney(totalRaised);
+        if (pctEl)    pctEl.textContent = Math.round(overallPct) + '%';
+        if (goalEl)   goalEl.textContent = fmtMoneyShort(totalGoal);
+        if (fillEl) {
+            // Next frame so the width animates up from 0.
+            requestAnimationFrame(function () {
+                fillEl.style.width = Math.min(100, overallPct).toFixed(1) + '%';
+            });
         }
 
-        // Raised roll (bottom, non-zero teams only). Stagger ~2s so the two
-        // drums don't tick in lock-step (visually busy if both roll together).
-        setTimeout(function() {
-            startRoll({
-                data: R,
-                cardA: 'rcardA', cardB: 'rcardB',
-                counter: 'raisedRollIndex',
-                displayMs: 5000, rollMs: 800
-            });
-        }, 2000);
+        // Currently-raised roll: 4 teams per page, rolling through all of them.
+        startPagedRoll({
+            data: rows,
+            pageSize: 4,
+            pageA: 'rpageA', pageB: 'rpageB',
+            counter: 'raisedRollIndex',
+            displayMs: 5000, rollMs: 800
+        });
     };
 
     // Safety net: if loadScreenData hasn't fed live data within 4s (offline,
