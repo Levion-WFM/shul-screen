@@ -195,6 +195,20 @@
             filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.5));
             font-feature-settings: "tnum" 1, "lnum" 1;
         }
+        /* Currently Raised variant — bigger typography so this card reads as
+           the headline. Name still italic gold; amount jumps to a much larger
+           gold-inlay block to spotlight the dollar number. */
+        .pledge-row.raised-row .pname {
+            font-size: 2.6rem;
+            line-height: 1.05;
+        }
+        .pledge-row.raised-row .pname.pname-hebrew {
+            font-size: 2.3rem;
+        }
+        .pledge-row.raised-row .pamount {
+            font-size: 5rem;
+            text-shadow: 0 0 24px rgba(233,195,73,0.35);
+        }
     </style>
 </head>
 <body class="bg-[#0a0706] text-white font-body h-screen flex flex-col overflow-hidden">
@@ -290,37 +304,70 @@
      height without stretching.
      pt-20 reserves vertical space for the logo badge hanging down from the nav. -->
 <div class="col-span-5 flex flex-col min-h-0 gap-2 pt-20">
-<!-- Fliers — up to 2 images, side-by-side when 2; single image fills space alone. -->
-<div id="fliersSection" class="flex-1 min-h-0 hidden">
+<!-- Building Campaign — center modal replacing the prior #fliersSection
+     image strip. Two stacked rolling displays:
+       1. Top (smaller):  every team's pledge goal — drum-rolls through all
+                          46 teams from the CharityExtra export.
+       2. Bottom (bigger): each team's current raised amount — only teams
+                           with raised > 0 (i.e. real activity to celebrate).
+     Both use the same 3D drum-roll engine; sizes/typography differ so
+     "currently raised" reads as the headline number. #fliersSection is
+     intentionally retained as a hidden sibling so the existing fliers
+     backend code keeps working (just never visible). -->
+<div id="fliersSection" class="hidden">
 <div id="flierSlots" class="h-full w-full flex items-stretch justify-center gap-3"></div>
 </div>
-<!-- Building Campaign Pledges — 3D drum-roll through every team in the
-     campaign. Replaces the prior #communitySlots text-announcement strip
-     (Mazel Tov / Refuah Shleima / Kiddush info) at the bottom of the
-     center column. Sized to a fixed height so the fliers area above
-     doesn't jitter as content rolls. -->
-<div id="pledgesRoll" class="flex-none bg-black/70 border-4 border-primary/60 rounded-sm elevated-3d overflow-hidden relative" style="height: 9rem;">
-<!-- Static header label across the top — does not roll, gives the
-     strip an identifying title like the old "KIDDUSH FOR..." label. -->
-<div class="absolute top-1.5 left-0 right-0 text-center pointer-events-none z-10">
-<p class="label-smallcaps font-bold text-primary/85 text-base">Building Campaign · Pledged By</p>
+<div id="campaignCenter" class="flex-1 min-h-0 flex flex-col gap-3">
+  <!-- Top: Pledges roll (smaller; quieter typography so it reads as supporting context) -->
+  <div id="pledgesRoll" class="flex-[3] min-h-0 bg-black/75 border-4 border-primary/60 rounded-sm elevated-3d overflow-hidden relative">
+    <div class="absolute top-1.5 left-0 right-0 text-center pointer-events-none z-10">
+      <p class="label-smallcaps font-bold text-primary/85 text-base">Building Campaign · Pledged By</p>
+    </div>
+    <div class="absolute bottom-1 right-3 text-[10px] font-bold text-primary/60 tabular-nums label-smallcaps pointer-events-none z-10">
+      <span id="pledgeRollIndex">— / —</span>
+    </div>
+    <div class="pledges-stage absolute inset-0 pt-7 pb-3">
+      <div id="pcardA" class="pledge-row rest">
+        <span class="pname" dir="auto">—</span>
+        <span class="pamount">—</span>
+      </div>
+      <div id="pcardB" class="pledge-row roll-in-start" style="opacity:0;">
+        <span class="pname" dir="auto">—</span>
+        <span class="pamount">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom: Currently Raised roll (bigger; the headline number) -->
+  <div id="raisedRoll" class="flex-[5] min-h-0 bg-black/85 border-4 border-primary/80 rounded-sm elevated-3d overflow-hidden relative">
+    <!-- Subtle gold radial glow behind the rolling content to make this card
+         feel more important than the pledges card above it. -->
+    <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(ellipse at center, rgba(233,195,73,0.10), transparent 70%);"></div>
+    <div class="absolute top-2 left-0 right-0 text-center pointer-events-none z-10">
+      <p class="label-smallcaps font-bold text-primary text-xl glow-text-hebrew">Currently Raised</p>
+    </div>
+    <div class="absolute bottom-1.5 right-4 text-xs font-bold text-primary/70 tabular-nums label-smallcaps pointer-events-none z-10">
+      <span id="raisedRollIndex">— / —</span>
+    </div>
+    <!-- Total raised, opposite corner — gives a campaign-progress anchor that
+         doesn't roll. Populated by JS from the embedded RAISED data. -->
+    <div class="absolute bottom-1.5 left-4 text-xs font-bold text-secondary/80 tabular-nums label-smallcaps pointer-events-none z-10">
+      Total · <span id="raisedRollTotal" class="text-primary">—</span>
+    </div>
+    <div class="pledges-stage absolute inset-0 pt-10 pb-6">
+      <div id="rcardA" class="pledge-row raised-row rest">
+        <span class="pname" dir="auto">—</span>
+        <span class="pamount">—</span>
+      </div>
+      <div id="rcardB" class="pledge-row raised-row roll-in-start" style="opacity:0;">
+        <span class="pname" dir="auto">—</span>
+        <span class="pamount">—</span>
+      </div>
+    </div>
+  </div>
 </div>
-<!-- Per-row pagination counter, bottom-right corner -->
-<div class="absolute bottom-1 right-3 text-[10px] font-bold text-primary/60 tabular-nums label-smallcaps pointer-events-none z-10">
-<span id="pledgeRollIndex">— / —</span>
-</div>
-<!-- 3D rolling stage — two .pledge-row siblings swap in/out -->
-<div id="pledgesStage" class="pledges-stage absolute inset-0 pt-7 pb-3">
-<div id="pcardA" class="pledge-row rest">
-<span class="pname" dir="auto">—</span>
-<span class="pamount">—</span>
-</div>
-<div id="pcardB" class="pledge-row roll-in-start" style="opacity:0;">
-<span class="pname" dir="auto">—</span>
-<span class="pamount">—</span>
-</div>
-</div>
-</div>
+<!-- Text Announcements (Mazel Tov / Refuah Shleima / etc.) — bottom strip, max 2. -->
+<div id="communitySlots" class="flex-none flex items-stretch justify-center gap-3 hidden"></div>
 </div>
 <!-- Right Column: Shabbat Zmanim & Sponsor -->
 <div class="col-span-3 flex flex-col gap-4 min-h-0">
@@ -896,13 +943,9 @@ async function loadScreenData() {
     // names without having to truncate. Labels and subtitles now wrap
     // instead of truncating, so multi-word categories like "Mazel Tov
     // Birthdays & Anniversaries" render in full.
-    // Community announcements (kiddush/mazel-tov/etc.) were displaced by the
-    // Building Campaign pledges roll at the bottom of the center column. The
-    // backend still saves data.community, but with #communitySlots gone we
-    // just skip rendering it here.
     var commContainer = document.getElementById('communitySlots');
-    if (commContainer) commContainer.innerHTML = '';
-    if (commContainer && data.community && data.community.length) {
+    commContainer.innerHTML = '';
+    if (data.community && data.community.length) {
         commContainer.classList.remove('hidden');
         var count = Math.min(data.community.length, 2);
         var sz = commSizes[count];
@@ -1087,116 +1130,155 @@ refreshLoop();
 })();
 
 // ============================================================
-// BUILDING CAMPAIGN PLEDGES — bottom-center drum-roll
+// BUILDING CAMPAIGN — center modal: two stacked drum-rolls
 // ============================================================
-// Cycles through every team in the campaign one at a time, with the
-// same two-slot 3D drum-roll as pledges.html: current row rotates up
-// & out while the next row rotates in from below. Data parsed once
-// from the CharityExtra teams_2.csv export and embedded here.
+// Top card: PLEDGES — every team's goal, drum-rolls through all 46 teams.
+// Bottom card: RAISED — only teams with raised > 0 (real activity to
+// spotlight), bigger typography. Both share one engine; data lives below.
 (function() {
+    // ── Data (parsed once from the CharityExtra teams_2.csv export) ──
     var PLEDGES = [
-        { name: "Ahron & Sorala Jaffa", goal: 36000 },
-        { name: "Ahron Tzvi & Adina Danziger", goal: 7500 },
-        { name: "Ari & Deena Streicher", goal: 5000 },
-        { name: "Aryeh Leib Friedman", goal: 5000 },
-        { name: "Avishai & Nechama Leah Brown", goal: 2500 },
-        { name: "Avrohom Meir & Leah Weiss", goal: 5000 },
-        { name: "Binyomin & Sora Bak", goal: 5000 },
-        { name: "Dovi & Kayla Goldberg", goal: 2500 },
-        { name: "Dovy & Bayli Fuhrer", goal: 5000 },
-        { name: "Elchy & Shavy Kahan", goal: 7500 },
-        { name: "Eli & Leah Weinberg", goal: 5000 },
-        { name: "Eli & Raizy Koslowitz", goal: 10000 },
-        { name: "Eli & Rivky Horowitz", goal: 3600 },
-        { name: "Eli & Saralle Lipshitz", goal: 1800 },
-        { name: "Eli & Shoshi Friedman", goal: 1800 },
-        { name: "Ezzy & Miri Ebstein", goal: 10000 },
-        { name: "Gavriel & Sara Drillman", goal: 10000 },
-        { name: "Leiby & Yosefa Brustowsky", goal: 2500 },
-        { name: "Meir Simcha & Esther Klugmann", goal: 5300 },
-        { name: "Menachem & Rochel Mardi", goal: 10000 },
-        { name: "Meyer & Chevy Gibber", goal: 8000 },
-        { name: "Moishe & Toby Parnes", goal: 5000 },
-        { name: "Mordechai & Miriam Buxbaum", goal: 7500 },
-        { name: "Mordy & Devorah Freimark", goal: 10000 },
-        { name: "Nosson & Naomi Rishe", goal: 7500 },
-        { name: "Shaya & Riki Michel", goal: 20000 },
-        { name: "Shimon & Shani Bloom", goal: 7500 },
-        { name: "Shloimy & Toby Maline", goal: 5000 },
-        { name: "Shlomo & Chana Miriam Eliyahu", goal: 5000 },
-        { name: "Shlomo Zalman & Elisheva Schwartz", goal: 10000 },
-        { name: "Shmuel & Lele Grunhut", goal: 3600 },
-        { name: "Shmuel & Sara Pearl", goal: 5400 },
-        { name: "Yaakov & Chani Farkas", goal: 3600 },
-        { name: "Yaakov Mordechai & Aliza Feldman", goal: 7500 },
-        { name: "Yakov & Yocheved Ginzburg", goal: 3600 },
-        { name: "Yanky & Aviva Tzur", goal: 3600 },
-        { name: "Yanky & Leah Weisbord", goal: 20000 },
-        { name: "Yehoshua & Chaya Rivka Blaney", goal: 7500 },
-        { name: "Yehuda & Leah Schuck", goal: 18000 },
-        { name: "Yitzy & Nechama Auerbach", goal: 18000 },
-        { name: "Yossi & Chaya Simi Silberstein", goal: 10000 },
-        { name: "Yossi & Nechama Honig", goal: 3600 },
-        { name: "Yossi & Sarala Mordowitz", goal: 25000 },
-        { name: "Yossi & Shana Blima Koslowitz", goal: 6000 },
-        { name: "Zack & Tamara Steel", goal: 7500 },
-        { name: "הרב יעקב יוסף גווירצמאן שליט\"א", goal: 52000 }
+        { name: "Ahron & Sorala Jaffa", amount: 36000 },
+        { name: "Ahron Tzvi & Adina Danziger", amount: 7500 },
+        { name: "Ari & Deena Streicher", amount: 5000 },
+        { name: "Aryeh Leib Friedman", amount: 5000 },
+        { name: "Avishai & Nechama Leah Brown", amount: 2500 },
+        { name: "Avrohom Meir & Leah Weiss", amount: 5000 },
+        { name: "Binyomin & Sora Bak", amount: 5000 },
+        { name: "Dovi & Kayla Goldberg", amount: 2500 },
+        { name: "Dovy & Bayli Fuhrer", amount: 5000 },
+        { name: "Elchy & Shavy Kahan", amount: 7500 },
+        { name: "Eli & Leah Weinberg", amount: 5000 },
+        { name: "Eli & Raizy Koslowitz", amount: 10000 },
+        { name: "Eli & Rivky Horowitz", amount: 3600 },
+        { name: "Eli & Saralle Lipshitz", amount: 1800 },
+        { name: "Eli & Shoshi Friedman", amount: 1800 },
+        { name: "Ezzy & Miri Ebstein", amount: 10000 },
+        { name: "Gavriel & Sara Drillman", amount: 10000 },
+        { name: "Leiby & Yosefa Brustowsky", amount: 2500 },
+        { name: "Meir Simcha & Esther Klugmann", amount: 5300 },
+        { name: "Menachem & Rochel Mardi", amount: 10000 },
+        { name: "Meyer & Chevy Gibber", amount: 8000 },
+        { name: "Moishe & Toby Parnes", amount: 5000 },
+        { name: "Mordechai & Miriam Buxbaum", amount: 7500 },
+        { name: "Mordy & Devorah Freimark", amount: 10000 },
+        { name: "Nosson & Naomi Rishe", amount: 7500 },
+        { name: "Shaya & Riki Michel", amount: 20000 },
+        { name: "Shimon & Shani Bloom", amount: 7500 },
+        { name: "Shloimy & Toby Maline", amount: 5000 },
+        { name: "Shlomo & Chana Miriam Eliyahu", amount: 5000 },
+        { name: "Shlomo Zalman & Elisheva Schwartz", amount: 10000 },
+        { name: "Shmuel & Lele Grunhut", amount: 3600 },
+        { name: "Shmuel & Sara Pearl", amount: 5400 },
+        { name: "Yaakov & Chani Farkas", amount: 3600 },
+        { name: "Yaakov Mordechai & Aliza Feldman", amount: 7500 },
+        { name: "Yakov & Yocheved Ginzburg", amount: 3600 },
+        { name: "Yanky & Aviva Tzur", amount: 3600 },
+        { name: "Yanky & Leah Weisbord", amount: 20000 },
+        { name: "Yehoshua & Chaya Rivka Blaney", amount: 7500 },
+        { name: "Yehuda & Leah Schuck", amount: 18000 },
+        { name: "Yitzy & Nechama Auerbach", amount: 18000 },
+        { name: "Yossi & Chaya Simi Silberstein", amount: 10000 },
+        { name: "Yossi & Nechama Honig", amount: 3600 },
+        { name: "Yossi & Sarala Mordowitz", amount: 25000 },
+        { name: "Yossi & Shana Blima Koslowitz", amount: 6000 },
+        { name: "Zack & Tamara Steel", amount: 7500 },
+        { name: "הרב יעקב יוסף גווירצמאן שליט\"א", amount: 52000 }
     ];
-
-    var DISPLAY_MS = 4000;
-    var ROLL_MS    = 800;
-
-    var cardA = document.getElementById('pcardA');
-    var cardB = document.getElementById('pcardB');
-    var counter = document.getElementById('pledgeRollIndex');
-    if (!cardA || !cardB) return;
+    // Only teams whose raised > 0 — keeps the headline card visually clean
+    // and avoids cycling through 43 "$0" rows.
+    var RAISED = [
+        { name: "Ahron & Sorala Jaffa",    amount: 1500 },
+        { name: "Mordy & Devorah Freimark", amount: 1000 },
+        { name: "Shloimy & Toby Maline",   amount: 180  }
+    ];
 
     function fmtMoney(n) { return '$' + Number(n).toLocaleString('en-US'); }
     function isHebrew(s) { return /[֐-׿]/.test(s); }
 
-    function setCard(el, pledge) {
-        var nameEl   = el.querySelector('.pname');
-        var amountEl = el.querySelector('.pamount');
-        nameEl.textContent = pledge.name;
-        var heb = isHebrew(pledge.name);
-        nameEl.setAttribute('dir', heb ? 'rtl' : 'ltr');
-        nameEl.classList.toggle('pname-hebrew', heb);
-        amountEl.textContent = fmtMoney(pledge.goal);
+    // ── Single drum-roll engine, parameterised by DOM ids + data ──
+    // Two-slot crossroll: at any moment one card is .rest (visible) and the
+    // other is offscreen. To advance: stage next card with .roll-in-start
+    // (transition:none, jumped offscreen-below), force reflow, then in the
+    // same frame swap current → .roll-out and next → .rest. Both transition
+    // together — reads as one drum face rotating forward.
+    function startRoll(opts) {
+        var data = opts.data;
+        if (!data || !data.length) return;
+        var cardA = document.getElementById(opts.cardA);
+        var cardB = document.getElementById(opts.cardB);
+        var counter = opts.counter ? document.getElementById(opts.counter) : null;
+        if (!cardA || !cardB) return;
+
+        function setCard(el, item) {
+            var nameEl   = el.querySelector('.pname');
+            var amountEl = el.querySelector('.pamount');
+            nameEl.textContent = item.name;
+            var heb = isHebrew(item.name);
+            nameEl.setAttribute('dir', heb ? 'rtl' : 'ltr');
+            nameEl.classList.toggle('pname-hebrew', heb);
+            amountEl.textContent = fmtMoney(item.amount);
+        }
+
+        var idx = 0;
+        var currentEl = cardA;
+        var nextEl = cardB;
+        setCard(currentEl, data[0]);
+        if (counter) counter.textContent = '1 / ' + data.length;
+
+        function advance() {
+            var nextIdx = (idx + 1) % data.length;
+
+            setCard(nextEl, data[nextIdx]);
+            nextEl.classList.remove('rest', 'roll-out');
+            nextEl.classList.add('roll-in-start');
+            nextEl.style.opacity = '';
+
+            void nextEl.offsetWidth;   // commit roll-in-start frame
+
+            currentEl.classList.remove('rest');
+            currentEl.classList.add('roll-out');
+
+            nextEl.classList.remove('roll-in-start');
+            nextEl.classList.add('rest');
+
+            idx = nextIdx;
+            var swap = currentEl; currentEl = nextEl; nextEl = swap;
+            if (counter) counter.textContent = (idx + 1) + ' / ' + data.length;
+        }
+
+        function loop() {
+            advance();
+            setTimeout(loop, opts.displayMs + opts.rollMs);
+        }
+        setTimeout(loop, opts.displayMs);
     }
 
-    var idx = 0;
-    var currentEl = cardA;
-    var nextEl = cardB;
-    setCard(currentEl, PLEDGES[0]);
-    if (counter) counter.textContent = '1 / ' + PLEDGES.length;
+    // ── Pledges roll (top, all 46 teams) ──
+    startRoll({
+        data: PLEDGES,
+        cardA: 'pcardA', cardB: 'pcardB',
+        counter: 'pledgeRollIndex',
+        displayMs: 4000, rollMs: 800
+    });
 
-    function advance() {
-        var nextIdx = (idx + 1) % PLEDGES.length;
-
-        setCard(nextEl, PLEDGES[nextIdx]);
-        nextEl.classList.remove('rest', 'roll-out');
-        nextEl.classList.add('roll-in-start');
-        nextEl.style.opacity = '';
-
-        // Reflow so the offscreen-below frame is committed before we animate.
-        void nextEl.offsetWidth;
-
-        currentEl.classList.remove('rest');
-        currentEl.classList.add('roll-out');
-
-        nextEl.classList.remove('roll-in-start');
-        nextEl.classList.add('rest');
-
-        idx = nextIdx;
-        var swap = currentEl; currentEl = nextEl; nextEl = swap;
-        if (counter) counter.textContent = (idx + 1) + ' / ' + PLEDGES.length;
+    // ── Raised roll (bottom, non-zero only) ──
+    // Also paint the "Total · $X" stat in the corner — non-rolling anchor.
+    var totalEl = document.getElementById('raisedRollTotal');
+    if (totalEl) {
+        var total = RAISED.reduce(function(s, r) { return s + r.amount; }, 0);
+        totalEl.textContent = fmtMoney(total);
     }
-
-    function loop() {
-        advance();
-        setTimeout(loop, DISPLAY_MS + ROLL_MS);
-    }
-    setTimeout(loop, DISPLAY_MS);
+    // Stagger the raised roll's start by ~2s so the two cards don't tick
+    // in lock-step (visually busy when both transition at the same frame).
+    setTimeout(function() {
+        startRoll({
+            data: RAISED,
+            cardA: 'rcardA', cardB: 'rcardB',
+            counter: 'raisedRollIndex',
+            displayMs: 5000, rollMs: 800
+        });
+    }, 2000);
 })();
 </script>
 </body></html>
