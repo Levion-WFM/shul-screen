@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Pledges · Beis Medrash D'Jackson 21</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&amp;family=Frank+Ruhl+Libre:wght@400;500;700;900&amp;family=Noto+Serif:wght@400;500;600;700&amp;family=Work+Sans:wght@300;400;500;600;700&amp;family=Great+Vibes&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    primary: "#e9c349",
+                    "on-primary": "#3c2f00",
+                    secondary: "#e7bdb1",
+                    background: "#0a0706",
+                    surface: "#120d0b",
+                    "surface-container-high": "#281f1d",
+                    outline: "#9c8d8a"
+                },
+                fontFamily: {
+                    headline: ["Cormorant Garamond", "Frank Ruhl Libre", "Noto Serif", "serif"],
+                    body: ["Work Sans", "sans-serif"]
+                }
+            }
+        }
+    }
+</script>
+<style>
+    html, body { height: 100%; }
+    body {
+        background-color: #0a0706;
+        overflow: hidden;
+    }
+    .wood-grain {
+        background-color: #1a1510;
+        background-image: url(bg-texture.jpg);
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+    .gold-inlay {
+        background: linear-gradient(135deg, #8b6b00 0%, #ffe088 45%, #e9c349 55%, #8b6b00 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.5));
+    }
+    .gold-border-3d {
+        border: 4px solid;
+        border-image: linear-gradient(135deg, #c4a129, #ffe088, #8b6b00) 1;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+    .elevated-3d {
+        box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 15px rgba(0,0,0,0.4), inset 1px 1px 0 rgba(255,255,255,0.05);
+    }
+    .text-3d {
+        text-shadow: 0 1px 2px rgba(30,15,0,0.85), 0 3px 8px rgba(0,0,0,0.5);
+    }
+    .text-3d-light {
+        text-shadow: 0 1px 1px rgba(30,15,0,0.7), 0 2px 4px rgba(0,0,0,0.35);
+    }
+    .label-smallcaps {
+        font-variant-caps: all-small-caps;
+        letter-spacing: 0.18em;
+    }
+    .font-cursive {
+        font-family: 'Great Vibes', cursive;
+        letter-spacing: 0.02em;
+    }
+    .glow-text {
+        text-shadow: 0 0 22px rgba(233,195,73,0.45), 0 1px 2px rgba(30,15,0,0.85);
+    }
+
+    /* 3D rolling stage.
+       The stage establishes the perspective for child cards to rotate through.
+       Each .pledge-card sits absolutely inside the stage; we have two slots
+       (A and B) and alternate which is "current" vs "next". A roll cycle:
+         - current slot animates from rest → rotateX(-92deg) translateY(-55%)
+         - next slot animates from rotateX(92deg) translateY(55%) → rest
+       Together they look like a single drum rolling forward one face. */
+    .stage {
+        perspective: 2000px;
+        perspective-origin: 50% 50%;
+    }
+    .pledge-card {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transform-style: preserve-3d;
+        backface-visibility: hidden;
+        will-change: transform, opacity, filter;
+        transition:
+            transform 900ms cubic-bezier(0.65, 0.02, 0.32, 1),
+            opacity 900ms cubic-bezier(0.65, 0.02, 0.32, 1),
+            filter 900ms cubic-bezier(0.65, 0.02, 0.32, 1);
+    }
+    .pledge-card.rest {
+        transform: rotateX(0deg) translateY(0);
+        opacity: 1;
+        filter: blur(0);
+    }
+    .pledge-card.roll-out {
+        transform: rotateX(-92deg) translateY(-55%);
+        opacity: 0;
+        filter: blur(4px);
+    }
+    /* Entry pre-state — applied with `transition: none` so the card jumps to
+       offscreen-below instantly. Removing this class (and adding .rest) on
+       the next frame animates the card up into view. */
+    .pledge-card.roll-in-start {
+        transform: rotateX(92deg) translateY(55%);
+        opacity: 0;
+        filter: blur(4px);
+        transition: none;
+    }
+
+    /* The "drum shadow" — a faint horizontal band behind the card that hints at
+       a cylinder rolling through. Sits below the card with low opacity. */
+    .drum-shadow {
+        position: absolute;
+        left: 5%; right: 5%;
+        top: 50%;
+        height: 12px;
+        transform: translateY(-50%);
+        background: radial-gradient(ellipse at center, rgba(0,0,0,0.55), transparent 70%);
+        filter: blur(8px);
+        pointer-events: none;
+    }
+
+    /* Soft golden top/bottom fade edges so the rolling motion appears to vanish
+       into a haze at the top and emerge from one at the bottom (drum-style). */
+    .stage-fade-top, .stage-fade-bottom {
+        position: absolute;
+        left: 0; right: 0;
+        height: 18%;
+        pointer-events: none;
+        z-index: 5;
+    }
+    .stage-fade-top {
+        top: 0;
+        background: linear-gradient(to bottom, rgba(10,7,6,0.9), rgba(10,7,6,0));
+    }
+    .stage-fade-bottom {
+        bottom: 0;
+        background: linear-gradient(to top, rgba(10,7,6,0.9), rgba(10,7,6,0));
+    }
+
+    /* Pledge amount: gold inlay + extra bright halo. Tabular-nums so the number
+       digits don't shift width across pledges. */
+    .pledge-amount {
+        font-feature-settings: "tnum" 1, "lnum" 1;
+    }
+
+    /* Counter dot pagination row at the bottom — one tiny dot per pledge,
+       active dot is full-gold, inactive dots are dim. */
+    .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 9999px;
+        background: rgba(233, 195, 73, 0.22);
+        transition: background 0.4s, transform 0.4s;
+    }
+    .dot.active {
+        background: #e9c349;
+        transform: scale(1.5);
+        box-shadow: 0 0 8px rgba(233,195,73,0.7);
+    }
+
+    /* Subtle ambient pulse for the gold "ornament" frame around the card */
+    @keyframes ornamentGlow {
+        0%, 100% { box-shadow: 0 0 60px rgba(233,195,73,0.10), inset 0 0 40px rgba(233,195,73,0.05); }
+        50%      { box-shadow: 0 0 90px rgba(233,195,73,0.22), inset 0 0 60px rgba(233,195,73,0.10); }
+    }
+    .ornament-frame {
+        animation: ornamentGlow 6s ease-in-out infinite;
+    }
+
+    /* Big-screen safety — keep the layout coherent at 1920×1080 kiosks AND
+       on a phone preview. The stage scales with viewport min-dimension. */
+    .card-name {
+        font-size: clamp(2.5rem, 6.5vw, 6.5rem);
+        line-height: 1.05;
+    }
+    .card-name-hebrew {
+        font-size: clamp(2.5rem, 6vw, 6rem);
+        line-height: 1.15;
+    }
+    .card-amount {
+        font-size: clamp(4.5rem, 14vw, 14rem);
+        line-height: 1;
+    }
+</style>
+</head>
+<body class="bg-background text-white font-body">
+
+<!-- HEADER STRIP — same look as index.html nav -->
+<header class="bg-[#0a0706] border-b-4 gold-border-3d px-8 py-3 flex items-center justify-between shrink-0">
+    <div class="flex flex-col leading-tight">
+        <span class="label-smallcaps text-primary font-bold text-base">Beis Medrash D'Jackson 21</span>
+        <span class="font-cursive text-2xl text-primary/85 -mt-1">Building Campaign</span>
+    </div>
+    <div class="flex flex-col items-center text-center">
+        <span class="label-smallcaps text-secondary text-xs">Total Goal</span>
+        <span id="totalGoal" class="font-headline text-3xl font-bold gold-inlay leading-none">—</span>
+    </div>
+    <div class="flex flex-col items-end leading-tight">
+        <span class="label-smallcaps text-secondary text-xs">Pledge</span>
+        <span class="font-headline text-2xl font-bold text-primary tabular-nums" id="pledgeIndex">— / —</span>
+    </div>
+</header>
+
+<!-- MAIN STAGE — wood-grain backdrop, fills viewport minus header & footer -->
+<main class="wood-grain relative" style="height: calc(100vh - 88px - 64px);">
+
+    <!-- Ornamental gold rectangle behind the stage — gives the card a "framed plaque" feel -->
+    <div class="absolute inset-8 md:inset-16 border-4 gold-border-3d rounded-lg ornament-frame pointer-events-none"></div>
+
+    <!-- Top/bottom fade to suggest the rolling drum -->
+    <div class="stage-fade-top"></div>
+    <div class="stage-fade-bottom"></div>
+
+    <!-- 3D rolling stage — two pledge cards swap in/out of this container -->
+    <div id="stage" class="stage absolute inset-12 md:inset-20">
+        <div class="drum-shadow"></div>
+
+        <!-- Card A -->
+        <div id="cardA" class="pledge-card rest">
+            <div class="label-smallcaps text-primary/80 text-xl md:text-2xl mb-4">Pledged by</div>
+            <div id="nameA" class="card-name font-headline font-bold text-white text-3d text-center px-8" dir="auto">—</div>
+            <div class="mx-auto my-6 h-0.5 w-1/3 bg-gradient-to-r from-transparent via-primary/70 to-transparent"></div>
+            <div id="amountA" class="card-amount font-headline font-bold gold-inlay glow-text pledge-amount">—</div>
+        </div>
+
+        <!-- Card B — hidden offscreen until first roll-in -->
+        <div id="cardB" class="pledge-card roll-in-start" style="opacity:0;">
+            <div class="label-smallcaps text-primary/80 text-xl md:text-2xl mb-4">Pledged by</div>
+            <div id="nameB" class="card-name font-headline font-bold text-white text-3d text-center px-8" dir="auto">—</div>
+            <div class="mx-auto my-6 h-0.5 w-1/3 bg-gradient-to-r from-transparent via-primary/70 to-transparent"></div>
+            <div id="amountB" class="card-amount font-headline font-bold gold-inlay glow-text pledge-amount">—</div>
+        </div>
+    </div>
+</main>
+
+<!-- FOOTER — pagination dots + click-to-pause hint -->
+<footer class="bg-[#0a0706] border-t-4 gold-border-3d h-16 flex items-center justify-between px-8 shrink-0">
+    <span class="label-smallcaps text-secondary/70 text-xs">Click anywhere to pause</span>
+    <div id="dots" class="flex items-center justify-center gap-2 flex-wrap max-w-[60vw]"></div>
+    <span id="pausedLabel" class="label-smallcaps text-primary text-xs opacity-0 transition-opacity">Paused</span>
+</footer>
+
+<script>
+// ============================================================
+// DATA — parsed from teams_2.csv (TeamId, name, goal columns)
+// ============================================================
+var PLEDGES = [
+    { name: "Ahron & Sorala Jaffa", goal: 36000 },
+    { name: "Ahron Tzvi & Adina Danziger", goal: 7500 },
+    { name: "Ari & Deena Streicher", goal: 5000 },
+    { name: "Aryeh Leib Friedman", goal: 5000 },
+    { name: "Avishai & Nechama Leah Brown", goal: 2500 },
+    { name: "Avrohom Meir & Leah Weiss", goal: 5000 },
+    { name: "Binyomin & Sora Bak", goal: 5000 },
+    { name: "Dovi & Kayla Goldberg", goal: 2500 },
+    { name: "Dovy & Bayli Fuhrer", goal: 5000 },
+    { name: "Elchy & Shavy Kahan", goal: 7500 },
+    { name: "Eli & Leah Weinberg", goal: 5000 },
+    { name: "Eli & Raizy Koslowitz", goal: 10000 },
+    { name: "Eli & Rivky Horowitz", goal: 3600 },
+    { name: "Eli & Saralle Lipshitz", goal: 1800 },
+    { name: "Eli & Shoshi Friedman", goal: 1800 },
+    { name: "Ezzy & Miri Ebstein", goal: 10000 },
+    { name: "Gavriel & Sara Drillman", goal: 10000 },
+    { name: "Leiby & Yosefa Brustowsky", goal: 2500 },
+    { name: "Meir Simcha & Esther Klugmann", goal: 5300 },
+    { name: "Menachem & Rochel Mardi", goal: 10000 },
+    { name: "Meyer & Chevy Gibber", goal: 8000 },
+    { name: "Moishe & Toby Parnes", goal: 5000 },
+    { name: "Mordechai & Miriam Buxbaum", goal: 7500 },
+    { name: "Mordy & Devorah Freimark", goal: 10000 },
+    { name: "Nosson & Naomi Rishe", goal: 7500 },
+    { name: "Shaya & Riki Michel", goal: 20000 },
+    { name: "Shimon & Shani Bloom", goal: 7500 },
+    { name: "Shloimy & Toby Maline", goal: 5000 },
+    { name: "Shlomo & Chana Miriam Eliyahu", goal: 5000 },
+    { name: "Shlomo Zalman & Elisheva Schwartz", goal: 10000 },
+    { name: "Shmuel & Lele Grunhut", goal: 3600 },
+    { name: "Shmuel & Sara Pearl", goal: 5400 },
+    { name: "Yaakov & Chani Farkas", goal: 3600 },
+    { name: "Yaakov Mordechai & Aliza Feldman", goal: 7500 },
+    { name: "Yakov & Yocheved Ginzburg", goal: 3600 },
+    { name: "Yanky & Aviva Tzur", goal: 3600 },
+    { name: "Yanky & Leah Weisbord", goal: 20000 },
+    { name: "Yehoshua & Chaya Rivka Blaney", goal: 7500 },
+    { name: "Yehuda & Leah Schuck", goal: 18000 },
+    { name: "Yitzy & Nechama Auerbach", goal: 18000 },
+    { name: "Yossi & Chaya Simi Silberstein", goal: 10000 },
+    { name: "Yossi & Nechama Honig", goal: 3600 },
+    { name: "Yossi & Sarala Mordowitz", goal: 25000 },
+    { name: "Yossi & Shana Blima Koslowitz", goal: 6000 },
+    { name: "Zack & Tamara Steel", goal: 7500 },
+    { name: "הרב יעקב יוסף גווירצמאן שליט\"א", goal: 52000 }
+];
+
+var DISPLAY_MS = 4500;   // how long each pledge holds at rest before the next roll
+var ROLL_MS    = 900;    // must match the .pledge-card CSS transition duration
+
+// ============================================================
+// HELPERS
+// ============================================================
+function fmtMoney(n) {
+    return '$' + Number(n).toLocaleString('en-US');
+}
+function isHebrew(s) {
+    return /[֐-׿]/.test(s);
+}
+function setCard(slot, pledge) {
+    var nameEl   = document.getElementById('name'   + slot);
+    var amountEl = document.getElementById('amount' + slot);
+    nameEl.textContent   = pledge.name;
+    nameEl.setAttribute('dir', isHebrew(pledge.name) ? 'rtl' : 'ltr');
+    // Apply Hebrew sizing class only if the name is Hebrew — Frank Ruhl Libre
+    // needs a touch less size + extra line-height vs Cormorant Garamond.
+    nameEl.classList.toggle('card-name-hebrew', isHebrew(pledge.name));
+    nameEl.classList.toggle('card-name',       !isHebrew(pledge.name));
+    amountEl.textContent = fmtMoney(pledge.goal);
+}
+
+// ============================================================
+// HEADER + DOTS
+// ============================================================
+var total = PLEDGES.reduce(function(s, p) { return s + p.goal; }, 0);
+document.getElementById('totalGoal').textContent = fmtMoney(total);
+
+var dotsWrap = document.getElementById('dots');
+PLEDGES.forEach(function(_, i) {
+    var d = document.createElement('span');
+    d.className = 'dot';
+    d.dataset.idx = String(i);
+    dotsWrap.appendChild(d);
+});
+function paintDots(activeIdx) {
+    var nodes = dotsWrap.children;
+    for (var i = 0; i < nodes.length; i++) {
+        nodes[i].classList.toggle('active', i === activeIdx);
+    }
+}
+
+// ============================================================
+// ROLL ENGINE
+// ============================================================
+// Two-slot crossroll: at any moment, one card is the "current" (.rest) and
+// the other is "off-stage above" (.roll-out, hidden). To advance:
+//   1. Prep next slot at .roll-in-start (no transition; offstage below)
+//   2. Force layout (reading offsetWidth) so the next paint sees that state
+//   3. On next frame, swap classes: current → .roll-out, next → .rest
+//      Both transition simultaneously — the drum rolls one face forward.
+//
+// After ROLL_MS, "current" becomes the new card (was next), and the old card
+// is repositioned offstage-below to be ready for the next round.
+
+var idx = 0;
+var currentSlot = 'A';
+var paused = false;
+var timer = null;
+
+// Boot: render first pledge into slot A, paint dots.
+setCard('A', PLEDGES[0]);
+paintDots(0);
+document.getElementById('pledgeIndex').textContent = '1 / ' + PLEDGES.length;
+
+function advance() {
+    var nextIdx  = (idx + 1) % PLEDGES.length;
+    var nextSlot = currentSlot === 'A' ? 'B' : 'A';
+
+    var currEl = document.getElementById('card' + currentSlot);
+    var nextEl = document.getElementById('card' + nextSlot);
+
+    // Stage the incoming card offscreen-below with no transition.
+    setCard(nextSlot, PLEDGES[nextIdx]);
+    nextEl.classList.remove('rest', 'roll-out');
+    nextEl.classList.add('roll-in-start');
+    nextEl.style.opacity = '';   // CSS will own opacity again
+
+    // Force a reflow so the browser commits the roll-in-start frame
+    // before we ask it to animate to rest.
+    void nextEl.offsetWidth;
+
+    // Animate: current rolls up & out, next rolls up into rest position.
+    currEl.classList.remove('rest');
+    currEl.classList.add('roll-out');
+
+    nextEl.classList.remove('roll-in-start');
+    nextEl.classList.add('rest');
+
+    // Update bookkeeping immediately so header reads correctly mid-roll.
+    idx = nextIdx;
+    currentSlot = nextSlot;
+    paintDots(idx);
+    document.getElementById('pledgeIndex').textContent = (idx + 1) + ' / ' + PLEDGES.length;
+}
+
+function loop() {
+    if (paused) return;
+    advance();
+    timer = setTimeout(loop, DISPLAY_MS + ROLL_MS);
+}
+
+// Start the loop after a brief hold so viewers can read the first pledge.
+timer = setTimeout(loop, DISPLAY_MS);
+
+// ============================================================
+// PAUSE / RESUME — click anywhere on the body
+// ============================================================
+var pausedLabel = document.getElementById('pausedLabel');
+document.body.addEventListener('click', function() {
+    paused = !paused;
+    pausedLabel.style.opacity = paused ? '1' : '0';
+    if (paused) {
+        if (timer) { clearTimeout(timer); timer = null; }
+    } else {
+        timer = setTimeout(loop, 200);
+    }
+});
+
+// Keyboard nav: ← / → to step manually (helpful for demos)
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight') {
+        if (timer) { clearTimeout(timer); timer = null; }
+        advance();
+        if (!paused) timer = setTimeout(loop, DISPLAY_MS + ROLL_MS);
+    } else if (e.key === ' ') {
+        e.preventDefault();
+        document.body.click();
+    }
+});
+</script>
+</body>
+</html>
