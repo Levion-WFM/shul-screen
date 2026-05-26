@@ -583,6 +583,15 @@ async function loadScreenData() {
     var zecherEl = document.getElementById('zecherNishmas');
     if (zecherEl) zecherEl.textContent = data.zecherNishmas || '';
 
+    // ── Building Campaign drum-rolls ──
+    // Feed live pledge/raised data (campaign_pledges table, via get-data) into
+    // the rolls. Idempotent: only the first successful load starts them, so
+    // this is safe to call on every poll. If data.pledges is absent the roll
+    // module falls back to its baked-in arrays.
+    if (window.__startCampaignRolls) {
+        window.__startCampaignRolls(data.pledges, data.raised);
+    }
+
     // ── Zmanim ──
     if (data.zmanim) {
         var z = data.zmanim;
@@ -1136,8 +1145,13 @@ refreshLoop();
 // Bottom card: RAISED — only teams with raised > 0 (real activity to
 // spotlight), bigger typography. Both share one engine; data lives below.
 (function() {
-    // ── Data (parsed once from the CharityExtra teams_2.csv export) ──
-    var PLEDGES = [
+    // ── Fallback data (baked-in). Used ONLY if /api/get-data doesn't supply
+    //    data.pledges — e.g. the campaign_pledges table is empty or the DB is
+    //    unreachable. Live data normally comes from that Neon table via
+    //    get-data and is fed in through window.__startCampaignRolls (called by
+    //    loadScreenData). To change amounts, re-upload the CharityExtra CSV at
+    //    /campaign.html — no redeploy needed; this array is just a safety net. ──
+    var FALLBACK_PLEDGES = [
         { name: "Ahron & Sorala Jaffa", amount: 36000 },
         { name: "Ahron Tzvi & Adina Danziger", amount: 7500 },
         { name: "Ari & Deena Streicher", amount: 5000 },
@@ -1186,8 +1200,8 @@ refreshLoop();
         { name: "הרב יעקב יוסף גווירצמאן שליט\"א", amount: 52000 }
     ];
     // Only teams whose raised > 0 — keeps the headline card visually clean
-    // and avoids cycling through 42 "$0" rows.
-    var RAISED = [
+    // and avoids cycling through 42 "$0" rows. (Fallback only — see above.)
+    var FALLBACK_RAISED = [
         { name: "Ahron & Sorala Jaffa",     amount: 1500 },
         { name: "Mordy & Devorah Freimark", amount: 1000 },
         { name: "Shloimy & Toby Maline",    amount: 180  },
@@ -1255,31 +1269,51 @@ refreshLoop();
         setTimeout(loop, opts.displayMs);
     }
 
-    // ── Pledges roll (top, all 46 teams) ──
-    startRoll({
-        data: PLEDGES,
-        cardA: 'pcardA', cardB: 'pcardB',
-        counter: 'pledgeRollIndex',
-        displayMs: 4000, rollMs: 800
-    });
+    // ── Public starter. Idempotent: the first call wins, so loadScreenData's
+    //    live DB data beats the fallback timer below, and later poll-refreshes
+    //    are no-ops (the drum keeps its position). When pledges is a non-empty
+    //    array it's authoritative (DB case) and `raised` is used as-is even if
+    //    empty; otherwise both fall back to the baked-in arrays. ──
+    window.__startCampaignRolls = function(pledges, raised) {
+        if (window.__campaignRollsStarted) return;
+        window.__campaignRollsStarted = true;
 
-    // ── Raised roll (bottom, non-zero only) ──
-    // Also paint the "Total · $X" stat in the corner — non-rolling anchor.
-    var totalEl = document.getElementById('raisedRollTotal');
-    if (totalEl) {
-        var total = RAISED.reduce(function(s, r) { return s + r.amount; }, 0);
-        totalEl.textContent = fmtMoney(total);
-    }
-    // Stagger the raised roll's start by ~2s so the two cards don't tick
-    // in lock-step (visually busy when both transition at the same frame).
-    setTimeout(function() {
+        var useFallback = !(pledges && pledges.length);
+        var P = useFallback ? FALLBACK_PLEDGES : pledges;
+        var R = useFallback ? FALLBACK_RAISED  : (raised || []);
+
+        // Pledges roll (top, all teams)
         startRoll({
-            data: RAISED,
-            cardA: 'rcardA', cardB: 'rcardB',
-            counter: 'raisedRollIndex',
-            displayMs: 5000, rollMs: 800
+            data: P,
+            cardA: 'pcardA', cardB: 'pcardB',
+            counter: 'pledgeRollIndex',
+            displayMs: 4000, rollMs: 800
         });
-    }, 2000);
+
+        // Total raised stat in the corner — non-rolling anchor.
+        var totalEl = document.getElementById('raisedRollTotal');
+        if (totalEl) {
+            totalEl.textContent = fmtMoney(R.reduce(function(s, r) { return s + r.amount; }, 0));
+        }
+
+        // Raised roll (bottom, non-zero teams only). Stagger ~2s so the two
+        // drums don't tick in lock-step (visually busy if both roll together).
+        setTimeout(function() {
+            startRoll({
+                data: R,
+                cardA: 'rcardA', cardB: 'rcardB',
+                counter: 'raisedRollIndex',
+                displayMs: 5000, rollMs: 800
+            });
+        }, 2000);
+    };
+
+    // Safety net: if loadScreenData hasn't fed live data within 4s (offline,
+    // no cached payload, slow DB), start from the baked-in fallback so the
+    // campaign cards never sit blank.
+    setTimeout(function() {
+        if (!window.__campaignRollsStarted) window.__startCampaignRolls(null, null);
+    }, 4000);
 })();
 </script>
 </body></html>
