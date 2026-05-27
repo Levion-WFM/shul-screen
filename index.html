@@ -391,21 +391,16 @@
 </div>
 <!-- Text Announcements (Mazel Tov / Refuah Shleima / etc.) — bottom strip, max 2. -->
 <div id="communitySlots" class="flex-none flex items-stretch justify-center gap-3 hidden"></div>
-<!-- Dedications taken — static, compact. The reserved items scroll as a
-     horizontal ticker so all of them fit on one line; the label stays fixed.
-     Items are written once here; the track is cloned in JS (see the
-     "Dedications ticker" script) so the marquee loops seamlessly. Each item
-     carries mr-11 (incl. the last) to keep spacing even across the wrap. -->
+<!-- Dedications taken — compact bottom ticker. The reserved items scroll as a
+     horizontal marquee (label stays fixed) so they all fit on one line. The
+     list is data-driven (data.dedications, managed at /campaign.html); JS fills
+     #dedTickerTrack with two copies of the list so the -50% scroll loops
+     seamlessly. Each item carries mr-11 (incl. the last) for even spacing
+     across the wrap. Hidden when the list is empty. -->
 <div id="dedicationsTaken" class="flex-none flex items-center gap-3 bg-black/60 border border-primary/30 rounded-sm px-3 py-1 overflow-hidden">
   <span class="label-smallcaps font-bold text-primary/70 text-[11px] tracking-wider shrink-0">Dedications Taken</span>
   <div class="flex-1 min-w-0 overflow-hidden">
-    <div id="dedTickerTrack" class="ded-ticker-track">
-      <span class="inline-flex items-center gap-1.5 mr-11 text-secondary text-sm font-semibold whitespace-nowrap">Sha'ar Habinyan<span class="bg-primary text-on-primary text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">Taken</span></span>
-      <span class="inline-flex items-center gap-1.5 mr-11 text-secondary text-sm font-semibold whitespace-nowrap">Paroches<span class="bg-primary text-on-primary text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">Taken</span></span>
-      <span class="inline-flex items-center gap-1.5 mr-11 text-secondary text-sm font-semibold whitespace-nowrap">Ner Tamid<span class="bg-primary text-on-primary text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">Taken</span></span>
-      <span class="inline-flex items-center gap-1.5 mr-11 text-secondary text-sm font-semibold whitespace-nowrap">Rav's Shtender<span class="bg-primary text-on-primary text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">Taken</span></span>
-      <span class="inline-flex items-center gap-1.5 mr-11 text-secondary text-sm font-semibold whitespace-nowrap">Amud<span class="bg-primary text-on-primary text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">Taken</span></span>
-    </div>
+    <div id="dedTickerTrack" class="ded-ticker-track"></div>
   </div>
 </div>
 </div>
@@ -522,6 +517,37 @@
 // ========================================
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
+// ── Building Campaign dedications ticker ──
+// Items come from the campaign_dedications table via get-data (data.dedications)
+// and are managed at /campaign.html. The track holds two copies of the list so
+// the CSS marquee (.ded-ticker-track, animating to -50%) loops seamlessly. We
+// only re-render when the list changes, so normal polls don't disturb the
+// running scroll. undefined (table missing / offline) → baked-in fallback;
+// an explicit empty list → hide the strip.
+var FALLBACK_DEDICATIONS = ["Sha'ar Habinyan", "Paroches", "Ner Tamid", "Rav's Shtender", "Amud"];
+function renderDedicationsTicker(list) {
+    var track = document.getElementById('dedTickerTrack');
+    var strip = document.getElementById('dedicationsTaken');
+    if (!track || !strip) return;
+    var items = (list === undefined || list === null) ? FALLBACK_DEDICATIONS : list;
+    items = (items || [])
+        .map(function (s) { return String(s == null ? '' : s).replace(/\s+/g, ' ').trim(); })
+        .filter(function (s) { return s; });
+    var key = JSON.stringify(items);
+    if (key === window.__dedKey) return;   // unchanged — leave the running marquee alone
+    window.__dedKey = key;
+    if (!items.length) { strip.classList.add('hidden'); track.innerHTML = ''; return; }
+    strip.classList.remove('hidden');
+    var one = items.map(function (name) {
+        return '<span class="inline-flex items-center gap-1.5 mr-11 text-secondary text-sm font-semibold whitespace-nowrap">'
+            + esc(name)
+            + '<span class="bg-primary text-on-primary text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">Taken</span></span>';
+    }).join('');
+    track.innerHTML = one + one;   // duplicate for the seamless -50% loop
+}
+// Safety net: show the baked-in list if no data has arrived shortly after load.
+setTimeout(function () { if (window.__dedKey === undefined) renderDedicationsTicker(undefined); }, 4000);
+
 // Parse "7:00" or "7:00 PM" to minutes since midnight
 function parseTimeToMin(t) {
     if (!t) return 0;
@@ -631,6 +657,9 @@ async function loadScreenData() {
     if (window.__startCampaignRolls) {
         window.__startCampaignRolls(data.pledges, data.raised);
     }
+
+    // Building Campaign dedications ticker (bottom strip).
+    renderDedicationsTicker(data.dedications);
 
     // ── Zmanim ──
     if (data.zmanim) {
@@ -1396,12 +1425,6 @@ refreshLoop();
     setTimeout(function() {
         if (!window.__campaignRollsStarted) window.__startCampaignRolls(null, null);
     }, 4000);
-})();
-
-// Dedications ticker: clone the track once so the -50% marquee loops seamlessly.
-(function() {
-    var t = document.getElementById('dedTickerTrack');
-    if (t) t.innerHTML += t.innerHTML;
 })();
 </script>
 </body></html>

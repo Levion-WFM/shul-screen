@@ -171,6 +171,17 @@ module.exports = async function handler(req, res) {
             }
         } catch (e) { console.error('campaign_pledges error:', e.message); }
 
+        // ── Building Campaign dedications (kiosk bottom ticker) ──
+        // Its own table (like campaign_pledges) so a full screen_data save can't
+        // clobber it. Managed via /api/campaign-dedications. If the table doesn't
+        // exist yet, the catch leaves data.dedications undefined and the kiosk
+        // falls back to its baked-in list.
+        try {
+            var dedRows = await sql`
+                SELECT label FROM campaign_dedications ORDER BY sort_order ASC, id ASC`;
+            data.dedications = dedRows.map(function (r) { return r.label; });
+        } catch (e) { console.error('campaign_dedications error:', e.message); }
+
         res.json(data);
     } catch (err) {
         console.error('get-data error:', err);
