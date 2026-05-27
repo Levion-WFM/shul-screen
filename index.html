@@ -235,6 +235,23 @@
             box-shadow: 0 0 14px rgba(233, 195, 73, 0.55);
             transition: width 1200ms cubic-bezier(0.4, 0, 0.2, 1);
         }
+        /* ── Dedications ticker ──
+           Horizontal marquee for the "taken" items so they fit on one line.
+           The track holds two identical copies of the items (the second is
+           cloned in JS); sliding it -50% scrolls exactly one copy, so the loop
+           is seamless. Per-item margin (incl. the last) keeps spacing uniform
+           across the wrap point. */
+        .ded-ticker-track {
+            display: inline-flex;
+            align-items: center;
+            white-space: nowrap;
+            will-change: transform;
+            animation: ded-ticker 22s linear infinite;
+        }
+        @keyframes ded-ticker {
+            from { transform: translateX(0); }
+            to   { transform: translateX(-50%); }
+        }
     </style>
 </head>
 <body class="bg-[#0a0706] text-white font-body h-screen flex flex-col overflow-hidden">
@@ -374,14 +391,22 @@
 </div>
 <!-- Text Announcements (Mazel Tov / Refuah Shleima / etc.) — bottom strip, max 2. -->
 <div id="communitySlots" class="flex-none flex items-stretch justify-center gap-3 hidden"></div>
-<!-- Dedications taken — static, compact. Just the type + a "Taken" pill for the
-     three sponsorships already claimed. Low-priority, so one thin bottom strip
-     (a sibling of #communitySlots, not touched by the data poll). -->
-<div id="dedicationsTaken" class="flex-none flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-black/60 border border-primary/30 rounded-sm px-3 py-1">
-  <span class="label-smallcaps font-bold text-primary/70 text-[11px] tracking-wider">Dedications Taken</span>
-  <span class="text-secondary text-sm font-semibold flex items-center gap-1.5">Sha'ar Habinyan<span class="bg-primary text-on-primary text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">Taken</span></span>
-  <span class="text-secondary text-sm font-semibold flex items-center gap-1.5">Paroches<span class="bg-primary text-on-primary text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">Taken</span></span>
-  <span class="text-secondary text-sm font-semibold flex items-center gap-1.5">Ner Tamid<span class="bg-primary text-on-primary text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">Taken</span></span>
+<!-- Dedications taken — static, compact. The reserved items scroll as a
+     horizontal ticker so all of them fit on one line; the label stays fixed.
+     Items are written once here; the track is cloned in JS (see the
+     "Dedications ticker" script) so the marquee loops seamlessly. Each item
+     carries mr-11 (incl. the last) to keep spacing even across the wrap. -->
+<div id="dedicationsTaken" class="flex-none flex items-center gap-3 bg-black/60 border border-primary/30 rounded-sm px-3 py-1 overflow-hidden">
+  <span class="label-smallcaps font-bold text-primary/70 text-[11px] tracking-wider shrink-0">Dedications Taken</span>
+  <div class="flex-1 min-w-0 overflow-hidden">
+    <div id="dedTickerTrack" class="ded-ticker-track">
+      <span class="inline-flex items-center gap-1.5 mr-11 text-secondary text-sm font-semibold whitespace-nowrap">Sha'ar Habinyan<span class="bg-primary text-on-primary text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">Taken</span></span>
+      <span class="inline-flex items-center gap-1.5 mr-11 text-secondary text-sm font-semibold whitespace-nowrap">Paroches<span class="bg-primary text-on-primary text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">Taken</span></span>
+      <span class="inline-flex items-center gap-1.5 mr-11 text-secondary text-sm font-semibold whitespace-nowrap">Ner Tamid<span class="bg-primary text-on-primary text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">Taken</span></span>
+      <span class="inline-flex items-center gap-1.5 mr-11 text-secondary text-sm font-semibold whitespace-nowrap">Rav's Shtender<span class="bg-primary text-on-primary text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">Taken</span></span>
+      <span class="inline-flex items-center gap-1.5 mr-11 text-secondary text-sm font-semibold whitespace-nowrap">Amud<span class="bg-primary text-on-primary text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">Taken</span></span>
+    </div>
+  </div>
 </div>
 </div>
 <!-- Right Column: Shabbat Zmanim & Sponsor -->
@@ -1371,6 +1396,12 @@ refreshLoop();
     setTimeout(function() {
         if (!window.__campaignRollsStarted) window.__startCampaignRolls(null, null);
     }, 4000);
+})();
+
+// Dedications ticker: clone the track once so the -50% marquee loops seamlessly.
+(function() {
+    var t = document.getElementById('dedTickerTrack');
+    if (t) t.innerHTML += t.innerHTML;
 })();
 </script>
 </body></html>
