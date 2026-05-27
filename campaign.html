@@ -67,6 +67,26 @@
     <div id="result" class="text-sm mt-3"></div>
   </div>
 
+  <!-- Reserved / Taken dedications — manages the kiosk's bottom scrolling ticker. -->
+  <div class="card rounded-lg p-5 mt-4">
+    <h2 class="text-lg font-bold gold">Reserved Dedications</h2>
+    <p class="text-xs text-[#9c8d8a] mt-1 leading-relaxed">
+      The "taken" items that scroll along the bottom of the screen. Add or remove
+      them here, then push — screens reload within ~30 seconds. This is separate
+      from the CSV above.
+    </p>
+    <div id="dedList" class="mt-4 flex flex-col gap-2"></div>
+    <div class="flex gap-2 mt-3">
+      <input id="dedInput" type="text" maxlength="80" placeholder="e.g. Coat Room"
+             class="flex-1 rounded px-3 py-2 text-sm"/>
+      <button id="dedAdd" class="rounded border border-[#3a2f2b] bg-[#281f1d] px-4 py-2 text-sm font-semibold hover:brightness-125">Add</button>
+    </div>
+    <button id="dedPush" class="mt-4 w-full rounded bg-[#e9c349] text-[#3c2f00] font-bold py-3 hover:brightness-110 disabled:opacity-50">
+      Push dedications to screen
+    </button>
+    <div id="dedResult" class="text-sm mt-3"></div>
+  </div>
+
 </div>
 
 <script>
@@ -188,6 +208,83 @@
     } catch (err) {
       result.textContent = '✗ ' + err.message;
       result.className = 'text-sm mt-3 text-red-400';
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // ── Reserved dedications manager (kiosk bottom ticker) ──
+  // Full-replace, same as the CSV: edit the list here and push the whole list
+  // to /api/campaign-dedications. Loads the current list from /api/get-data.
+  var dedItems = [];
+  var dedListEl = document.getElementById('dedList');
+  var dedInputEl = document.getElementById('dedInput');
+  var dedResultEl = document.getElementById('dedResult');
+
+  function escHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function renderDedList() {
+    if (!dedItems.length) {
+      dedListEl.innerHTML = '<div class="text-xs text-[#9c8d8a]">No dedications yet — add one below.</div>';
+      return;
+    }
+    dedListEl.innerHTML = dedItems.map(function (name, i) {
+      return '<div class="flex items-center gap-2 bg-[#0a0706] border border-[#3a2f2b] rounded px-3 py-2">'
+        + '<span class="flex-1 text-sm">' + escHtml(name) + '</span>'
+        + '<button type="button" data-i="' + i + '" class="dedDel text-red-400 hover:text-red-300 text-sm font-semibold">Remove</button>'
+        + '</div>';
+    }).join('');
+    Array.prototype.forEach.call(dedListEl.querySelectorAll('.dedDel'), function (b) {
+      b.addEventListener('click', function () {
+        dedItems.splice(parseInt(b.getAttribute('data-i'), 10), 1);
+        renderDedList();
+      });
+    });
+  }
+
+  function addDed() {
+    var v = (dedInputEl.value || '').replace(/\s+/g, ' ').trim();
+    if (!v) return;
+    if (dedItems.some(function (x) { return x.toLowerCase() === v.toLowerCase(); })) { dedInputEl.value = ''; return; }
+    dedItems.push(v.slice(0, 80));
+    dedInputEl.value = '';
+    renderDedList();
+  }
+
+  document.getElementById('dedAdd').addEventListener('click', addDed);
+  dedInputEl.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); addDed(); }
+  });
+
+  // Seed from the live screen data so editing starts from the current list.
+  fetch('/api/get-data')
+    .then(function (r) { return r.json(); })
+    .then(function (d) { if (Array.isArray(d.dedications)) dedItems = d.dedications.slice(); renderDedList(); })
+    .catch(function () { renderDedList(); });
+
+  document.getElementById('dedPush').addEventListener('click', async function () {
+    var token = tokenEl.value.trim();
+    if (!token) { dedResultEl.textContent = 'Enter the admin token first.'; dedResultEl.className = 'text-sm mt-3 text-red-400'; return; }
+    var btn = this; btn.disabled = true;
+    dedResultEl.textContent = 'Pushing…'; dedResultEl.className = 'text-sm mt-3 text-[#9c8d8a]';
+    localStorage.setItem(TOKEN_KEY, token);
+    try {
+      var res = await fetch('/api/campaign-dedications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ dedications: dedItems })
+      });
+      var j = await res.json();
+      if (!res.ok) throw new Error(j.error || ('HTTP ' + res.status));
+      dedResultEl.innerHTML = '✓ Saved ' + j.dedications + ' dedication' + (j.dedications === 1 ? '' : 's')
+        + '. Screens will reload shortly.';
+      dedResultEl.className = 'text-sm mt-3 text-green-400';
+    } catch (err) {
+      dedResultEl.textContent = '✗ ' + err.message;
+      dedResultEl.className = 'text-sm mt-3 text-red-400';
     } finally {
       btn.disabled = false;
     }
