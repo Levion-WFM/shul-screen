@@ -374,6 +374,15 @@
 </div>
 <!-- Text Announcements (Mazel Tov / Refuah Shleima / etc.) — bottom strip, max 2. -->
 <div id="communitySlots" class="flex-none flex items-stretch justify-center gap-3 hidden"></div>
+<!-- Dedications taken — static, compact. Just the type + a "Taken" pill for the
+     three sponsorships already claimed. Low-priority, so one thin bottom strip
+     (a sibling of #communitySlots, not touched by the data poll). -->
+<div id="dedicationsTaken" class="flex-none flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-black/60 border border-primary/30 rounded-sm px-3 py-1">
+  <span class="label-smallcaps font-bold text-primary/70 text-[11px] tracking-wider">Dedications Taken</span>
+  <span class="text-secondary text-sm font-semibold flex items-center gap-1.5">Sha'ar Habinyan<span class="bg-primary text-on-primary text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">Taken</span></span>
+  <span class="text-secondary text-sm font-semibold flex items-center gap-1.5">Paroches<span class="bg-primary text-on-primary text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">Taken</span></span>
+  <span class="text-secondary text-sm font-semibold flex items-center gap-1.5">Ner Tamid<span class="bg-primary text-on-primary text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">Taken</span></span>
+</div>
 </div>
 <!-- Right Column: Shabbat Zmanim & Sponsor -->
 <div class="col-span-3 flex flex-col gap-4 min-h-0">
