@@ -213,8 +213,8 @@
             text-align: center;
         }
         /* ── Campaign progress bar (bottom of the center column) ──
-           $0 on the left, the sum of every team's goal on the right; the fill
-           is the share of that total raised so far. */
+           A bare filling line — no goal/scale labels. The fill is total raised
+           as a share of an assumed goal (CAMPAIGN_GOAL in JS). */
         .campaign-bar-track {
             position: relative;
             height: 1.6rem;
@@ -331,13 +331,13 @@
      pt-20 reserves vertical space for the logo badge hanging down from the nav. -->
 <div class="col-span-5 flex flex-col min-h-0 gap-2 pt-20">
 <!-- Building Campaign — center modal replacing the prior #fliersSection
-     image strip. One paged "Currently Raised" drum-roll: 4 teams at a time
+     image strip. One paged "Currently Raised" drum-roll: 6 teams at a time
      (teams with money in only), each showing the amount raised and its % of
      that team's goal; pages roll through all such teams on the same 3D drum
-     engine. Below it, a single progress bar runs $0 → the sum of every team's
-     goal, filled to the share of that total raised so far. #fliersSection is
-     intentionally retained as a hidden sibling so the existing fliers backend
-     code keeps working (just never visible). -->
+     engine. Below it, a bare progress line fills toward an assumed campaign
+     goal (no goal/scale shown). #fliersSection is intentionally retained as a
+     hidden sibling so the existing fliers backend code keeps working (just
+     never visible). -->
 <div id="fliersSection" class="hidden">
 <div id="flierSlots" class="h-full w-full flex items-stretch justify-center gap-3"></div>
 </div>
@@ -359,21 +359,16 @@
     </div>
   </div>
 
-  <!-- Campaign progress bar — $0 → sum of all team goals, filled to the share
-       of that total raised so far. -->
+  <!-- Campaign progress bar — just a filling line, no goal/scale labels. The
+       fill ratio uses an assumed goal (CAMPAIGN_GOAL in JS), so nothing on
+       screen commits to a public final-goal number. -->
   <div id="campaignBar" class="shrink-0 bg-black/70 border-4 border-primary/60 rounded-sm elevated-3d px-4 py-2">
-    <div class="flex items-baseline justify-between mb-1">
+    <div class="flex items-baseline justify-between mb-2">
       <p class="label-smallcaps font-bold text-primary/85 text-sm">Total Raised</p>
-      <p class="tabular-nums font-bold text-primary text-sm">
-        <span id="campaignRaised">—</span> · <span id="campaignPct">—</span>
-      </p>
+      <p class="tabular-nums font-bold text-primary text-sm"><span id="campaignRaised">—</span></p>
     </div>
     <div class="campaign-bar-track">
       <div id="campaignBarFill" class="campaign-bar-fill"></div>
-    </div>
-    <div class="flex items-center justify-between mt-1 text-xs font-bold text-secondary/80 tabular-nums label-smallcaps">
-      <span>$0</span>
-      <span id="campaignGoal">—</span>
     </div>
   </div>
 </div>
@@ -1154,8 +1149,8 @@ refreshLoop();
 // ============================================================
 // One drum-roll shows 6 teams per page (teams with raised > 0 only), each row
 // carrying the amount raised and its % of that team's goal; pages roll through
-// all such teams. Below, a single progress bar runs $0 → the sum of every
-// team's goal, filled to the share of that total raised so far. Data lives below.
+// all such teams. Below, a bare progress line fills total raised toward an
+// assumed campaign goal (CAMPAIGN_GOAL) — no goal/scale shown. Data lives below.
 (function() {
     // ── Fallback data (baked-in). Used ONLY if /api/get-data doesn't supply
     //    data.pledges — e.g. the campaign_pledges table is empty or the DB is
@@ -1222,11 +1217,6 @@ refreshLoop();
 
     function fmtMoney(n) { return '$' + Number(n).toLocaleString('en-US'); }
     function isHebrew(s) { return /[֐-׿]/.test(s); }
-    // Compact form for the progress-bar goal label, e.g. 421400 → "$421K".
-    function fmtMoneyShort(n) {
-        n = Number(n) || 0;
-        return n >= 1000 ? '$' + Math.round(n / 1000) + 'K' : '$' + n;
-    }
     // Team names come from the CharityExtra CSV — escape before innerHTML.
     function esc(s) {
         return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -1331,18 +1321,17 @@ refreshLoop();
             return { name: r.name, amount: r.amount, goal: goalByName[r.name] || 0 };
         });
 
-        // Bottom progress bar: total raised vs. the sum of every team's goal.
-        var totalGoal = P.reduce(function (s, p) { return s + p.amount; }, 0);
+        // Progress bar: a line that fills toward an ASSUMED goal. No goal/scale
+        // is shown on screen (the final target isn't committed yet), but the
+        // fill needs a denominator — so use a fixed CAMPAIGN_GOAL. Change this
+        // one number if the head person settles on a different final goal.
+        var CAMPAIGN_GOAL = 417000;
         var totalRaised = R.reduce(function (s, r) { return s + r.amount; }, 0);
-        var overallPct = totalGoal > 0 ? totalRaised / totalGoal * 100 : 0;
+        var overallPct = totalRaised / CAMPAIGN_GOAL * 100;
 
         var raisedEl = document.getElementById('campaignRaised');
-        var pctEl    = document.getElementById('campaignPct');
-        var goalEl   = document.getElementById('campaignGoal');
         var fillEl   = document.getElementById('campaignBarFill');
         if (raisedEl) raisedEl.textContent = fmtMoney(totalRaised);
-        if (pctEl)    pctEl.textContent = Math.round(overallPct) + '%';
-        if (goalEl)   goalEl.textContent = fmtMoneyShort(totalGoal);
         if (fillEl) {
             // Next frame so the width animates up from 0.
             requestAnimationFrame(function () {
