@@ -342,7 +342,7 @@
 <div id="flierSlots" class="h-full w-full flex items-stretch justify-center gap-3"></div>
 </div>
 <div id="campaignCenter" class="flex-1 min-h-0 flex flex-col gap-3">
-  <!-- Currently Raised — paged drum-roll: 4 teams at a time, each showing the
+  <!-- Currently Raised — paged drum-roll: 6 teams at a time, each showing the
        amount raised and its % of that team's goal. Teams with money in only. -->
   <div id="raisedRoll" class="flex-1 min-h-0 bg-black/85 border-4 border-primary/80 rounded-sm elevated-3d overflow-hidden relative">
     <!-- Subtle gold radial glow behind the rolling content. -->
@@ -969,12 +969,19 @@ async function loadScreenData() {
     // Birthdays & Anniversaries" render in full.
     var commContainer = document.getElementById('communitySlots');
     commContainer.innerHTML = '';
-    if (data.community && data.community.length) {
+    // Drop unfilled sections: a section with no label, names, or subtitle would
+    // otherwise render as a blank box. Keeping only real content means an empty
+    // section in the backend shows nothing, and the campaign fills the space.
+    var community = (data.community || []).filter(function(c) {
+        var hasNames = (c.names || '').split('\n').some(function(l){ return l.trim(); });
+        return (c.label || '').trim() || (c.sub || '').trim() || hasNames;
+    });
+    if (community.length) {
         commContainer.classList.remove('hidden');
-        var count = Math.min(data.community.length, 2);
+        var count = Math.min(community.length, 2);
         var sz = commSizes[count];
         var cHtml = '';
-        data.community.forEach(function(c, i) {
+        community.forEach(function(c, i) {
             if (i >= 2) return;
             var lines = (c.names || '').split('\n').filter(function(l){ return l.trim(); });
             var maxNames = count === 2 ? 6 : 8;
