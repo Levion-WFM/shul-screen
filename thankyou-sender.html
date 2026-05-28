@@ -367,23 +367,23 @@ function renderThankYouPng(donorName, amount, entries) {
     ctx.textBaseline = 'middle';
 
     var hasRaffle = Array.isArray(entries) && entries.length > 0;
-    // Box geometry (re-verified after the prior render still landed text
-    // in the upper third): the gold rectangle's inner usable area is
-    // actually y ≈ 0.475–0.685, center ≈ 0.580. Repositioning content
-    // so the visual stack sits centered.
+    // Box geometry: the gold rectangle's inner usable area is y ≈ 0.475–0.685,
+    // center ≈ 0.580. Great Vibes script has tall ascenders that visually pull
+    // the rendered name above its baseline-middle, so we set y values somewhat
+    // BELOW the geometric center to compensate.
     //
-    // Non-raffle (2 lines: name + amount):
-    //   name   = 0.553   (above center)
-    //   amount = 0.628   (below center)
+    // Non-raffle (2 lines):
+    //   name   = 0.568   (just above visual center)
+    //   amount = 0.635   (below center, comfortable gap)
     //
     // Raffle (3 lines: name + amount + N prize rows):
-    //   name   = 0.528
-    //   amount = 0.590
-    //   raffle = 0.648 first line, +0.040 per additional line
-    var nameY   = canvas.height * (hasRaffle ? 0.528 : 0.553);
-    var amountY = canvas.height * (hasRaffle ? 0.590 : 0.628);
-    var raffleStartY = canvas.height * 0.648;
-    var raffleLineH  = canvas.height * 0.040;
+    //   name   = 0.545
+    //   amount = 0.605
+    //   raffle = 0.665, +0.042 per additional line
+    var nameY   = canvas.height * (hasRaffle ? 0.545 : 0.568);
+    var amountY = canvas.height * (hasRaffle ? 0.605 : 0.635);
+    var raffleStartY = canvas.height * 0.665;
+    var raffleLineH  = canvas.height * 0.042;
 
     // ── Name ── bigger script (~9% of width) with auto-shrink for very
     // long names so "Shlomo Zalman & Elisheva Schwartz" still fits.
