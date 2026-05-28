@@ -119,7 +119,11 @@
   <section class="bg-white rounded-md border border-slate-300 p-4 mb-4">
     <div class="flex items-center justify-between mb-3 flex-wrap gap-3">
       <h2 class="font-semibold">3 · Review &amp; send</h2>
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 flex-wrap">
+        <label class="text-xs flex items-center gap-1.5 cursor-pointer select-none">
+          <input type="checkbox" id="hideAlreadySent" checked/>
+          <span>Hide already-sent rows</span>
+        </label>
         <label class="text-xs flex items-center gap-1.5 cursor-pointer select-none">
           <input type="checkbox" id="demoMode"/>
           <span>Demo mode — redirect <strong>all</strong> emails to:</span>
@@ -334,11 +338,21 @@ function ensureFontReady() {
     return Promise.resolve();
 }
 
-// Draws the donor's name AND the dollar amount onto the template's blank
-// rectangle. Name sits on top in the cursive face; amount tucks just below
-// in an italic serif (so digits read cleanly — Great Vibes numerals are
-// hard to scan).
-function renderThankYouPng(donorName, amount) {
+// Draws the donor's name, the dollar amount, and (when given) the raffle
+// entries onto the template's blank rectangle. Three vertical zones:
+//
+//   ┌─ rectangle ────────────────────────────────────────────┐
+//   │   [Donor name]            ← Great Vibes script         │
+//   │   $1,500                  ← italic Cormorant serif     │
+//   │   + 5 tickets · Yam Suf Painting   ← smaller italic    │
+//   │   + 3 tickets · Jerusalem Painting                     │
+//   └────────────────────────────────────────────────────────┘
+//
+// `entries` is an array of { prize, tickets } objects (slugs match the ones
+// in api/send-raffle.js). Pass null/undefined to render a normal thank-you
+// without raffle lines — the name and amount shift back to their bigger,
+// centered positions for that case.
+function renderThankYouPng(donorName, amount, entries) {
     if (!tplImage) throw new Error('Template not loaded');
     var canvas = document.getElementById('stageCanvas');
     canvas.width  = tplImage.naturalWidth;
@@ -352,8 +366,15 @@ function renderThankYouPng(donorName, amount) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    // ── Name ── shifted slightly above center so the amount fits below.
-    var nameY = canvas.height * 0.515;
+    var hasRaffle = Array.isArray(entries) && entries.length > 0;
+    // When raffle lines are added, slide everything ~4-5% up so the extra
+    // rows still land inside the rectangle.
+    var nameY   = canvas.height * (hasRaffle ? 0.485 : 0.515);
+    var amountY = canvas.height * (hasRaffle ? 0.560 : 0.605);
+    var raffleStartY = canvas.height * 0.625;
+    var raffleLineH  = canvas.height * 0.045;
+
+    // ── Name ── auto-shrink to fit very long names.
     var size = Math.round(canvas.width * 0.075);
     var tries = 0;
     do {
@@ -369,10 +390,20 @@ function renderThankYouPng(donorName, amount) {
     var amt = Number(amount) || 0;
     if (amt > 0) {
         var amountStr = '$' + amt.toLocaleString('en-US');
-        var amountY = canvas.height * 0.605;
-        var amountSize = Math.round(canvas.width * 0.045);
+        var amountSize = Math.round(canvas.width * (hasRaffle ? 0.040 : 0.045));
         ctx.font = 'italic 600 ' + amountSize + 'px "Cormorant Garamond", serif';
         ctx.fillText(amountStr, cx, amountY);
+    }
+
+    // ── Raffle lines ── one per prize, e.g. "+ 5 tickets · Yam Suf Painting".
+    if (hasRaffle) {
+        var raffleSize = Math.round(canvas.width * 0.028);
+        ctx.font = 'italic 500 ' + raffleSize + 'px "Cormorant Garamond", serif';
+        entries.forEach(function(e, idx) {
+            var ticks = (e.tickets || 0) + ' ticket' + (e.tickets === 1 ? '' : 's');
+            var line  = '+ ' + ticks + ' · ' + prettifyPrize(e.prize);
+            ctx.fillText(line, cx, raffleStartY + idx * raffleLineH);
+        });
     }
 
     return canvas.toDataURL('image/png');
@@ -547,7 +578,24 @@ function renderRows() {
         host.innerHTML = '<p class="text-sm text-slate-500 italic">No donations parsed yet.</p>';
         return;
     }
-    host.innerHTML = parsedRows.map(function(row, i) {
+    var hideAlready = document.getElementById('hideAlreadySent');
+    hideAlready = !hideAlready || hideAlready.checked;
+    var hiddenCount = 0;
+    var visible = parsedRows
+        .map(function(row, i) { return { row: row, i: i }; })
+        .filter(function(p) {
+            if (hideAlready && p.row.status === 'already') { hiddenCount++; return false; }
+            return true;
+        });
+    if (!visible.length) {
+        host.innerHTML = '<p class="text-sm text-slate-500 italic">All ' + parsedRows.length + ' rows have already been sent. Uncheck "Hide already-sent" above to review them.</p>';
+        return;
+    }
+    var hiddenBanner = hiddenCount
+        ? '<p class="text-xs text-slate-500 italic mb-2">' + hiddenCount + ' already-sent row(s) hidden. Uncheck "Hide already-sent" above to show them.</p>'
+        : '';
+    host.innerHTML = hiddenBanner + visible.map(function(p) {
+        var row = p.row; var i = p.i;
         var canSend = row.status === 'pending' || row.status === 'fail';
         var btnLabel = row.status === 'already' ? 'Resend' : 'Send';
         var displayName = row.donorName || row.cardName;
@@ -711,12 +759,16 @@ async function sendRaffle(i) {
     if (panel) panel.classList.add('open');
 
     try {
+        // Render a special raffle variant of the PNG so the donor receives a
+        // card that visibly shows their tickets + which painting(s).
+        var raffleImage = renderThankYouPng(row.cardName, row.amount, entries);
         var payload = {
             to:          demoOn ? demoTo : row.email,
             donorName:   row.donorName,
             teamName:    row.teamName,
             amount:      row.amount,
-            entries:     entries
+            entries:     entries,
+            imageBase64: raffleImage
         };
         if (!demoOn) {
             payload.donationKey = row.donationKey;
@@ -864,6 +916,11 @@ document.getElementById('sendAllBtn').addEventListener('click', async function()
     demo.addEventListener('change', sync);
     sync();
 })();
+
+// Re-render when the "Hide already-sent" toggle flips.
+document.getElementById('hideAlreadySent').addEventListener('change', function() {
+    renderRows();
+});
 
 function escapeHtml(s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
