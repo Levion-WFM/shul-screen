@@ -212,6 +212,23 @@
             min-width: 3.4rem;
             text-align: center;
         }
+        /* Leading rank badge ("Top 5" / "Top 10") — outlined gold so it reads
+           as a rank tier, distinct from the solid-gold % pill on the right. */
+        .team-row .trow-rank {
+            flex: 0 0 auto;
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 700;
+            font-size: 1.05rem;
+            line-height: 1;
+            color: #e9c349;
+            background: rgba(233, 195, 73, 0.14);
+            border: 1px solid rgba(233, 195, 73, 0.5);
+            border-radius: 9999px;
+            padding: 0.18rem 0.6rem;
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
         /* ── Campaign progress bar (bottom of the center column) ──
            A bare filling line — no goal/scale labels. The fill is total raised
            as a share of an assumed goal (CAMPAIGN_GOAL in JS). */
@@ -348,7 +365,7 @@
      pt-20 reserves vertical space for the logo badge hanging down from the nav. -->
 <div class="col-span-5 flex flex-col min-h-0 gap-2 pt-20">
 <!-- Building Campaign — center modal replacing the prior #fliersSection
-     image strip. One paged "Currently Raised" drum-roll: 6 teams at a time
+     image strip. One paged "Currently Raised" drum-roll: 7 teams at a time
      (teams with money in only), each showing the amount raised and its % of
      that team's goal; pages roll through all such teams on the same 3D drum
      engine. Below it, a bare progress line fills toward an assumed campaign
@@ -359,7 +376,7 @@
 <div id="flierSlots" class="h-full w-full flex items-stretch justify-center gap-3"></div>
 </div>
 <div id="campaignCenter" class="flex-1 min-h-0 flex flex-col gap-3">
-  <!-- Currently Raised — paged drum-roll: 6 teams at a time, each showing the
+  <!-- Currently Raised — paged drum-roll: 7 teams at a time, each showing the
        amount raised and its % of that team's goal. Teams with money in only. -->
   <div id="raisedRoll" class="flex-1 min-h-0 bg-black/85 border-4 border-primary/80 rounded-sm elevated-3d overflow-hidden relative">
     <!-- Subtle gold radial glow behind the rolling content. -->
@@ -1217,7 +1234,7 @@ refreshLoop();
 // ============================================================
 // BUILDING CAMPAIGN — center modal: paged "Currently Raised" roll
 // ============================================================
-// One drum-roll shows 6 teams per page (teams with raised > 0 only), each row
+// One drum-roll shows 7 teams per page (teams with raised > 0 only), each row
 // carrying the amount raised and its % of that team's goal; pages roll through
 // all such teams. Below, a bare progress line fills total raised toward an
 // assumed campaign goal (CAMPAIGN_GOAL) — no goal/scale shown. Data lives below.
@@ -1299,11 +1316,16 @@ refreshLoop();
         return out;
     }
 
-    // One team row: name (left), amount raised + its % of that team's goal (right).
+    // One team row: optional rank badge + name (left), amount raised + its %
+    // of that team's goal (right). t.rank is 1-based (by amount, descending).
     function rowHTML(t) {
         var heb = isHebrew(t.name);
         var pct = t.goal > 0 ? Math.round(t.amount / t.goal * 100) : 0;
+        var badge = '';
+        if (t.rank >= 1 && t.rank <= 5) badge = '<span class="trow-rank">Top 5</span>';
+        else if (t.rank <= 10) badge = '<span class="trow-rank">Top 10</span>';
         return '<div class="team-row">'
+            +   badge
             +   '<span class="trow-name' + (heb ? ' trow-name-hebrew' : '') + '" dir="' + (heb ? 'rtl' : 'ltr') + '">' + esc(t.name) + '</span>'
             +   '<span class="trow-amt">' + fmtMoney(t.amount) + '</span>'
             +   '<span class="trow-pct">' + pct + '%</span>'
@@ -1384,18 +1406,23 @@ refreshLoop();
         var P = useFallback ? FALLBACK_PLEDGES : pledges;
         var R = useFallback ? FALLBACK_RAISED  : (raised || []);
 
-        // Join each raised team to its goal (by name) so the row can show % of goal.
+        // Join each raised team to its goal (by name) so the row can show % of
+        // goal. Rank by amount (descending) only to tag the Top 5 / Top 10
+        // badges — the roll itself stays in its original (mixed) order, so we
+        // rank a throwaway sorted copy that shares the same row objects.
         var goalByName = {};
         P.forEach(function (p) { goalByName[p.name] = p.amount; });
         var rows = R.map(function (r) {
             return { name: r.name, amount: r.amount, goal: goalByName[r.name] || 0 };
         });
+        rows.slice().sort(function (a, b) { return b.amount - a.amount; })
+            .forEach(function (r, i) { r.rank = i + 1; });
 
         // Progress bar: a line that fills toward an ASSUMED goal. No goal/scale
         // is shown on screen (the final target isn't committed yet), but the
         // fill needs a denominator — so use a fixed CAMPAIGN_GOAL. Change this
         // one number if the head person settles on a different final goal.
-        var CAMPAIGN_GOAL = 417000;
+        var CAMPAIGN_GOAL = 430000;
         var totalRaised = R.reduce(function (s, r) { return s + r.amount; }, 0);
         var overallPct = totalRaised / CAMPAIGN_GOAL * 100;
 
@@ -1409,10 +1436,10 @@ refreshLoop();
             });
         }
 
-        // Currently-raised roll: 6 teams per page, rolling through all of them.
+        // Currently-raised roll: 7 teams per page, rolling through all of them.
         startPagedRoll({
             data: rows,
-            pageSize: 6,
+            pageSize: 7,
             pageA: 'rpageA', pageB: 'rpageB',
             counter: 'raisedRollIndex',
             displayMs: 8000, rollMs: 800
