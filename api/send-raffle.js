@@ -38,6 +38,7 @@ module.exports = async function handler(req, res) {
     var donationKey = (body.donationKey || '').toString().trim();
     var demoMode    = !!body.demoMode;
     var force       = !!body.force;
+    var image       = (body.imageBase64 || '').toString();
 
     if (!to)             return res.status(400).json({ error: 'Missing `to`' });
     if (!Array.isArray(body.entries) || !body.entries.length) {
@@ -132,6 +133,19 @@ module.exports = async function handler(req, res) {
 
     var from = process.env.THANKYOU_FROM || 'BMJ21 Building Campaign <onboarding@resend.dev>';
 
+    // Optional PNG attachment: when the page renders a raffle variant of the
+    // thank-you card (donor name + amount + ticket lines), attach it so the
+    // donor's email shows the same visual, not just the HTML table.
+    var attachments = [];
+    if (image.indexOf('data:image/') === 0) {
+        var b64 = image.replace(/^data:image\/\w+;base64,/, '');
+        var slug = String(donorName || 'donor').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
+        attachments.push({
+            filename: 'raffle-' + (slug || 'entry') + '.png',
+            content: b64
+        });
+    }
+
     try {
         var r = await fetch('https://api.resend.com/emails', {
             method: 'POST',
@@ -143,7 +157,8 @@ module.exports = async function handler(req, res) {
                 from: from,
                 to: recipients,
                 subject: subject,
-                html: html
+                html: html,
+                attachments: attachments
             })
         });
         var data = await r.json();
