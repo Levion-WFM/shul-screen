@@ -273,6 +273,25 @@ document.getElementById('tplFile').addEventListener('change', function(ev) {
     reader.readAsDataURL(f);
 });
 
+// CSV file picker: read selected file into the (hidden) textarea so the
+// existing Parse handler — which reads csvInput.value — works unchanged.
+document.getElementById('csvFile').addEventListener('change', function(ev) {
+    var f = ev.target.files && ev.target.files[0];
+    var statusEl = document.getElementById('csvFileStatus');
+    if (!f) { statusEl.textContent = ''; return; }
+    statusEl.textContent = 'Reading ' + f.name + '…';
+    var reader = new FileReader();
+    reader.onload = function() {
+        document.getElementById('csvInput').value = reader.result || '';
+        statusEl.textContent = f.name + ' loaded (' + (reader.result || '').length.toLocaleString() + ' chars). Click Parse.';
+        document.getElementById('parseStatus').textContent = '';
+    };
+    reader.onerror = function() {
+        statusEl.textContent = 'Failed to read ' + f.name;
+    };
+    reader.readAsText(f);
+});
+
 // ============================================================
 // CSV PARSER — minimal, handles quoted fields with commas
 // ============================================================
