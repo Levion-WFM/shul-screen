@@ -367,16 +367,23 @@ function renderThankYouPng(donorName, amount, entries) {
     ctx.textBaseline = 'middle';
 
     var hasRaffle = Array.isArray(entries) && entries.length > 0;
-    // Box geometry (verified against the actual template render): the gold
-    // rectangle's inner usable area spans y ≈ 0.488–0.638, center ≈ 0.563.
-    // For 2-line content (name + amount) we put the name above box-center
-    // and the amount below, with a comfortable gap so they don't read as
-    // one stacked block. Raffle mode tightens spacing and slides up so the
-    // extra prize lines still fit inside.
-    var nameY   = canvas.height * (hasRaffle ? 0.520 : 0.547);
-    var amountY = canvas.height * (hasRaffle ? 0.575 : 0.612);
-    var raffleStartY = canvas.height * 0.622;
-    var raffleLineH  = canvas.height * 0.032;
+    // Box geometry (re-verified after the prior render still landed text
+    // in the upper third): the gold rectangle's inner usable area is
+    // actually y ≈ 0.475–0.685, center ≈ 0.580. Repositioning content
+    // so the visual stack sits centered.
+    //
+    // Non-raffle (2 lines: name + amount):
+    //   name   = 0.553   (above center)
+    //   amount = 0.628   (below center)
+    //
+    // Raffle (3 lines: name + amount + N prize rows):
+    //   name   = 0.528
+    //   amount = 0.590
+    //   raffle = 0.648 first line, +0.040 per additional line
+    var nameY   = canvas.height * (hasRaffle ? 0.528 : 0.553);
+    var amountY = canvas.height * (hasRaffle ? 0.590 : 0.628);
+    var raffleStartY = canvas.height * 0.648;
+    var raffleLineH  = canvas.height * 0.040;
 
     // ── Name ── bigger script (~9% of width) with auto-shrink for very
     // long names so "Shlomo Zalman & Elisheva Schwartz" still fits.
@@ -486,11 +493,12 @@ document.getElementById('parseBtn').addEventListener('click', async function() {
         // then the basic `name` column, then donor-full-name, then first-name.
         var donorName  = pickFirst(rec, [idxDisplayName, idxName, idxDonorFull, idxDonorFirst]);
 
-        // Delivery target: the RAISER (team owner), looked up from teams_4.csv
-        // via team-id. The donations CSV's `email` column is the donor's
-        // address — we keep that out of the pipeline now that the workflow
-        // is "notify the raiser, who forwards the card to their donor".
+        // Delivery targets:
+        //   - thank-you email → raiser only (forwardable card)
+        //   - raffle email   → raiser + donor (donor wants to see their
+        //                      tickets land; raiser wants to know too)
         var raiserEmail = (teamMeta && teamMeta.email) || '';
+        var donorEmail  = idxEmail >= 0 ? String(rec[idxEmail] || '').trim() : '';
 
         // Card still shows the donor's name (it's a thank-you to the donor
         // that the raiser will forward). "Friend of BMJ21" covers the rare
@@ -519,7 +527,8 @@ document.getElementById('parseBtn').addEventListener('click', async function() {
             donorName: donorName,      // shown on the card + mentioned in body
             cardName: cardName,        // what's actually drawn on the PNG
             amount: amount,
-            email: raiserEmail,        // delivery target (the raiser)
+            email: raiserEmail,        // thank-you delivery target (raiser)
+            donorEmail: donorEmail,    // additional raffle recipient
             status: raiserEmail ? 'pending' : 'skip',
             dataUrl: dataUrl,
             donationKey: donationKey,
@@ -770,11 +779,18 @@ async function sendRaffle(i) {
     if (panel) panel.classList.add('open');
 
     try {
-        // Render a special raffle variant of the PNG so the donor receives a
-        // card that visibly shows their tickets + which painting(s).
+        // Render a raffle variant of the PNG (name + amount + ticket lines).
         var raffleImage = renderThankYouPng(row.cardName, row.amount, entries);
+
+        // Raffle goes to BOTH the raiser and the donor when their addresses
+        // exist — they both deserve to see the tickets confirmed. Demo mode
+        // collapses to the single demo address.
+        var realRecipients = [row.email, row.donorEmail]
+            .map(function(s) { return (s || '').trim(); })
+            .filter(Boolean)
+            .join(', ');
         var payload = {
-            to:          demoOn ? demoTo : row.email,
+            to:          demoOn ? demoTo : realRecipients,
             donorName:   row.donorName,
             teamName:    row.teamName,
             amount:      row.amount,
