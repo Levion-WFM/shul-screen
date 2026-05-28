@@ -311,10 +311,28 @@ document.getElementById('parseBtn').addEventListener('click', async function() {
         return;
     }
 
-    // Extra optional columns used to form a stable donation key.
+    // Extra columns the new (46-column) donations export gives us. The thank-
+    // you flow is donor-centric: we put the donor's display name on the card
+    // and send the email to the donor's email. Team info is preserved in the
+    // body for context, and used as a fallback when donor data is missing
+    // (e.g. some Offline rows have no donor email).
     var idxClearingRef = header.indexOf('clearing-ref');
     var idxDateTime    = header.indexOf('date-time');
     if (idxDateTime === -1) idxDateTime = header.indexOf('date_time');
+    var idxDisplayName = header.indexOf('display-name');
+    var idxName        = header.indexOf('name');
+    var idxDonorFull   = header.indexOf('donor-full-name');
+    var idxDonorFirst  = header.indexOf('donor-first-name');
+    var idxEmail       = header.indexOf('email');
+
+    function pickFirst(rec, indices) {
+        for (var k = 0; k < indices.length; k++) {
+            if (indices[k] < 0) continue;
+            var v = String(rec[indices[k]] || '').trim();
+            if (v) return v;
+        }
+        return '';
+    }
 
     parsedRows = [];
     for (var r = 1; r < rows.length; r++) {
@@ -325,8 +343,17 @@ document.getElementById('parseBtn').addEventListener('click', async function() {
         var amount = parseFloat(String(rec[idxAmount] || '').replace(/[$,]/g, '')) || 0;
         var teamMeta = TEAMS[teamId];
         var teamName = (teamMeta && teamMeta.name) || teamFromCsv || ('Team ' + teamId);
-        var email = (teamMeta && teamMeta.email) || '';
-        var dataUrl = renderThankYouPng(teamName);
+
+        // Donor identity: prefer display-name (their chosen visible name),
+        // then the basic `name` column, then donor-full-name, then first-name.
+        var donorName  = pickFirst(rec, [idxDisplayName, idxName, idxDonorFull, idxDonorFirst]);
+        var donorEmail = idxEmail >= 0 ? String(rec[idxEmail] || '').trim() : '';
+
+        // Card shows the donor's name. Render falls back to a generic "Friend
+        // of BMJ21" if the donor went fully anonymous — keeps the card from
+        // looking broken for those rare rows.
+        var cardName = donorName || 'Friend of BMJ21';
+        var dataUrl = renderThankYouPng(cardName);
 
         // Donation key: Stripe charge id when available, else a deterministic
         // composite of team-id + date-time + amount so Offline rows still
@@ -339,10 +366,12 @@ document.getElementById('parseBtn').addEventListener('click', async function() {
 
         parsedRows.push({
             teamId: teamId,
-            teamName: teamName,
+            teamName: teamName,        // raiser/team, kept for the email body
+            donorName: donorName,      // empty string if anonymous
+            cardName: cardName,        // what's actually drawn on the PNG
             amount: amount,
-            email: email,
-            status: email ? 'pending' : 'skip',
+            email: donorEmail,         // delivery target (the donor)
+            status: donorEmail ? 'pending' : 'skip',
             dataUrl: dataUrl,
             donationKey: donationKey,
             sentAt: null
@@ -414,17 +443,19 @@ function renderRows() {
     host.innerHTML = parsedRows.map(function(row, i) {
         var canSend = row.status === 'pending' || row.status === 'fail';
         var btnLabel = row.status === 'already' ? 'Resend' : 'Send';
+        var displayName = row.donorName || row.cardName;
+        var emailLabel = row.email || 'donor email missing';
         return ''
         + '<div class="flex items-center gap-4 p-3 border border-slate-200 rounded bg-slate-50">'
         +   '<img src="' + row.dataUrl + '" class="preview-thumb shrink-0" alt=""/>'
         +   '<div class="flex-1 min-w-0">'
-        +     '<div class="font-semibold truncate">' + escapeHtml(row.teamName) + '</div>'
-        +     '<div class="text-xs text-slate-600">$' + row.amount.toLocaleString('en-US') + ' &middot; ' + escapeHtml(row.email || 'no email on file') + '</div>'
+        +     '<div class="font-semibold truncate">' + escapeHtml(displayName) + '</div>'
+        +     '<div class="text-xs text-slate-600">$' + row.amount.toLocaleString('en-US') + ' to <span class="italic">' + escapeHtml(row.teamName) + '</span> &middot; ' + escapeHtml(emailLabel) + '</div>'
         +     '<div class="text-[10px] text-slate-400 font-mono truncate" title="' + escapeHtml(row.donationKey) + '">' + escapeHtml(row.donationKey) + '</div>'
         +     '<div class="mt-1" data-status="' + i + '">' + statusPill(row.status, row.sentAt) + '</div>'
         +   '</div>'
         +   '<div class="flex flex-col gap-1 shrink-0">'
-        +     '<a href="' + row.dataUrl + '" download="thank-you-' + slug(row.teamName) + '.png" class="text-xs bg-white border border-slate-300 rounded px-2 py-1 text-center hover:bg-slate-100">Download</a>'
+        +     '<a href="' + row.dataUrl + '" download="thank-you-' + slug(displayName) + '.png" class="text-xs bg-white border border-slate-300 rounded px-2 py-1 text-center hover:bg-slate-100">Download</a>'
         +     '<button data-send="' + i + '" ' + (canSend || row.status === 'already' ? '' : 'disabled') + ' class="text-xs bg-emerald-600 text-white rounded px-2 py-1 hover:bg-emerald-700 disabled:opacity-40">' + btnLabel + '</button>'
         +   '</div>'
         + '</div>';
@@ -463,6 +494,7 @@ async function sendRow(i) {
             to: demoOn ? demoTo : row.email,
             teamId: row.teamId,
             teamName: row.teamName,
+            donorName: row.donorName,
             amount: row.amount,
             imageBase64: row.dataUrl
         };

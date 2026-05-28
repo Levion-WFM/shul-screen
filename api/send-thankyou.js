@@ -31,6 +31,7 @@ module.exports = async function handler(req, res) {
 
     var to          = (body.to || '').toString().trim();
     var teamName    = (body.teamName || '').toString().trim();
+    var donorName   = (body.donorName || '').toString().trim();
     var amount      = Number(body.amount || 0);
     var image       = (body.imageBase64 || '').toString();
     var donationKey = (body.donationKey || '').toString().trim();
@@ -78,19 +79,28 @@ module.exports = async function handler(req, res) {
     var base64 = image.replace(/^data:image\/\w+;base64,/, '');
     var recipients = to.split(',').map(function(s) { return s.trim(); }).filter(Boolean);
     var amountStr = amount > 0 ? '$' + amount.toLocaleString('en-US') : '';
-    var subject   = amount > 0
-        ? 'Mazel Tov! ' + teamName + ' just received a ' + amountStr + ' donation'
-        : 'Mazel Tov! ' + teamName + ' just received a donation';
+
+    // Donor-centric thank-you. The donor's name is on the attached PNG; the
+    // email body adds context (their donation amount + which team they
+    // donated to). The salutation uses the donor name when present, else a
+    // generic "Thank you for your donation".
+    var greeting = donorName ? 'Dear ' + donorName : 'Thank you for your generosity';
+    var subject  = amount > 0
+        ? 'Thank you for your ' + amountStr + ' donation — Beis Medrash D’Jackson 21'
+        : 'Thank you for your donation — Beis Medrash D’Jackson 21';
 
     var html = ''
         + '<div style="font-family:Georgia,serif;max-width:600px;margin:0 auto;padding:24px;color:#1b3148;">'
-        +   '<p style="font-size:18px;line-height:1.5;">Mazel tov ' + escapeHtml(teamName) + ',</p>'
+        +   '<p style="font-size:18px;line-height:1.5;">' + escapeHtml(greeting) + ',</p>'
         +   '<p style="font-size:16px;line-height:1.6;">'
-        +     'Your <strong>Beis Medrash D&rsquo;Jackson 21 Building Campaign</strong> team just received '
-        +     (amountStr ? 'a ' + escapeHtml(amountStr) + ' donation' : 'a new donation')
-        +     '. Forward the attached thank-you note to your donor when you have a moment.'
+        +     'Thank you so much for your '
+        +     (amountStr ? '<strong>' + escapeHtml(amountStr) + '</strong> ' : '')
+        +     'donation to the <strong>Beis Medrash D&rsquo;Jackson 21 Building Campaign</strong>'
+        +     (teamName ? ', through ' + escapeHtml(teamName) + '’s team' : '')
+        +     '. Your support is helping lay the groundwork for the future home of our kehillah.'
         +   '</p>'
-        +   '<p style="font-size:14px;color:#888;margin-top:32px;">— Beis Medrash D&rsquo;Jackson 21</p>'
+        +   '<p style="font-size:16px;line-height:1.6;">A personalized thank-you note is attached.</p>'
+        +   '<p style="font-size:14px;color:#888;margin-top:32px;">With gratitude,<br/>Beis Medrash D&rsquo;Jackson 21</p>'
         + '</div>';
 
     var from = process.env.THANKYOU_FROM || 'BMJ21 Building Campaign <onboarding@resend.dev>';
