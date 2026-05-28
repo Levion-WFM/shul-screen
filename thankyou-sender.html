@@ -367,33 +367,36 @@ function renderThankYouPng(donorName, amount, entries) {
     ctx.textBaseline = 'middle';
 
     var hasRaffle = Array.isArray(entries) && entries.length > 0;
-    // The blank rectangle on this template spans roughly y=0.47–0.63
-    // (center ≈ 0.55). Earlier values had the name kissing the top of the
-    // box and the amount falling out the bottom; these sit tighter inside.
-    // When raffle lines are added we shrink the spacing a touch and slide
-    // up so 1–2 prize rows still land inside the rectangle.
-    var nameY   = canvas.height * (hasRaffle ? 0.510 : 0.540);
-    var amountY = canvas.height * (hasRaffle ? 0.565 : 0.595);
-    var raffleStartY = canvas.height * 0.615;
-    var raffleLineH  = canvas.height * 0.035;
+    // Box geometry (verified against the actual template render): the gold
+    // rectangle's inner usable area spans y ≈ 0.488–0.638, center ≈ 0.563.
+    // For 2-line content (name + amount) we put the name above box-center
+    // and the amount below, with a comfortable gap so they don't read as
+    // one stacked block. Raffle mode tightens spacing and slides up so the
+    // extra prize lines still fit inside.
+    var nameY   = canvas.height * (hasRaffle ? 0.520 : 0.547);
+    var amountY = canvas.height * (hasRaffle ? 0.575 : 0.612);
+    var raffleStartY = canvas.height * 0.622;
+    var raffleLineH  = canvas.height * 0.032;
 
-    // ── Name ── auto-shrink to fit very long names.
-    var size = Math.round(canvas.width * 0.075);
+    // ── Name ── bigger script (~9% of width) with auto-shrink for very
+    // long names so "Shlomo Zalman & Elisheva Schwartz" still fits.
+    var size = Math.round(canvas.width * 0.090);
     var tries = 0;
     do {
         ctx.font = size + 'px "Great Vibes", cursive';
         var w = ctx.measureText(donorName).width;
-        if (w <= maxW || size < 28) break;
+        if (w <= maxW || size < 32) break;
         size -= 4;
         tries++;
     } while (tries < 20);
     ctx.fillText(donorName, cx, nameY);
 
-    // ── Amount ── only drawn when a positive number is supplied.
+    // ── Amount ── sized ~55-60% of the name so it reads as supporting
+    // text without disappearing. Italic serif keeps digits legible.
     var amt = Number(amount) || 0;
     if (amt > 0) {
         var amountStr = '$' + amt.toLocaleString('en-US');
-        var amountSize = Math.round(canvas.width * (hasRaffle ? 0.040 : 0.045));
+        var amountSize = Math.round(canvas.width * (hasRaffle ? 0.048 : 0.055));
         ctx.font = 'italic 600 ' + amountSize + 'px "Cormorant Garamond", serif';
         ctx.fillText(amountStr, cx, amountY);
     }
@@ -482,11 +485,16 @@ document.getElementById('parseBtn').addEventListener('click', async function() {
         // Donor identity: prefer display-name (their chosen visible name),
         // then the basic `name` column, then donor-full-name, then first-name.
         var donorName  = pickFirst(rec, [idxDisplayName, idxName, idxDonorFull, idxDonorFirst]);
-        var donorEmail = idxEmail >= 0 ? String(rec[idxEmail] || '').trim() : '';
 
-        // Card shows the donor's name. Render falls back to a generic "Friend
-        // of BMJ21" if the donor went fully anonymous — keeps the card from
-        // looking broken for those rare rows.
+        // Delivery target: the RAISER (team owner), looked up from teams_4.csv
+        // via team-id. The donations CSV's `email` column is the donor's
+        // address — we keep that out of the pipeline now that the workflow
+        // is "notify the raiser, who forwards the card to their donor".
+        var raiserEmail = (teamMeta && teamMeta.email) || '';
+
+        // Card still shows the donor's name (it's a thank-you to the donor
+        // that the raiser will forward). "Friend of BMJ21" covers the rare
+        // anonymous row so the card never looks broken.
         var cardName = donorName || 'Friend of BMJ21';
         // ── Deferred render ─────────────────────────────────────────────
         // Rendering 196 high-res PNGs synchronously in the Parse click
@@ -507,12 +515,12 @@ document.getElementById('parseBtn').addEventListener('click', async function() {
 
         parsedRows.push({
             teamId: teamId,
-            teamName: teamName,        // raiser/team, kept for the email body
-            donorName: donorName,      // empty string if anonymous
+            teamName: teamName,        // raiser/team, drives email salutation
+            donorName: donorName,      // shown on the card + mentioned in body
             cardName: cardName,        // what's actually drawn on the PNG
             amount: amount,
-            email: donorEmail,         // delivery target (the donor)
-            status: donorEmail ? 'pending' : 'skip',
+            email: raiserEmail,        // delivery target (the raiser)
+            status: raiserEmail ? 'pending' : 'skip',
             dataUrl: dataUrl,
             donationKey: donationKey,
             sentAt: null

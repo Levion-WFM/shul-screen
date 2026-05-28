@@ -80,26 +80,33 @@ module.exports = async function handler(req, res) {
     var recipients = to.split(',').map(function(s) { return s.trim(); }).filter(Boolean);
     var amountStr = amount > 0 ? '$' + amount.toLocaleString('en-US') : '';
 
-    // Donor-centric thank-you. The donor's name is on the attached PNG; the
-    // email body adds context (their donation amount + which team they
-    // donated to). The salutation uses the donor name when present, else a
-    // generic "Thank you for your donation".
-    var greeting = donorName ? 'Dear ' + donorName : 'Thank you for your generosity';
+    // Raiser-centric: the email goes to the team owner ("raiser"); the
+    // attached PNG carries the donor's name in the gold rectangle so the
+    // raiser can forward it as-is to the donor. The subject + body name
+    // both the donor and the amount so the raiser sees at a glance what
+    // came in to their team.
+    var greeting = teamName ? 'Mazel tov ' + teamName : 'Mazel tov';
+    var donorBit = donorName ? ' from ' + donorName : '';
     var subject  = amount > 0
-        ? 'Thank you for your ' + amountStr + ' donation — Beis Medrash D’Jackson 21'
-        : 'Thank you for your donation — Beis Medrash D’Jackson 21';
+        ? 'Mazel tov! ' + (teamName ? teamName + ' just received a ' + amountStr + ' donation' + donorBit
+                                   : 'a ' + amountStr + ' donation' + donorBit + ' just came in')
+        : 'Mazel tov! a new donation' + donorBit + (teamName ? ' to ' + teamName + '’s team' : '');
 
     var html = ''
         + '<div style="font-family:Georgia,serif;max-width:600px;margin:0 auto;padding:24px;color:#1b3148;">'
         +   '<p style="font-size:18px;line-height:1.5;">' + escapeHtml(greeting) + ',</p>'
         +   '<p style="font-size:16px;line-height:1.6;">'
-        +     'Thank you so much for your '
-        +     (amountStr ? '<strong>' + escapeHtml(amountStr) + '</strong> ' : '')
-        +     'donation to the <strong>Beis Medrash D&rsquo;Jackson 21 Building Campaign</strong>'
-        +     (teamName ? ', through ' + escapeHtml(teamName) + '’s team' : '')
-        +     '. Your support is helping lay the groundwork for the future home of our kehillah.'
+        +     'Your team just received '
+        +     (amountStr ? 'a <strong>' + escapeHtml(amountStr) + '</strong> ' : 'a new ')
+        +     'donation'
+        +     (donorName ? ' from <strong>' + escapeHtml(donorName) + '</strong>' : '')
+        +     ' toward the <strong>Beis Medrash D&rsquo;Jackson 21 Building Campaign</strong>.'
         +   '</p>'
-        +   '<p style="font-size:16px;line-height:1.6;">A personalized thank-you note is attached.</p>'
+        +   '<p style="font-size:16px;line-height:1.6;">'
+        +     'A personalized thank-you note for the donor is attached — feel free to forward it to '
+        +     (donorName ? escapeHtml(donorName) : 'them')
+        +     ' along with your own note when you have a moment.'
+        +   '</p>'
         +   '<p style="font-size:14px;color:#888;margin-top:32px;">With gratitude,<br/>Beis Medrash D&rsquo;Jackson 21</p>'
         + '</div>';
 
