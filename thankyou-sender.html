@@ -376,14 +376,14 @@ function renderThankYouPng(donorName, amount, entries) {
     //   name   = 0.568   (just above visual center)
     //   amount = 0.635   (below center, comfortable gap)
     //
-    // Raffle (3 lines: name + amount + N prize rows):
+    // Raffle (3 lines: name + amount + N small prize rows):
     //   name   = 0.545
-    //   amount = 0.605
-    //   raffle = 0.665, +0.042 per additional line
+    //   amount = 0.610
+    //   raffle = 0.665, +0.032 per additional line (smaller font, tighter)
     var nameY   = canvas.height * (hasRaffle ? 0.545 : 0.568);
-    var amountY = canvas.height * (hasRaffle ? 0.605 : 0.635);
+    var amountY = canvas.height * (hasRaffle ? 0.610 : 0.635);
     var raffleStartY = canvas.height * 0.665;
-    var raffleLineH  = canvas.height * 0.042;
+    var raffleLineH  = canvas.height * 0.032;
 
     // ── Name ── bigger script (~9% of width) with auto-shrink for very
     // long names so "Shlomo Zalman & Elisheva Schwartz" still fits.
@@ -408,9 +408,10 @@ function renderThankYouPng(donorName, amount, entries) {
         ctx.fillText(amountStr, cx, amountY);
     }
 
-    // ── Raffle lines ── one per prize, e.g. "+ 5 tickets · Yam Suf Painting".
+    // ── Raffle lines ── small italic so the box doesn't feel crammed; the
+    // amount above stays the visual headline.
     if (hasRaffle) {
-        var raffleSize = Math.round(canvas.width * 0.028);
+        var raffleSize = Math.round(canvas.width * 0.022);
         ctx.font = 'italic 500 ' + raffleSize + 'px "Cormorant Garamond", serif';
         entries.forEach(function(e, idx) {
             var ticks = (e.tickets || 0) + ' ticket' + (e.tickets === 1 ? '' : 's');
