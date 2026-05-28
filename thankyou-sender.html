@@ -441,7 +441,13 @@ document.getElementById('parseBtn').addEventListener('click', async function() {
         // of BMJ21" if the donor went fully anonymous — keeps the card from
         // looking broken for those rare rows.
         var cardName = donorName || 'Friend of BMJ21';
-        var dataUrl = renderThankYouPng(cardName);
+        // ── Deferred render ─────────────────────────────────────────────
+        // Rendering 196 high-res PNGs synchronously in the Parse click
+        // handler freezes the tab (each toDataURL on the 1122×1402 template
+        // is ~1–2 MB of base64). Skip the up-front render; build dataUrl on
+        // demand inside sendRow() / handleDownload(). renderRows() shows a
+        // small placeholder until the row is actually rendered.
+        var dataUrl = null;
 
         // Donation key: Stripe charge id when available, else a deterministic
         // composite of team-id + date-time + amount so Offline rows still
@@ -536,10 +542,16 @@ function renderRows() {
         var raffleStatusPill = row.raffleStatus
             ? '<span class="pill pill-raffle ml-1" title="Raffle: ' + escapeHtml(row.raffleSummary || '') + '">' + statusRaffleLabel(row.raffleStatus, row.raffleSummary) + '</span>'
             : '';
+        // Thumbnail is rendered lazily — only after the user clicks Preview
+        // on that row, or after a Send/Download completes. Avoids freezing
+        // the tab with hundreds of full-res canvas renders at parse time.
+        var thumb = row.dataUrl
+            ? '<img src="' + row.dataUrl + '" class="preview-thumb shrink-0" alt=""/>'
+            : '<div class="preview-thumb shrink-0 flex items-center justify-center text-[10px] text-slate-400 italic">no preview yet</div>';
         return ''
         + '<div class="p-3 border border-slate-200 rounded bg-slate-50">'
         +   '<div class="flex items-center gap-4">'
-        +     '<img src="' + row.dataUrl + '" class="preview-thumb shrink-0" alt=""/>'
+        +     thumb
         +     '<div class="flex-1 min-w-0">'
         +       '<div class="font-semibold truncate">' + escapeHtml(displayName) + '</div>'
         +       '<div class="text-xs text-slate-600">$' + row.amount.toLocaleString('en-US') + ' to <span class="italic">' + escapeHtml(row.teamName) + '</span> &middot; ' + escapeHtml(emailLabel) + '</div>'
@@ -547,7 +559,8 @@ function renderRows() {
         +       '<div class="mt-1 flex flex-wrap items-center gap-1" data-status="' + i + '">' + statusPill(row.status, row.sentAt) + raffleStatusPill + '</div>'
         +     '</div>'
         +     '<div class="flex flex-col gap-1 shrink-0">'
-        +       '<a href="' + row.dataUrl + '" download="thank-you-' + slug(displayName) + '.png" class="text-xs bg-white border border-slate-300 rounded px-2 py-1 text-center hover:bg-slate-100">Download</a>'
+        +       '<button data-preview="' + i + '" class="text-xs bg-white border border-slate-300 rounded px-2 py-1 hover:bg-slate-100">Preview</button>'
+        +       '<button data-download="' + i + '" class="text-xs bg-white border border-slate-300 rounded px-2 py-1 hover:bg-slate-100">Download</button>'
         +       '<button data-send="' + i + '" ' + (canSend || row.status === 'already' ? '' : 'disabled') + ' class="text-xs bg-emerald-600 text-white rounded px-2 py-1 hover:bg-emerald-700 disabled:opacity-40">' + btnLabel + '</button>'
         +       '<button data-raffle-toggle="' + i + '" class="text-xs bg-purple-600 text-white rounded px-2 py-1 hover:bg-purple-700 disabled:opacity-40" ' + (row.email ? '' : 'disabled') + '>🎟 Raffle</button>'
         +     '</div>'
@@ -559,6 +572,26 @@ function renderRows() {
     Array.prototype.forEach.call(host.querySelectorAll('[data-send]'), function(btn) {
         btn.addEventListener('click', function() {
             sendRow(Number(btn.getAttribute('data-send')));
+        });
+    });
+    Array.prototype.forEach.call(host.querySelectorAll('[data-preview]'), function(btn) {
+        btn.addEventListener('click', function() {
+            var i = Number(btn.getAttribute('data-preview'));
+            ensureRowDataUrl(i);
+            renderRows();
+        });
+    });
+    Array.prototype.forEach.call(host.querySelectorAll('[data-download]'), function(btn) {
+        btn.addEventListener('click', function() {
+            var i = Number(btn.getAttribute('data-download'));
+            ensureRowDataUrl(i);
+            var row = parsedRows[i];
+            var a = document.createElement('a');
+            a.href = row.dataUrl;
+            a.download = 'thank-you-' + slug(row.donorName || row.cardName) + '.png';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         });
     });
     Array.prototype.forEach.call(host.querySelectorAll('[data-raffle-toggle]'), function(btn) {
@@ -725,10 +758,20 @@ function setRowStatus(i, status) {
     if (btn) btn.disabled = status !== 'pending';
 }
 
+// Render-on-demand. Called by Send / Download / Preview right before they
+// need the row's data URL. Cheap if it's already cached on the row.
+function ensureRowDataUrl(i) {
+    var row = parsedRows[i];
+    if (!row) return;
+    if (row.dataUrl) return;
+    row.dataUrl = renderThankYouPng(row.cardName);
+}
+
 async function sendRow(i) {
     var row = parsedRows[i];
     if (!row) return;
     if (row.status !== 'pending' && row.status !== 'fail' && row.status !== 'already') return;
+    ensureRowDataUrl(i);
 
     var demoOn = document.getElementById('demoMode').checked;
     var demoTo = (document.getElementById('demoEmail').value || '').trim();
