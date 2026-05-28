@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Thank-You Sender · BMJ21</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&amp;family=Work+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+    body { font-family: 'Work Sans', system-ui, sans-serif; }
+    /* Hidden offscreen canvas + the source preview node — both live full-size
+       so the rendered PNG matches the template's actual resolution. */
+    .stage-host {
+        position: fixed;
+        left: -10000px;
+        top: 0;
+        opacity: 0;
+        pointer-events: none;
+    }
+    /* In-page preview thumbnails for each row */
+    .preview-thumb {
+        background: #fff;
+        border: 1px solid #cbd5e1;
+        width: 120px;
+        height: 150px;
+        object-fit: contain;
+    }
+    .pill {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 9999px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+    .pill-pending { background: #e2e8f0; color: #475569; }
+    .pill-sent    { background: #dcfce7; color: #166534; }
+    .pill-fail    { background: #fee2e2; color: #991b1b; }
+    .pill-skip    { background: #fef3c7; color: #92400e; }
+</style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-900">
+
+<div class="max-w-6xl mx-auto p-6">
+
+  <header class="mb-6">
+    <h1 class="text-2xl font-bold">Thank-You Sender</h1>
+    <p class="text-sm text-slate-600 mt-1">Paste the donations CSV from CharityExtra, upload the thank-you template once, then review and send. Emails go via Resend.</p>
+  </header>
+
+  <!-- STEP 1 — template upload -->
+  <section class="bg-white rounded-md border border-slate-300 p-4 mb-4">
+    <h2 class="font-semibold mb-2">1 · Thank-you template</h2>
+    <p class="text-xs text-slate-600 mb-2">Upload the PNG/JPG of the Building Foundation thank-you card once. It's cached in your browser so you don't have to reupload every time.</p>
+    <input type="file" id="tplFile" accept="image/*" class="text-sm"/>
+    <span id="tplStatus" class="ml-3 text-xs text-slate-500">No template loaded.</span>
+  </section>
+
+  <!-- STEP 2 — paste CSV -->
+  <section class="bg-white rounded-md border border-slate-300 p-4 mb-4">
+    <h2 class="font-semibold mb-2">2 · Donations CSV</h2>
+    <p class="text-xs text-slate-600 mb-2">Paste the contents of <code class="bg-slate-100 px-1 rounded">https://www.charityextra.com/bmj21/admin/donors/grid?download=csv</code> below. Required columns: <code class="bg-slate-100 px-1 rounded">team-id</code>, <code class="bg-slate-100 px-1 rounded">team</code>, <code class="bg-slate-100 px-1 rounded">amount</code>.</p>
+    <textarea id="csvInput" rows="6" class="w-full font-mono text-xs border border-slate-300 rounded p-2" placeholder="date-time,date,time,team-id,team,team-reference,clearing,clearing-ref,account,amount,..."></textarea>
+    <div class="mt-2 flex items-center gap-2">
+      <button id="parseBtn" class="bg-slate-900 text-white text-sm px-4 py-1.5 rounded hover:bg-slate-700">Parse</button>
+      <span id="parseStatus" class="text-xs text-slate-500"></span>
+    </div>
+  </section>
+
+  <!-- STEP 3 — review & send -->
+  <section class="bg-white rounded-md border border-slate-300 p-4 mb-4">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="font-semibold">3 · Review &amp; send</h2>
+      <button id="sendAllBtn" class="bg-emerald-600 text-white text-sm px-4 py-1.5 rounded hover:bg-emerald-700 disabled:opacity-40" disabled>Send all eligible</button>
+    </div>
+    <div id="rowsHost" class="space-y-2">
+      <p class="text-sm text-slate-500 italic">Parse a CSV to see rows here.</p>
+    </div>
+  </section>
+
+  <details class="text-xs text-slate-500">
+    <summary class="cursor-pointer">Setup notes</summary>
+    <div class="mt-2 space-y-1 pl-4 list-disc">
+      <p>• Vercel env vars: <code class="bg-slate-200 px-1 rounded">RESEND_API_KEY</code> (required) and <code class="bg-slate-200 px-1 rounded">THANKYOU_FROM</code> (optional, e.g. <code>"BMJ21 &lt;thankyou@bmj21.com&gt;"</code>).</p>
+      <p>• Until you verify a sending domain in Resend, you can only send to the email address that owns the Resend account.</p>
+      <p>• Browser-side image generation uses <em>Great Vibes</em> script for the name. Drawn at the template's natural resolution so the PNG is full quality.</p>
+    </div>
+  </details>
+</div>
+
+<!-- Off-screen rendering stage. We draw the thank-you onto this canvas at the
+     template image's natural resolution, then toDataURL() for the API. -->
+<div class="stage-host">
+  <canvas id="stageCanvas"></canvas>
+</div>
+
+<script>
+// ============================================================
+// TEAM LOOKUP — team-id → { name, email }
+// Built once from the teams_4.csv export. The donations CSV references
+// teams by their team-id, so we map back to a contact address here.
+// ============================================================
+var TEAMS = {
+    "291124": { name: 'Ahron & Sorala Jaffa', email: 'ahronjaffa@gmail.com, sorajaffa@gmail.com' },
+    "291134": { name: 'Ahron Tzvi & Adina Danziger', email: 'azd203@gmail.com' },
+    "291155": { name: 'Ari & Deena Streicher', email: 'aristreicher@gmail.com' },
+    "291141": { name: 'Aryeh Leib Friedman', email: '' },
+    "291151": { name: 'Avishai & Nechama Leah Brown', email: 'uvish9@mail.com' },
+    "291168": { name: 'Avrohom Meir & Leah Weiss', email: 'aryeh.daddy@gmail.com' },
+    "291142": { name: 'Binyomin & Sora Bak', email: 'binnybak123@gmail.com' },
+    "291145": { name: 'Dovi & Kayla Goldberg', email: 'dovigoldberg13@gmail.com' },
+    "291164": { name: 'Dovy & Bayli Fuhrer', email: '' },
+    "291157": { name: 'Elchy & Shavy Kahan', email: 'elchy255@gmail.com' },
+    "291138": { name: 'Eli & Leah Weinberg', email: 'elazar.weinberg@gmail.com' },
+    "291154": { name: 'Eli & Raizy Koslowitz', email: 'elikoslowitz0@gmail.com' },
+    "291136": { name: 'Eli & Rivky Horowitz', email: 'elinhorowitz@gmail.com' },
+    "291166": { name: 'Eli & Saralle Lipshitz', email: 'elilipshitz18@gmail.com' },
+    "291159": { name: 'Eli & Shoshi Friedman', email: '' },
+    "291143": { name: 'Ezzy & Miri Ebstein', email: 'ezzy0758@gmail.com' },
+    "291126": { name: 'Gavriel & Sara Drillman', email: 'gavrieldrillman@gmail.com' },
+    "291163": { name: 'Leiby & Yosefa Brustowsky', email: 'muayosefa@gmail.com' },
+    "291140": { name: 'Meir Simcha & Esther Klugmann', email: 'msklugs@gmail.com' },
+    "291132": { name: 'Menachem & Rochel Mardi', email: 'menny5754@gmail.com' },
+    "291133": { name: 'Meyer & Chevy Gibber', email: 'chevygibber@gmail.com' },
+    "291158": { name: 'Moishe & Toby Parnes', email: 'murryjparnes@gmail.com' },
+    "291153": { name: 'Mordechai & Miriam Buxbaum', email: 'mordybux@gmail.com' },
+    "291146": { name: 'Mordy & Devorah Freimark', email: 'mordyfreimark@gmail.com' },
+    "291144": { name: 'Nosson & Naomi Rishe', email: 'natrishe@gmail.com' },
+    "291131": { name: 'Shaya & Riki Michel', email: 'shayamichel180@gmail.com' },
+    "291147": { name: 'Shimon & Shani Bloom', email: 'bloomshimon@gmail.com' },
+    "291162": { name: 'Shloimy & Toby Maline', email: 'malinefam@gmail.com' },
+    "291165": { name: 'Shlomo & Chana Miriam Eliyahu', email: 'chanam1994@gmail.com' },
+    "291139": { name: 'Shlomo Zalman & Elisheva Schwartz', email: 'szschwartz86@gmail.com' },
+    "291137": { name: 'Shmuel & Lele Grunhut', email: 'samuelgrunhut@gmail.com' },
+    "291152": { name: 'Shmuel & Sara Pearl', email: 'shmuelpearl98@gmail.com' },
+    "291149": { name: 'Yaakov & Chani Farkas', email: 'farkaschani@gmail.com' },
+    "291135": { name: 'Yaakov Mordechai & Aliza Feldman', email: 'feldmanyaakov@gmail.com' },
+    "291167": { name: 'Yakov & Yocheved Ginzburg', email: 'yochevedginzburg@gmail.com' },
+    "291161": { name: 'Yanky & Aviva Tzur', email: 'yosef.tzur@hotmail.com' },
+    "291127": { name: 'Yanky & Leah Weisbord', email: 'jacweisbord@gmail.com, leahweisbord@gmail.com' },
+    "291130": { name: 'Yehoshua & Chaya Rivka Blaney', email: 'jblaney123@gmail.com' },
+    "291125": { name: 'Yehuda & Leah Schuck', email: 'yehudaschuck@gmail.com' },
+    "291128": { name: 'Yitzy & Nechama Auerbach', email: 'auerbachy@gmail.com' },
+    "291129": { name: 'Yossi & Chaya Simi Silberstein', email: 'silbersteinyossi@gmail.com' },
+    "291148": { name: 'Yossi & Nechama Honig', email: 'josephhonig@live.com' },
+    "291150": { name: 'Yossi & Sarala Mordowitz', email: 'saralafuerst@gmail.com' },
+    "291160": { name: 'Yossi & Shana Blima Koslowitz', email: 'yosephkoslo@gmail.com' },
+    "291123": { name: 'Zack & Tamara Steel', email: 'zechariasteele@gmail.com, tamaracohen66@gmail.com' },
+    "291156": { name: 'הרב יעקב יוסף גווירצמאן שליט"א', email: '' }
+};
+
+// ============================================================
+// TEMPLATE LOADING (cached in localStorage as a data URL)
+// ============================================================
+var tplImage = null;          // HTMLImageElement once loaded
+var TPL_KEY = 'thankyou.template.v1';
+
+function loadTemplateFromDataUrl(dataUrl, source) {
+    return new Promise(function(resolve, reject) {
+        var img = new Image();
+        img.onload = function() {
+            tplImage = img;
+            document.getElementById('tplStatus').textContent =
+                'Loaded ' + img.naturalWidth + '×' + img.naturalHeight + ' (' + source + ').';
+            resolve();
+        };
+        img.onerror = function() { reject(new Error('Image failed to load')); };
+        img.src = dataUrl;
+    });
+}
+
+(function bootTemplate() {
+    var saved = localStorage.getItem(TPL_KEY);
+    if (saved) {
+        loadTemplateFromDataUrl(saved, 'cached').catch(function() {
+            localStorage.removeItem(TPL_KEY);
+        });
+    }
+})();
+
+document.getElementById('tplFile').addEventListener('change', function(ev) {
+    var f = ev.target.files && ev.target.files[0];
+    if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function() {
+        try { localStorage.setItem(TPL_KEY, reader.result); }
+        catch (e) { /* may exceed quota — non-fatal, the in-memory copy still works */ }
+        loadTemplateFromDataUrl(reader.result, 'just uploaded');
+    };
+    reader.readAsDataURL(f);
+});
+
+// ============================================================
+// CSV PARSER — minimal, handles quoted fields with commas
+// ============================================================
+function parseCSV(text) {
+    var rows = [];
+    var i = 0, len = text.length;
+    var field = '', row = [], inQuotes = false;
+    while (i < len) {
+        var c = text[i];
+        if (inQuotes) {
+            if (c === '"') {
+                if (text[i + 1] === '"') { field += '"'; i += 2; continue; }
+                inQuotes = false; i++; continue;
+            }
+            field += c; i++; continue;
+        }
+        if (c === '"') { inQuotes = true; i++; continue; }
+        if (c === ',') { row.push(field); field = ''; i++; continue; }
+        if (c === '\r') { i++; continue; }
+        if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; i++; continue; }
+        field += c; i++;
+    }
+    if (field.length || row.length) { row.push(field); rows.push(row); }
+    return rows.filter(function(r) { return r.length > 1 || (r[0] && r[0].trim()); });
+}
+
+// ============================================================
+// CANVAS RENDER — draw the team name onto the template
+// ============================================================
+function ensureFontReady() {
+    // Make sure Great Vibes is loaded before the first draw — canvas can't
+    // wait for late-loaded webfonts.
+    if (document.fonts && document.fonts.load) {
+        return document.fonts.load('70px "Great Vibes"');
+    }
+    return Promise.resolve();
+}
+
+function renderThankYouPng(teamName) {
+    if (!tplImage) throw new Error('Template not loaded');
+    var canvas = document.getElementById('stageCanvas');
+    canvas.width  = tplImage.naturalWidth;
+    canvas.height = tplImage.naturalHeight;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(tplImage, 0, 0);
+
+    // The blank name rectangle on the Building Foundation template sits roughly
+    // centered horizontally and ~55% down the page. These offsets are tuned for
+    // the supplied template image; adjust if a redesign moves the box.
+    var cx = canvas.width / 2;
+    var cy = canvas.height * 0.555;
+    var maxW = canvas.width * 0.62;
+
+    // Auto-shrink the font for very long names (e.g. "Shlomo Zalman & Elisheva
+    // Schwartz") so the name never overflows the rectangle.
+    var size = Math.round(canvas.width * 0.075);
+    ctx.fillStyle = '#1b3148';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    var tries = 0;
+    do {
+        ctx.font = size + 'px "Great Vibes", cursive';
+        var w = ctx.measureText(teamName).width;
+        if (w <= maxW || size < 28) break;
+        size -= 4;
+        tries++;
+    } while (tries < 20);
+
+    ctx.fillText(teamName, cx, cy);
+    return canvas.toDataURL('image/png');
+}
+
+// ============================================================
+// PARSE BUTTON — turn pasted CSV into rendered rows
+// ============================================================
+var parsedRows = [];   // [{ teamId, teamName, amount, email, status, dataUrl }]
+
+document.getElementById('parseBtn').addEventListener('click', async function() {
+    var text = document.getElementById('csvInput').value;
+    if (!text.trim()) {
+        document.getElementById('parseStatus').textContent = 'Paste a CSV first.';
+        return;
+    }
+    if (!tplImage) {
+        document.getElementById('parseStatus').textContent = 'Upload the thank-you template first.';
+        return;
+    }
+
+    await ensureFontReady();
+
+    var rows = parseCSV(text);
+    if (rows.length < 2) {
+        document.getElementById('parseStatus').textContent = 'CSV has no data rows.';
+        return;
+    }
+
+    var header = rows[0].map(function(h) { return h.trim().toLowerCase(); });
+    var idxTeamId = header.indexOf('team-id');
+    var idxTeam   = header.indexOf('team');
+    var idxAmount = header.indexOf('amount');
+    if (idxTeamId === -1 || idxTeam === -1 || idxAmount === -1) {
+        document.getElementById('parseStatus').textContent =
+            'CSV missing required columns. Found: ' + header.join(', ');
+        return;
+    }
+
+    parsedRows = [];
+    for (var r = 1; r < rows.length; r++) {
+        var rec = rows[r];
+        if (!rec || !rec[idxTeamId]) continue;
+        var teamId = String(rec[idxTeamId]).trim();
+        var teamFromCsv = String(rec[idxTeam] || '').trim();
+        var amount = parseFloat(String(rec[idxAmount] || '').replace(/[$,]/g, '')) || 0;
+        var teamMeta = TEAMS[teamId];
+        var teamName = (teamMeta && teamMeta.name) || teamFromCsv || ('Team ' + teamId);
+        var email = (teamMeta && teamMeta.email) || '';
+        var dataUrl = renderThankYouPng(teamName);
+        parsedRows.push({
+            teamId: teamId,
+            teamName: teamName,
+            amount: amount,
+            email: email,
+            status: email ? 'pending' : 'skip',
+            dataUrl: dataUrl
+        });
+    }
+
+    document.getElementById('parseStatus').textContent =
+        'Parsed ' + parsedRows.length + ' donation row(s).';
+    renderRows();
+    document.getElementById('sendAllBtn').disabled =
+        !parsedRows.some(function(r) { return r.status === 'pending'; });
+});
+
+// ============================================================
+// ROW RENDERING + SEND
+// ============================================================
+function statusPill(s) {
+    if (s === 'sent')    return '<span class="pill pill-sent">Sent</span>';
+    if (s === 'fail')    return '<span class="pill pill-fail">Failed</span>';
+    if (s === 'skip')    return '<span class="pill pill-skip">No email</span>';
+    return '<span class="pill pill-pending">Pending</span>';
+}
+
+function renderRows() {
+    var host = document.getElementById('rowsHost');
+    if (!parsedRows.length) {
+        host.innerHTML = '<p class="text-sm text-slate-500 italic">No donations parsed yet.</p>';
+        return;
+    }
+    host.innerHTML = parsedRows.map(function(row, i) {
+        return ''
+        + '<div class="flex items-center gap-4 p-3 border border-slate-200 rounded bg-slate-50">'
+        +   '<img src="' + row.dataUrl + '" class="preview-thumb shrink-0" alt=""/>'
+        +   '<div class="flex-1 min-w-0">'
+        +     '<div class="font-semibold truncate">' + escapeHtml(row.teamName) + '</div>'
+        +     '<div class="text-xs text-slate-600">$' + row.amount.toLocaleString('en-US') + ' &middot; ' + escapeHtml(row.email || 'no email on file') + '</div>'
+        +     '<div class="mt-1" data-status="' + i + '">' + statusPill(row.status) + '</div>'
+        +   '</div>'
+        +   '<div class="flex flex-col gap-1 shrink-0">'
+        +     '<a href="' + row.dataUrl + '" download="thank-you-' + slug(row.teamName) + '.png" class="text-xs bg-white border border-slate-300 rounded px-2 py-1 text-center hover:bg-slate-100">Download</a>'
+        +     '<button data-send="' + i + '" ' + (row.status === 'pending' ? '' : 'disabled') + ' class="text-xs bg-emerald-600 text-white rounded px-2 py-1 hover:bg-emerald-700 disabled:opacity-40">Send</button>'
+        +   '</div>'
+        + '</div>';
+    }).join('');
+
+    Array.prototype.forEach.call(host.querySelectorAll('[data-send]'), function(btn) {
+        btn.addEventListener('click', function() {
+            sendRow(Number(btn.getAttribute('data-send')));
+        });
+    });
+}
+
+function setRowStatus(i, status) {
+    parsedRows[i].status = status;
+    var el = document.querySelector('[data-status="' + i + '"]');
+    if (el) el.innerHTML = statusPill(status);
+    var btn = document.querySelector('[data-send="' + i + '"]');
+    if (btn) btn.disabled = status !== 'pending';
+}
+
+async function sendRow(i) {
+    var row = parsedRows[i];
+    if (!row || row.status !== 'pending') return;
+    setRowStatus(i, 'sending');
+    var el = document.querySelector('[data-status="' + i + '"]');
+    if (el) el.innerHTML = '<span class="pill pill-pending">Sending…</span>';
+    try {
+        var r = await fetch('/api/send-thankyou', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                to: row.email,
+                teamName: row.teamName,
+                amount: row.amount,
+                imageBase64: row.dataUrl
+            })
+        });
+        var data = await r.json().catch(function() { return {}; });
+        if (!r.ok) {
+            setRowStatus(i, 'fail');
+            console.error('Send failed:', data);
+            return;
+        }
+        setRowStatus(i, 'sent');
+    } catch (e) {
+        setRowStatus(i, 'fail');
+        console.error(e);
+    }
+}
+
+document.getElementById('sendAllBtn').addEventListener('click', async function() {
+    var btn = this;
+    btn.disabled = true;
+    for (var i = 0; i < parsedRows.length; i++) {
+        if (parsedRows[i].status !== 'pending') continue;
+        await sendRow(i);
+        // Tiny pause to respect Resend's rate limit (2/sec on free tier).
+        await new Promise(function(res) { setTimeout(res, 600); });
+    }
+    document.getElementById('sendAllBtn').disabled =
+        !parsedRows.some(function(r) { return r.status === 'pending'; });
+});
+
+function escapeHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function slug(s) {
+    return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
+}
+</script>
+</body>
+</html>
