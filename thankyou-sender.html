@@ -129,7 +129,7 @@
       </div>
     </div>
     <p id="demoBanner" class="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded px-3 py-1.5 mb-3 hidden">
-      Demo mode is on. Every email will go to the address above instead of the raiser, and rows will NOT be logged to the dedup database — so you can re-test as many times as you want.
+      Demo mode is on. The bulk button will only send <strong>one</strong> demo email (so your inbox doesn't get hundreds), all sends go to the demo address instead of the donor, and nothing is written to the dedup database — re-run as many times as you want.
     </p>
     <div id="rowsHost" class="space-y-2">
       <p class="text-sm text-slate-500 italic">Parse a CSV to see rows here.</p>
@@ -828,15 +828,29 @@ document.getElementById('demoMode').addEventListener('change', function() {
 document.getElementById('sendAllBtn').addEventListener('click', async function() {
     var btn = this;
     btn.disabled = true;
+    var demoOn = document.getElementById('demoMode').checked;
     for (var i = 0; i < parsedRows.length; i++) {
         if (parsedRows[i].status !== 'pending') continue;
         await sendRow(i);
+        // Demo mode: stop after one successful send so the tester's inbox
+        // doesn't get flooded with N copies of the same template.
+        if (demoOn) break;
         // Tiny pause to respect Resend's rate limit (2/sec on free tier).
         await new Promise(function(res) { setTimeout(res, 600); });
     }
     document.getElementById('sendAllBtn').disabled =
         !parsedRows.some(function(r) { return r.status === 'pending'; });
 });
+
+// Relabel the bulk button when demo mode is toggled, so what it does is
+// obvious before you click it.
+(function() {
+    var demo = document.getElementById('demoMode');
+    var btn  = document.getElementById('sendAllBtn');
+    function sync() { btn.textContent = demo.checked ? 'Send 1 demo email' : 'Send all eligible'; }
+    demo.addEventListener('change', sync);
+    sync();
+})();
 
 function escapeHtml(s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
