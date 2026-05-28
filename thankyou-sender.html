@@ -447,20 +447,17 @@ function renderThankYouPng(donorName, amount, entries) {
     var nameY, amountY, raffleStartY, raffleLineH;
     var raffleCount = hasRaffle ? entries.length : 0;
     if (hasRaffle) {
-        // Three-or-more line stack. Split the box's height into a tight
-        // top zone (name+amount) and a small bottom zone (raffle lines).
-        // For ≥1 raffle line:
-        //   name   at 28% down the box
-        //   amount at 56% down the box
-        //   raffle starts at 78% down the box, with raffle rows at +12%
-        nameY   = boxTop + boxH * 0.28;
-        amountY = boxTop + boxH * 0.56;
-        raffleStartY = boxTop + boxH * 0.78;
-        raffleLineH  = boxH * 0.12;
+        // Three-line stack. Anchor the dollar amount at the box's vertical
+        // center (50%) so the eye lands there first; name + raffle lines
+        // sit equally spaced above and below.
+        nameY        = boxTop + boxH * 0.25;
+        amountY      = boxTop + boxH * 0.50;
+        raffleStartY = boxTop + boxH * 0.75;
+        raffleLineH  = boxH * 0.11;
     } else {
-        // Two-line stack — distribute name + amount around the box center.
-        nameY   = boxTop + boxH * 0.40;
-        amountY = boxTop + boxH * 0.75;
+        // Two-line stack — symmetric around box center.
+        nameY   = boxTop + boxH * 0.36;
+        amountY = boxTop + boxH * 0.68;
     }
 
     // ── Name ── bigger script (~9% of width) with auto-shrink for very
