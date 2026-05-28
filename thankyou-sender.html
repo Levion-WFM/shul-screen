@@ -6,7 +6,7 @@
 <title>Thank-You Sender · BMJ21</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&amp;family=Work+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&amp;family=Great+Vibes&amp;family=Work+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
     body { font-family: 'Work Sans', system-ui, sans-serif; }
@@ -322,15 +322,23 @@ function parseCSV(text) {
 // CANVAS RENDER — draw the team name onto the template
 // ============================================================
 function ensureFontReady() {
-    // Make sure Great Vibes is loaded before the first draw — canvas can't
-    // wait for late-loaded webfonts.
+    // Make sure both display faces are loaded before the first draw — canvas
+    // can't wait for late-loaded webfonts, so a draw before .load() resolves
+    // silently falls back to a system serif.
     if (document.fonts && document.fonts.load) {
-        return document.fonts.load('70px "Great Vibes"');
+        return Promise.all([
+            document.fonts.load('70px "Great Vibes"'),
+            document.fonts.load('italic 40px "Cormorant Garamond"')
+        ]);
     }
     return Promise.resolve();
 }
 
-function renderThankYouPng(teamName) {
+// Draws the donor's name AND the dollar amount onto the template's blank
+// rectangle. Name sits on top in the cursive face; amount tucks just below
+// in an italic serif (so digits read cleanly — Great Vibes numerals are
+// hard to scan).
+function renderThankYouPng(donorName, amount) {
     if (!tplImage) throw new Error('Template not loaded');
     var canvas = document.getElementById('stageCanvas');
     canvas.width  = tplImage.naturalWidth;
@@ -338,30 +346,35 @@ function renderThankYouPng(teamName) {
     var ctx = canvas.getContext('2d');
     ctx.drawImage(tplImage, 0, 0);
 
-    // The blank name rectangle on the Building Foundation template sits roughly
-    // centered horizontally and ~55% down the page. These offsets are tuned for
-    // the supplied template image; adjust if a redesign moves the box.
     var cx = canvas.width / 2;
-    var cy = canvas.height * 0.555;
     var maxW = canvas.width * 0.62;
-
-    // Auto-shrink the font for very long names (e.g. "Shlomo Zalman & Elisheva
-    // Schwartz") so the name never overflows the rectangle.
-    var size = Math.round(canvas.width * 0.075);
     ctx.fillStyle = '#1b3148';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
+    // ── Name ── shifted slightly above center so the amount fits below.
+    var nameY = canvas.height * 0.515;
+    var size = Math.round(canvas.width * 0.075);
     var tries = 0;
     do {
         ctx.font = size + 'px "Great Vibes", cursive';
-        var w = ctx.measureText(teamName).width;
+        var w = ctx.measureText(donorName).width;
         if (w <= maxW || size < 28) break;
         size -= 4;
         tries++;
     } while (tries < 20);
+    ctx.fillText(donorName, cx, nameY);
 
-    ctx.fillText(teamName, cx, cy);
+    // ── Amount ── only drawn when a positive number is supplied.
+    var amt = Number(amount) || 0;
+    if (amt > 0) {
+        var amountStr = '$' + amt.toLocaleString('en-US');
+        var amountY = canvas.height * 0.605;
+        var amountSize = Math.round(canvas.width * 0.045);
+        ctx.font = 'italic 600 ' + amountSize + 'px "Cormorant Garamond", serif';
+        ctx.fillText(amountStr, cx, amountY);
+    }
+
     return canvas.toDataURL('image/png');
 }
 
@@ -764,7 +777,7 @@ function ensureRowDataUrl(i) {
     var row = parsedRows[i];
     if (!row) return;
     if (row.dataUrl) return;
-    row.dataUrl = renderThankYouPng(row.cardName);
+    row.dataUrl = renderThankYouPng(row.cardName, row.amount);
 }
 
 async function sendRow(i) {
