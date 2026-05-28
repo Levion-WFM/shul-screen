@@ -87,19 +87,36 @@
     <p class="text-sm text-slate-600 mt-1">Paste the donations CSV from CharityExtra, upload the thank-you template once, then review and send. Emails go via Resend.</p>
   </header>
 
-  <!-- STEP 1 — template upload -->
+  <!-- STEP 1 — template upload + push-to-backend bootstrap -->
   <section class="bg-white rounded-md border border-slate-300 p-4 mb-4">
     <h2 class="font-semibold mb-2">1 · Thank-you template</h2>
-    <p class="text-xs text-slate-600 mb-2">Upload the PNG/JPG of the Building Foundation thank-you card once. It's cached in your browser so you don't have to reupload every time.</p>
-    <input type="file" id="tplFile" accept="image/*" class="text-sm"/>
-    <span id="tplStatus" class="ml-3 text-xs text-slate-500">No template loaded.</span>
+    <p class="text-xs text-slate-600 mb-2">The default template loads from the backend automatically. To override locally, upload a different PNG/JPG (cached in your browser only).</p>
+    <div class="flex items-center gap-3 flex-wrap">
+      <input type="file" id="tplFile" accept="image/*" class="text-sm"/>
+      <span id="tplStatus" class="text-xs text-slate-500">No template loaded.</span>
+    </div>
+    <!-- One-time bootstrap: push the locally-cached template into the Neon
+         backend so future visitors get it automatically. Removed once the
+         backend has a copy. -->
+    <div class="mt-3 pt-3 border-t border-dashed border-slate-200 flex items-center gap-3 flex-wrap">
+      <input id="adminToken" type="password" placeholder="Admin token" class="text-sm border border-slate-300 rounded px-2 py-1 w-56"/>
+      <button id="pushTplBtn" class="text-xs bg-blue-600 text-white rounded px-3 py-1.5 hover:bg-blue-700 disabled:opacity-40">Push template → Neon</button>
+      <span id="pushTplStatus" class="text-xs text-slate-500"></span>
+    </div>
   </section>
 
-  <!-- STEP 2 — paste CSV -->
+  <!-- STEP 2 — donations CSV (file chooser is primary; paste is a fallback) -->
   <section class="bg-white rounded-md border border-slate-300 p-4 mb-4">
     <h2 class="font-semibold mb-2">2 · Donations CSV</h2>
-    <p class="text-xs text-slate-600 mb-2">Paste the contents of <code class="bg-slate-100 px-1 rounded">https://www.charityextra.com/bmj21/admin/donors/grid?download=csv</code> below. Required columns: <code class="bg-slate-100 px-1 rounded">team-id</code>, <code class="bg-slate-100 px-1 rounded">team</code>, <code class="bg-slate-100 px-1 rounded">amount</code>.</p>
-    <textarea id="csvInput" rows="6" class="w-full font-mono text-xs border border-slate-300 rounded p-2" placeholder="date-time,date,time,team-id,team,team-reference,clearing,clearing-ref,account,amount,..."></textarea>
+    <p class="text-xs text-slate-600 mb-2">Upload the CSV downloaded from <code class="bg-slate-100 px-1 rounded">https://www.charityextra.com/bmj21/admin/donors/grid?download=csv</code>. Required columns: <code class="bg-slate-100 px-1 rounded">team-id</code>, <code class="bg-slate-100 px-1 rounded">team</code>, <code class="bg-slate-100 px-1 rounded">amount</code>.</p>
+    <div class="flex items-center gap-3 flex-wrap">
+      <input type="file" id="csvFile" accept=".csv,text/csv,text/plain" class="text-sm"/>
+      <span id="csvFileStatus" class="text-xs text-slate-500"></span>
+    </div>
+    <details class="mt-2 text-xs">
+      <summary class="cursor-pointer text-slate-500 hover:text-slate-700">Or paste CSV text instead</summary>
+      <textarea id="csvInput" rows="4" class="w-full font-mono text-xs border border-slate-300 rounded p-2 mt-2" placeholder="date-time,date,time,team-id,team,team-reference,clearing,clearing-ref,account,amount,..."></textarea>
+    </details>
     <div class="mt-2 flex items-center gap-2">
       <button id="parseBtn" class="bg-slate-900 text-white text-sm px-4 py-1.5 rounded hover:bg-slate-700">Parse</button>
       <span id="parseStatus" class="text-xs text-slate-500"></span>
@@ -219,13 +236,92 @@ function loadTemplateFromDataUrl(dataUrl, source) {
 }
 
 (function bootTemplate() {
+    // Priority: 1) local override from this browser's prior upload, then
+    // 2) the shared backend template stored in screen_data.thankyouTemplateUrl.
+    // We try the local one first so a power user testing a different design
+    // doesn't get overwritten by a server fetch.
     var saved = localStorage.getItem(TPL_KEY);
     if (saved) {
         loadTemplateFromDataUrl(saved, 'cached').catch(function() {
             localStorage.removeItem(TPL_KEY);
+            tryBackendTemplate();
         });
+    } else {
+        tryBackendTemplate();
     }
+
+    // Restore the saved admin token (same key as backend.html so a single
+    // browser session works across both admin pages).
+    var savedTok = localStorage.getItem('shulAdminToken');
+    if (savedTok) document.getElementById('adminToken').value = savedTok;
 })();
+
+function tryBackendTemplate() {
+    fetch('/api/get-data')
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(data) {
+            if (!data || !data.thankyouTemplateUrl) {
+                document.getElementById('tplStatus').textContent = 'No template loaded.';
+                return;
+            }
+            // Load the backend image into an Image element for canvas use.
+            var img = new Image();
+            img.crossOrigin = 'anonymous';  // Blob URLs serve CORS-enabled; required for canvas toDataURL.
+            img.onload = function() {
+                tplImage = img;
+                document.getElementById('tplStatus').textContent =
+                    'Loaded ' + img.naturalWidth + '×' + img.naturalHeight + ' (from backend).';
+            };
+            img.onerror = function() {
+                document.getElementById('tplStatus').textContent = 'Backend template URL failed to load.';
+            };
+            img.src = data.thankyouTemplateUrl;
+        })
+        .catch(function() {
+            document.getElementById('tplStatus').textContent = 'No template loaded.';
+        });
+}
+
+// Push the locally-cached template up to Neon so it becomes the shared default.
+document.getElementById('pushTplBtn').addEventListener('click', async function() {
+    var saved = localStorage.getItem(TPL_KEY);
+    var status = document.getElementById('pushTplStatus');
+    if (!saved) {
+        status.textContent = 'Upload a template first (file picker above).';
+        status.className = 'text-xs text-red-600';
+        return;
+    }
+    var token = document.getElementById('adminToken').value.trim();
+    localStorage.setItem('shulAdminToken', token);
+    status.textContent = 'Uploading…';
+    status.className = 'text-xs text-slate-500';
+    try {
+        var r = await fetch('/api/upload-template', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ imageData: saved })
+        });
+        var data = await r.json().catch(function() { return {}; });
+        if (!r.ok) {
+            status.textContent = 'Failed: ' + (data.error || r.status);
+            status.className = 'text-xs text-red-600';
+            return;
+        }
+        status.innerHTML = '✓ Stored in Neon. URL: <a href="' + esc(data.url) + '" target="_blank" class="underline text-blue-700">' + esc(data.url) + '</a>';
+        status.className = 'text-xs text-emerald-700 break-all';
+    } catch (e) {
+        status.textContent = 'Error: ' + (e && e.message || e);
+        status.className = 'text-xs text-red-600';
+    }
+});
+
+function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
 
 document.getElementById('tplFile').addEventListener('change', function(ev) {
     var f = ev.target.files && ev.target.files[0];
