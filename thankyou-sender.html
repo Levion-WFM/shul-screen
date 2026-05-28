@@ -40,6 +40,7 @@
     .pill-sent    { background: #dcfce7; color: #166534; }
     .pill-fail    { background: #fee2e2; color: #991b1b; }
     .pill-skip    { background: #fef3c7; color: #92400e; }
+    .pill-already { background: #dbeafe; color: #1e40af; }
 </style>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-900">
@@ -72,10 +73,20 @@
 
   <!-- STEP 3 — review & send -->
   <section class="bg-white rounded-md border border-slate-300 p-4 mb-4">
-    <div class="flex items-center justify-between mb-3">
+    <div class="flex items-center justify-between mb-3 flex-wrap gap-3">
       <h2 class="font-semibold">3 · Review &amp; send</h2>
-      <button id="sendAllBtn" class="bg-emerald-600 text-white text-sm px-4 py-1.5 rounded hover:bg-emerald-700 disabled:opacity-40" disabled>Send all eligible</button>
+      <div class="flex items-center gap-3">
+        <label class="text-xs flex items-center gap-1.5 cursor-pointer select-none">
+          <input type="checkbox" id="demoMode"/>
+          <span>Demo mode — redirect <strong>all</strong> emails to:</span>
+          <input id="demoEmail" type="email" placeholder="you@example.com" class="border border-slate-300 rounded px-2 py-0.5 text-xs w-48"/>
+        </label>
+        <button id="sendAllBtn" class="bg-emerald-600 text-white text-sm px-4 py-1.5 rounded hover:bg-emerald-700 disabled:opacity-40" disabled>Send all eligible</button>
+      </div>
     </div>
+    <p id="demoBanner" class="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded px-3 py-1.5 mb-3 hidden">
+      Demo mode is on. Every email will go to the address above instead of the raiser, and rows will NOT be logged to the dedup database — so you can re-test as many times as you want.
+    </p>
     <div id="rowsHost" class="space-y-2">
       <p class="text-sm text-slate-500 italic">Parse a CSV to see rows here.</p>
     </div>
@@ -300,6 +311,11 @@ document.getElementById('parseBtn').addEventListener('click', async function() {
         return;
     }
 
+    // Extra optional columns used to form a stable donation key.
+    var idxClearingRef = header.indexOf('clearing-ref');
+    var idxDateTime    = header.indexOf('date-time');
+    if (idxDateTime === -1) idxDateTime = header.indexOf('date_time');
+
     parsedRows = [];
     for (var r = 1; r < rows.length; r++) {
         var rec = rows[r];
@@ -311,19 +327,65 @@ document.getElementById('parseBtn').addEventListener('click', async function() {
         var teamName = (teamMeta && teamMeta.name) || teamFromCsv || ('Team ' + teamId);
         var email = (teamMeta && teamMeta.email) || '';
         var dataUrl = renderThankYouPng(teamName);
+
+        // Donation key: Stripe charge id when available, else a deterministic
+        // composite of team-id + date-time + amount so Offline rows still
+        // de-dupe across uploads.
+        var clearingRef = idxClearingRef >= 0 ? String(rec[idxClearingRef] || '').trim() : '';
+        var dateTime    = idxDateTime    >= 0 ? String(rec[idxDateTime]    || '').trim() : '';
+        var donationKey = clearingRef
+            ? 'charge:' + clearingRef
+            : 'offline:' + teamId + ':' + dateTime + ':' + amount;
+
         parsedRows.push({
             teamId: teamId,
             teamName: teamName,
             amount: amount,
             email: email,
             status: email ? 'pending' : 'skip',
-            dataUrl: dataUrl
+            dataUrl: dataUrl,
+            donationKey: donationKey,
+            sentAt: null
         });
     }
 
     document.getElementById('parseStatus').textContent =
-        'Parsed ' + parsedRows.length + ' donation row(s).';
+        'Parsed ' + parsedRows.length + ' donation row(s). Checking which have already been sent…';
     renderRows();
+
+    // Ask the server which donation keys are already in the log.
+    try {
+        var keys = parsedRows.map(function(r) { return r.donationKey; });
+        var resp = await fetch('/api/donation-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ keys: keys })
+        });
+        if (resp.ok) {
+            var statusData = await resp.json();
+            var sentMap = {};
+            (statusData.sent || []).forEach(function(s) { sentMap[s.key] = s.sentAt; });
+            parsedRows.forEach(function(row) {
+                if (sentMap[row.donationKey]) {
+                    row.status = 'already';
+                    row.sentAt = sentMap[row.donationKey];
+                }
+            });
+            var pendingCount = parsedRows.filter(function(r) { return r.status === 'pending'; }).length;
+            var alreadyCount = parsedRows.filter(function(r) { return r.status === 'already'; }).length;
+            document.getElementById('parseStatus').textContent =
+                pendingCount + ' new donation(s) ready to send · ' +
+                alreadyCount + ' already sent in a prior batch.';
+            renderRows();
+        } else {
+            document.getElementById('parseStatus').textContent =
+                'Parsed ' + parsedRows.length + ' rows. (Could not reach dedup server — every row is treated as new.)';
+        }
+    } catch (e) {
+        document.getElementById('parseStatus').textContent =
+            'Parsed ' + parsedRows.length + ' rows. (Dedup check failed: ' + (e && e.message || e) + ')';
+    }
+
     document.getElementById('sendAllBtn').disabled =
         !parsedRows.some(function(r) { return r.status === 'pending'; });
 });
@@ -331,10 +393,15 @@ document.getElementById('parseBtn').addEventListener('click', async function() {
 // ============================================================
 // ROW RENDERING + SEND
 // ============================================================
-function statusPill(s) {
+function statusPill(s, sentAt) {
     if (s === 'sent')    return '<span class="pill pill-sent">Sent</span>';
+    if (s === 'sending') return '<span class="pill pill-pending">Sending…</span>';
     if (s === 'fail')    return '<span class="pill pill-fail">Failed</span>';
     if (s === 'skip')    return '<span class="pill pill-skip">No email</span>';
+    if (s === 'already') {
+        var when = sentAt ? new Date(sentAt).toLocaleString() : 'previously';
+        return '<span class="pill pill-already" title="Sent ' + escapeHtml(when) + '">Already sent</span>';
+    }
     return '<span class="pill pill-pending">Pending</span>';
 }
 
@@ -345,17 +412,20 @@ function renderRows() {
         return;
     }
     host.innerHTML = parsedRows.map(function(row, i) {
+        var canSend = row.status === 'pending' || row.status === 'fail';
+        var btnLabel = row.status === 'already' ? 'Resend' : 'Send';
         return ''
         + '<div class="flex items-center gap-4 p-3 border border-slate-200 rounded bg-slate-50">'
         +   '<img src="' + row.dataUrl + '" class="preview-thumb shrink-0" alt=""/>'
         +   '<div class="flex-1 min-w-0">'
         +     '<div class="font-semibold truncate">' + escapeHtml(row.teamName) + '</div>'
         +     '<div class="text-xs text-slate-600">$' + row.amount.toLocaleString('en-US') + ' &middot; ' + escapeHtml(row.email || 'no email on file') + '</div>'
-        +     '<div class="mt-1" data-status="' + i + '">' + statusPill(row.status) + '</div>'
+        +     '<div class="text-[10px] text-slate-400 font-mono truncate" title="' + escapeHtml(row.donationKey) + '">' + escapeHtml(row.donationKey) + '</div>'
+        +     '<div class="mt-1" data-status="' + i + '">' + statusPill(row.status, row.sentAt) + '</div>'
         +   '</div>'
         +   '<div class="flex flex-col gap-1 shrink-0">'
         +     '<a href="' + row.dataUrl + '" download="thank-you-' + slug(row.teamName) + '.png" class="text-xs bg-white border border-slate-300 rounded px-2 py-1 text-center hover:bg-slate-100">Download</a>'
-        +     '<button data-send="' + i + '" ' + (row.status === 'pending' ? '' : 'disabled') + ' class="text-xs bg-emerald-600 text-white rounded px-2 py-1 hover:bg-emerald-700 disabled:opacity-40">Send</button>'
+        +     '<button data-send="' + i + '" ' + (canSend || row.status === 'already' ? '' : 'disabled') + ' class="text-xs bg-emerald-600 text-white rounded px-2 py-1 hover:bg-emerald-700 disabled:opacity-40">' + btnLabel + '</button>'
         +   '</div>'
         + '</div>';
     }).join('');
@@ -377,25 +447,47 @@ function setRowStatus(i, status) {
 
 async function sendRow(i) {
     var row = parsedRows[i];
-    if (!row || row.status !== 'pending') return;
+    if (!row) return;
+    if (row.status !== 'pending' && row.status !== 'fail' && row.status !== 'already') return;
+
+    var demoOn = document.getElementById('demoMode').checked;
+    var demoTo = (document.getElementById('demoEmail').value || '').trim();
+    if (demoOn && !demoTo) {
+        alert('Demo mode is on — fill in your demo email first.');
+        return;
+    }
+
     setRowStatus(i, 'sending');
-    var el = document.querySelector('[data-status="' + i + '"]');
-    if (el) el.innerHTML = '<span class="pill pill-pending">Sending…</span>';
     try {
+        var payload = {
+            to: demoOn ? demoTo : row.email,
+            teamId: row.teamId,
+            teamName: row.teamName,
+            amount: row.amount,
+            imageBase64: row.dataUrl
+        };
+        if (!demoOn) {
+            // Only attach the donation key (and thus log it) when sending for real.
+            // Demo sends should never poison the dedup log.
+            payload.donationKey = row.donationKey;
+            // If user clicked Resend on an already-sent row, force past the dedup gate.
+            if (row.status === 'already') payload.force = true;
+        }
+
         var r = await fetch('/api/send-thankyou', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                to: row.email,
-                teamName: row.teamName,
-                amount: row.amount,
-                imageBase64: row.dataUrl
-            })
+            body: JSON.stringify(payload)
         });
         var data = await r.json().catch(function() { return {}; });
         if (!r.ok) {
             setRowStatus(i, 'fail');
             console.error('Send failed:', data);
+            return;
+        }
+        if (data.alreadySent) {
+            row.sentAt = data.sentAt;
+            setRowStatus(i, 'already');
             return;
         }
         setRowStatus(i, 'sent');
@@ -404,6 +496,10 @@ async function sendRow(i) {
         console.error(e);
     }
 }
+
+document.getElementById('demoMode').addEventListener('change', function() {
+    document.getElementById('demoBanner').classList.toggle('hidden', !this.checked);
+});
 
 document.getElementById('sendAllBtn').addEventListener('click', async function() {
     var btn = this;

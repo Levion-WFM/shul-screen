@@ -2,29 +2,39 @@
 //
 // Expected POST body (JSON):
 //   {
-//     to:        "raiser@example.com"          (one address or comma-separated)
-//     teamName:  "Ahron & Sorala Jaffa"
-//     amount:    36                            (raw number, optional, used in subject/body)
-//     imageBase64: "data:image/png;base64,..." (the rendered thank-you card)
+//     to:          "raiser@example.com"          (one address or comma-separated)
+//     teamName:    "Ahron & Sorala Jaffa"
+//     amount:      36                            (raw number, optional, used in subject/body)
+//     imageBase64: "data:image/png;base64,..."   (the rendered thank-you card)
+//     donationKey: "ch_3Tc7rHGgzUhqv..."         (optional; if present we de-dupe on it)
+//     force:       true                          (optional; resend even if key was logged)
 //   }
 //
 // Env vars required on Vercel:
 //   RESEND_API_KEY  — your Resend API key (https://resend.com/api-keys)
+//   DATABASE_URL    — Neon connection string (already set for the kiosk)
 //   THANKYOU_FROM   — verified sender, e.g. "BMJ21 <thankyou@bmj21.com>"
 //                     If unset, falls back to Resend's test sender which only
 //                     ships to the account owner — fine for first-run tests,
 //                     not fine for real use.
 
-export default async function handler(req, res) {
+const { neon } = require('@neondatabase/serverless');
+
+module.exports = async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    var body = req.body || {};
-    var to        = (body.to || '').toString().trim();
-    var teamName  = (body.teamName || '').toString().trim();
-    var amount    = Number(body.amount || 0);
-    var image     = (body.imageBase64 || '').toString();
+    var body = req.body;
+    if (typeof body === 'string') { try { body = JSON.parse(body); } catch (e) { body = {}; } }
+    body = body || {};
+
+    var to          = (body.to || '').toString().trim();
+    var teamName    = (body.teamName || '').toString().trim();
+    var amount      = Number(body.amount || 0);
+    var image       = (body.imageBase64 || '').toString();
+    var donationKey = (body.donationKey || '').toString().trim();
+    var force       = !!body.force;
 
     if (!to)       return res.status(400).json({ error: 'Missing `to`' });
     if (!teamName) return res.status(400).json({ error: 'Missing `teamName`' });
@@ -35,12 +45,38 @@ export default async function handler(req, res) {
     var apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) return res.status(500).json({ error: 'RESEND_API_KEY not set on Vercel' });
 
-    // Strip the "data:image/png;base64," prefix — Resend wants raw base64.
+    var sql = null;
+    if (donationKey && process.env.DATABASE_URL) {
+        sql = neon(process.env.DATABASE_URL);
+        try {
+            await sql`
+                CREATE TABLE IF NOT EXISTS donation_log (
+                    donation_key   TEXT PRIMARY KEY,
+                    team_id        TEXT,
+                    team_name      TEXT,
+                    amount         NUMERIC,
+                    recipient      TEXT,
+                    sent_at        TIMESTAMPTZ DEFAULT NOW()
+                )
+            `;
+            if (!force) {
+                var existing = await sql`SELECT sent_at FROM donation_log WHERE donation_key = ${donationKey} LIMIT 1`;
+                if (existing.length) {
+                    return res.status(200).json({
+                        ok: true,
+                        alreadySent: true,
+                        sentAt: existing[0].sent_at
+                    });
+                }
+            }
+        } catch (e) {
+            // DB hiccup shouldn't block a send — log and continue without dedup.
+            console.error('donation_log preflight failed:', e);
+        }
+    }
+
     var base64 = image.replace(/^data:image\/\w+;base64,/, '');
-
-    // Recipients can be comma-separated in the CSV ("a@x.com, b@x.com").
     var recipients = to.split(',').map(function(s) { return s.trim(); }).filter(Boolean);
-
     var amountStr = amount > 0 ? '$' + amount.toLocaleString('en-US') : '';
     var subject   = amount > 0
         ? 'Mazel Tov! ' + teamName + ' just received a ' + amountStr + ' donation'
@@ -81,11 +117,26 @@ export default async function handler(req, res) {
         if (!r.ok) {
             return res.status(r.status).json({ error: 'Resend error', detail: data });
         }
+
+        // Log only after the send succeeded. UPSERT so a force-resend overwrites
+        // the prior row's sent_at instead of erroring on the primary key.
+        if (sql && donationKey) {
+            try {
+                await sql`
+                    INSERT INTO donation_log (donation_key, team_id, team_name, amount, recipient, sent_at)
+                    VALUES (${donationKey}, ${String(body.teamId || '')}, ${teamName}, ${amount}, ${to}, NOW())
+                    ON CONFLICT (donation_key) DO UPDATE SET sent_at = NOW(), recipient = EXCLUDED.recipient
+                `;
+            } catch (e) {
+                console.error('donation_log insert failed:', e);
+            }
+        }
+
         return res.status(200).json({ ok: true, id: data.id });
     } catch (e) {
         return res.status(500).json({ error: 'Send failed', detail: String(e && e.message || e) });
     }
-}
+};
 
 function escapeHtml(s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
