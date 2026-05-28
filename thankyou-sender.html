@@ -215,6 +215,7 @@ var TEAMS = {
 // TEMPLATE LOADING (cached in localStorage as a data URL)
 // ============================================================
 var tplImage = null;          // HTMLImageElement once loaded
+var tplBoxBounds = null;      // { top, bottom } in pixels — cached per template
 var TPL_KEY = 'thankyou.template.v1';
 
 function loadTemplateFromDataUrl(dataUrl, source) {
@@ -222,6 +223,7 @@ function loadTemplateFromDataUrl(dataUrl, source) {
         var img = new Image();
         img.onload = function() {
             tplImage = img;
+            tplBoxBounds = null;   // re-detect on next render
             document.getElementById('tplStatus').textContent =
                 'Loaded ' + img.naturalWidth + '×' + img.naturalHeight + ' (' + source + ').';
             resolve();
@@ -229,6 +231,63 @@ function loadTemplateFromDataUrl(dataUrl, source) {
         img.onerror = function() { reject(new Error('Image failed to load')); };
         img.src = dataUrl;
     });
+}
+
+// ── Box auto-detection ──────────────────────────────────────────────────
+// Find the gold-bordered name rectangle by scanning pixels. This replaces
+// the previous brittle approach of hard-coding y-offsets and re-tuning them
+// every time a render came out misaligned — those ratios drift if the
+// template is replaced or even re-exported, and there's no reason to guess
+// when the box's actual pixel position is sitting right there in the image.
+//
+// Algorithm: from the middle of the page (we know the box is there), walk
+// up until we hit a row that's mostly gold pixels (the top border), and
+// down until we hit the same (the bottom border). Sampling at 5 x-positions
+// per row makes us robust to jpg artifacts and to the corner ornaments.
+function detectBoxBounds() {
+    if (tplBoxBounds) return tplBoxBounds;
+    if (!tplImage) return null;
+
+    var w = tplImage.naturalWidth;
+    var h = tplImage.naturalHeight;
+    var c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    var ctx = c.getContext('2d');
+    ctx.drawImage(tplImage, 0, 0);
+    var imgData;
+    try { imgData = ctx.getImageData(0, 0, w, h).data; }
+    catch (e) { return null; }   // tainted canvas (cross-origin) — fall back
+
+    // Gold border heuristic: strong red+green, weak blue, big R-B contrast.
+    // Cream/white interior has small R-B contrast (~15-25), gold has 70+.
+    function isGold(idx) {
+        var r = imgData[idx], g = imgData[idx + 1], b = imgData[idx + 2];
+        return r > 150 && g > 110 && b < 140 && (r - b) > 65;
+    }
+    function rowIsBorder(y) {
+        var samples = [0.20, 0.35, 0.50, 0.65, 0.80];
+        var hits = 0;
+        for (var i = 0; i < samples.length; i++) {
+            var x = Math.round(w * samples[i]);
+            if (isGold((y * w + x) * 4)) hits++;
+        }
+        return hits >= 3;
+    }
+
+    var startY = Math.round(h * 0.55);   // safely inside the rectangle
+    var topY = null, bottomY = null;
+    for (var y = startY; y >= Math.round(h * 0.30); y--) {
+        if (rowIsBorder(y)) { topY = y; break; }
+    }
+    for (var y2 = startY; y2 < Math.round(h * 0.80); y2++) {
+        if (rowIsBorder(y2)) { bottomY = y2; break; }
+    }
+    // Sanity: borders should be at least 5% of height apart.
+    if (topY != null && bottomY != null && bottomY > topY + h * 0.05) {
+        tplBoxBounds = { top: topY, bottom: bottomY };
+        return tplBoxBounds;
+    }
+    return null;
 }
 
 (function bootTemplate() {
@@ -367,24 +426,42 @@ function renderThankYouPng(donorName, amount, entries) {
     ctx.textBaseline = 'middle';
 
     var hasRaffle = Array.isArray(entries) && entries.length > 0;
-    // Box geometry (re-measured from the actual rendered output): the gold
-    // rectangle's inner area is y ≈ 0.475–0.642, center ≈ 0.560. Much
-    // shorter than I'd been estimating, so the raffle line kept escaping
-    // below the box. Compress the 3-line raffle stack upward so the last
-    // line still lands just inside the bottom edge.
-    //
-    // Non-raffle (2 lines):
-    //   name   = 0.555   (above center, ~mid-upper of box)
-    //   amount = 0.610   (lower-mid of box)
-    //
-    // Raffle (3 lines):
-    //   name   = 0.520
-    //   amount = 0.580
-    //   raffle = 0.625, +0.030 per additional prize row
-    var nameY   = canvas.height * (hasRaffle ? 0.520 : 0.555);
-    var amountY = canvas.height * (hasRaffle ? 0.580 : 0.610);
-    var raffleStartY = canvas.height * 0.625;
-    var raffleLineH  = canvas.height * 0.030;
+
+    // ── Derive y-positions from the *actual* detected box ─────────────
+    // Place content at fractions OF THE BOX, not of the whole canvas. The
+    // box's own top/bottom is measured from gold-border pixels in the
+    // template (see detectBoxBounds), so this self-corrects if a redesign
+    // moves the rectangle and never drifts again.
+    var bounds = detectBoxBounds();
+    var boxTop, boxBottom;
+    if (bounds) {
+        boxTop    = bounds.top;
+        boxBottom = bounds.bottom;
+    } else {
+        // Fallback: rough proportions for the current template if pixel
+        // detection failed (e.g. cross-origin taint, weird template).
+        boxTop    = canvas.height * 0.475;
+        boxBottom = canvas.height * 0.642;
+    }
+    var boxH = boxBottom - boxTop;
+    var nameY, amountY, raffleStartY, raffleLineH;
+    var raffleCount = hasRaffle ? entries.length : 0;
+    if (hasRaffle) {
+        // Three-or-more line stack. Split the box's height into a tight
+        // top zone (name+amount) and a small bottom zone (raffle lines).
+        // For ≥1 raffle line:
+        //   name   at 28% down the box
+        //   amount at 56% down the box
+        //   raffle starts at 78% down the box, with raffle rows at +12%
+        nameY   = boxTop + boxH * 0.28;
+        amountY = boxTop + boxH * 0.56;
+        raffleStartY = boxTop + boxH * 0.78;
+        raffleLineH  = boxH * 0.12;
+    } else {
+        // Two-line stack — distribute name + amount around the box center.
+        nameY   = boxTop + boxH * 0.40;
+        amountY = boxTop + boxH * 0.75;
+    }
 
     // ── Name ── bigger script (~9% of width) with auto-shrink for very
     // long names so "Shlomo Zalman & Elisheva Schwartz" still fits.
