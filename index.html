@@ -252,6 +252,40 @@
             box-shadow: 0 0 14px rgba(233, 195, 73, 0.55);
             transition: width 1200ms cubic-bezier(0.4, 0, 0.2, 1);
         }
+        /* ── $100K milestone marker ──
+           A "sticky" tick pinned at the spot on the bar where $100,000 falls
+           (left % set in JS from the same CAMPAIGN_GOAL the fill uses). It's a
+           fixed line — it does not move with the fill — flagging the milestone
+           we crossed. The dark gold-bordered pill keeps "100K" legible whether
+           the fill has reached it (gold behind) or not (dark behind). */
+        .campaign-bar-marker {
+            position: absolute;
+            top: -1px;
+            bottom: -1px;
+            width: 2px;
+            margin-left: -1px;        /* center the 2px line on the exact point */
+            background: rgba(10, 7, 6, 0.7);
+            box-shadow: 0 0 0 1px rgba(255, 224, 136, 0.5);
+            z-index: 2;               /* sit above the fill */
+            pointer-events: none;
+        }
+        .campaign-bar-marker-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 0.05rem 0.32rem;
+            border-radius: 9999px;
+            background: rgba(10, 7, 6, 0.82);
+            border: 1px solid rgba(233, 195, 73, 0.6);
+            color: #ffe088;
+            font-size: 0.62rem;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: 0.06em;
+            white-space: nowrap;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
         /* ── Dedications ticker ──
            Horizontal marquee for the "taken" items so they fit on one line.
            The track holds two identical copies of the items (the second is
@@ -403,6 +437,12 @@
     </div>
     <div class="campaign-bar-track">
       <div id="campaignBarFill" class="campaign-bar-fill"></div>
+      <!-- $100K milestone — pinned at where $100,000 sits on the bar. The left
+           default matches CAMPAIGN_GOAL=430000 (100/430); JS resets it from the
+           live goal so the tick always lands on the real $100K point. -->
+      <div id="campaignMarker100k" class="campaign-bar-marker" style="left: 23.3%;">
+        <span class="campaign-bar-marker-label">100K</span>
+      </div>
     </div>
   </div>
 </div>
@@ -1428,6 +1468,10 @@ refreshLoop();
 
         var raisedEl = document.getElementById('campaignRaised');
         var fillEl   = document.getElementById('campaignBarFill');
+        // Pin the $100K milestone marker to its spot on the bar, derived from the
+        // same goal as the fill so the tick stays on the real $100,000 point.
+        var markerEl = document.getElementById('campaignMarker100k');
+        if (markerEl) markerEl.style.left = Math.min(100, 100000 / CAMPAIGN_GOAL * 100) + '%';
         if (raisedEl) raisedEl.textContent = fmtMoney(totalRaised);
         if (fillEl) {
             // Next frame so the width animates up from 0.
