@@ -367,12 +367,15 @@ function renderThankYouPng(donorName, amount, entries) {
     ctx.textBaseline = 'middle';
 
     var hasRaffle = Array.isArray(entries) && entries.length > 0;
-    // When raffle lines are added, slide everything ~4-5% up so the extra
-    // rows still land inside the rectangle.
-    var nameY   = canvas.height * (hasRaffle ? 0.485 : 0.515);
-    var amountY = canvas.height * (hasRaffle ? 0.560 : 0.605);
-    var raffleStartY = canvas.height * 0.625;
-    var raffleLineH  = canvas.height * 0.045;
+    // The blank rectangle on this template spans roughly y=0.47–0.63
+    // (center ≈ 0.55). Earlier values had the name kissing the top of the
+    // box and the amount falling out the bottom; these sit tighter inside.
+    // When raffle lines are added we shrink the spacing a touch and slide
+    // up so 1–2 prize rows still land inside the rectangle.
+    var nameY   = canvas.height * (hasRaffle ? 0.510 : 0.540);
+    var amountY = canvas.height * (hasRaffle ? 0.565 : 0.595);
+    var raffleStartY = canvas.height * 0.615;
+    var raffleLineH  = canvas.height * 0.035;
 
     // ── Name ── auto-shrink to fit very long names.
     var size = Math.round(canvas.width * 0.075);
