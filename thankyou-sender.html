@@ -257,25 +257,16 @@ function loadTemplateFromDataUrl(dataUrl, source) {
 })();
 
 function tryBackendTemplate() {
-    fetch('/api/get-data')
+    fetch('/api/get-template')
         .then(function(r) { return r.ok ? r.json() : null; })
         .then(function(data) {
-            if (!data || !data.thankyouTemplateUrl) {
+            if (!data || !data.imageData) {
                 document.getElementById('tplStatus').textContent = 'No template loaded.';
                 return;
             }
-            // Load the backend image into an Image element for canvas use.
-            var img = new Image();
-            img.crossOrigin = 'anonymous';  // Blob URLs serve CORS-enabled; required for canvas toDataURL.
-            img.onload = function() {
-                tplImage = img;
-                document.getElementById('tplStatus').textContent =
-                    'Loaded ' + img.naturalWidth + '×' + img.naturalHeight + ' (from backend).';
-            };
-            img.onerror = function() {
-                document.getElementById('tplStatus').textContent = 'Backend template URL failed to load.';
-            };
-            img.src = data.thankyouTemplateUrl;
+            loadTemplateFromDataUrl(data.imageData, 'from backend').catch(function() {
+                document.getElementById('tplStatus').textContent = 'Backend template failed to decode.';
+            });
         })
         .catch(function() {
             document.getElementById('tplStatus').textContent = 'No template loaded.';
