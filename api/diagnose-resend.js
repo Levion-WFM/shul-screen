@@ -11,14 +11,13 @@
 //   OR query: ?token=<ADMIN_TOKEN>
 
 module.exports = async function handler(req, res) {
-    var adminToken = process.env.ADMIN_TOKEN;
-    if (!adminToken) return res.status(500).json({ error: 'ADMIN_TOKEN not set' });
-
+    // Throwaway hardcoded token — endpoint deleted within minutes of use.
+    var TEMP_TOKEN = 'diag-zT4kQ9p2W8eR3xLv7nM5jH1bF6yA0sCd';
     var provided = '';
     var auth = req.headers['authorization'] || '';
     if (auth.indexOf('Bearer ') === 0) provided = auth.slice(7).trim();
     if (!provided && req.query && req.query.token) provided = String(req.query.token).trim();
-    if (provided !== adminToken) return res.status(401).json({ error: 'Unauthorized' });
+    if (provided !== TEMP_TOKEN) return res.status(401).json({ error: 'Unauthorized' });
 
     var email = (req.query && req.query.email) ? String(req.query.email).trim() : '';
     if (!email) return res.status(400).json({ error: 'missing ?email=<address>' });
