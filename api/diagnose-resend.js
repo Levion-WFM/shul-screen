@@ -1,11 +1,7 @@
-// TEMPORARY DIAGNOSTIC — remove after debugging.
-// Cross-references Resend send history AND donation_log for a given address.
-//
-// Usage:
-//   GET /api/diagnose-resend?email=zechariasteele@gmail.com&token=<TOKEN>
+// TEMPORARY — about to be deleted.
+// Adds domain-verification status to the previous email/donation_log checks.
 
 const { neon } = require('@neondatabase/serverless');
-
 const TEMP_TOKEN = 'diag-zT4kQ9p2W8eR3xLv7nM5jH1bF6yA0sCd';
 
 module.exports = async function handler(req, res) {
@@ -15,90 +11,104 @@ module.exports = async function handler(req, res) {
     if (!provided && req.query && req.query.token) provided = String(req.query.token).trim();
     if (provided !== TEMP_TOKEN) return res.status(401).json({ error: 'Unauthorized' });
 
-    var email = (req.query && req.query.email) ? String(req.query.email).trim().toLowerCase() : '';
-    if (!email) return res.status(400).json({ error: 'missing ?email=<address>' });
-
     var key = process.env.RESEND_API_KEY;
     if (!key) return res.status(500).json({ error: 'RESEND_API_KEY not set' });
 
-    var out = { target: email };
+    var email = (req.query && req.query.email) ? String(req.query.email).trim().toLowerCase() : '';
+    var out = { target: email || null };
 
-    // 1. Check donation_log for recipient matches
-    if (process.env.DATABASE_URL) {
+    // Domains check
+    try {
+        var dr = await fetch('https://api.resend.com/domains', {
+            headers: { 'Authorization': 'Bearer ' + key }
+        });
+        if (dr.ok) {
+            var dj = await dr.json();
+            out.domains = (dj.data || []).map(function (d) {
+                return {
+                    name: d.name,
+                    status: d.status,            // pending, verified, failed
+                    region: d.region,
+                    created_at: d.created_at
+                };
+            });
+        } else {
+            out.domains_error = { status: dr.status, body: (await dr.text()).slice(0, 300) };
+        }
+    } catch (e) {
+        out.domains_error = String(e);
+    }
+
+    // Per-domain DNS records (only fetch when we have domains and a target)
+    if (out.domains && out.domains.length) {
         try {
-            var sql = neon(process.env.DATABASE_URL);
-            var rows = await sql`
-                SELECT donation_key, team_name, amount, recipient, sent_at
-                FROM donation_log
-                WHERE LOWER(recipient) LIKE ${'%' + email + '%'}
-                ORDER BY sent_at DESC
-                LIMIT 50
-            `;
-            out.donation_log = {
-                count: rows.length,
-                rows: rows.map(function (r) {
-                    return {
-                        donation_key: r.donation_key,
-                        team_name: r.team_name,
-                        amount: Number(r.amount),
-                        recipient: r.recipient,
-                        sent_at: r.sent_at
-                    };
-                })
-            };
+            for (var i = 0; i < out.domains.length; i++) {
+                var d = out.domains[i];
+                if (d.status === 'verified') continue;  // No need to inspect verified ones
+                var detResp = await fetch('https://api.resend.com/domains/' + encodeURIComponent(d.name), {
+                    headers: { 'Authorization': 'Bearer ' + key }
+                });
+                if (detResp.ok) {
+                    var dj = await detResp.json();
+                    d.records = (dj.records || []).map(function (rec) {
+                        return { type: rec.type, name: rec.name, status: rec.status };
+                    });
+                }
+            }
         } catch (e) {
-            out.donation_log_error = String(e && e.message || e);
+            out.domains_records_error = String(e);
         }
     }
 
-    // 2. Page through Resend's recent emails, looking for our address
-    try {
-        var matched = [];
-        var nonMatched = 0;
-        var pageTotal = 0;
-        // Resend has cursor pagination via `before`/`after` params; we'll
-        // sweep the most recent 200 emails.
-        var lastTs = null;
-        for (var page = 0; page < 4; page++) {
-            var url = 'https://api.resend.com/emails?limit=50';
-            if (lastTs) url += '&before=' + encodeURIComponent(lastTs);
-            var r = await fetch(url, { headers: { 'Authorization': 'Bearer ' + key } });
-            if (!r.ok) {
-                out.resend_list_error = { status: r.status, body: (await r.text()).slice(0, 300) };
-                break;
-            }
-            var j = await r.json();
-            var list = j.data || [];
-            pageTotal += list.length;
-            if (!list.length) break;
-            for (var i = 0; i < list.length; i++) {
-                var e = list[i];
-                var toList = (e.to || []).map(function (x) { return (x || '').toLowerCase(); });
-                if (toList.indexOf(email) >= 0) {
-                    matched.push({
-                        id: e.id,
-                        created_at: e.created_at,
-                        last_event: e.last_event,
-                        from: e.from,
-                        to: e.to,
-                        subject: e.subject
-                    });
-                }
-                lastTs = e.created_at;
-            }
-            nonMatched += list.length - matched.length;
-            // Stop early if Resend already gave us less than the page size
-            if (list.length < 50) break;
-            // Avoid rate limit
-            await sleep(250);
+    if (email) {
+        // donation_log cross-ref
+        if (process.env.DATABASE_URL) {
+            try {
+                var sql = neon(process.env.DATABASE_URL);
+                var rows = await sql`
+                    SELECT donation_key, team_name, amount, recipient, sent_at
+                    FROM donation_log
+                    WHERE LOWER(recipient) LIKE ${'%' + email + '%'}
+                    ORDER BY sent_at DESC LIMIT 50
+                `;
+                out.donation_log_count = rows.length;
+                out.donation_log = rows;
+            } catch (e) { out.donation_log_error = String(e); }
         }
-        out.resend_scanned = pageTotal;
-        out.resend_matches = matched;
-    } catch (e) {
-        out.resend_scan_error = String(e && e.message || e);
+
+        // Scan recent emails
+        try {
+            var matched = [];
+            var pageTotal = 0;
+            var lastTs = null;
+            for (var p = 0; p < 4; p++) {
+                var u = 'https://api.resend.com/emails?limit=50';
+                if (lastTs) u += '&before=' + encodeURIComponent(lastTs);
+                var r = await fetch(u, { headers: { 'Authorization': 'Bearer ' + key } });
+                if (!r.ok) break;
+                var j = await r.json();
+                var list = j.data || [];
+                pageTotal += list.length;
+                if (!list.length) break;
+                for (var k2 = 0; k2 < list.length; k2++) {
+                    var e2 = list[k2];
+                    var toList = (e2.to || []).map(function (x) { return (x || '').toLowerCase(); });
+                    if (toList.indexOf(email) >= 0) {
+                        matched.push({
+                            id: e2.id, created_at: e2.created_at,
+                            last_event: e2.last_event, to: e2.to,
+                            subject: e2.subject
+                        });
+                    }
+                    lastTs = e2.created_at;
+                }
+                if (list.length < 50) break;
+                await new Promise(function (rr) { setTimeout(rr, 200); });
+            }
+            out.resend_scanned = pageTotal;
+            out.resend_matches = matched;
+        } catch (e) { out.resend_scan_error = String(e); }
     }
 
     return res.status(200).json(out);
 };
-
-function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
