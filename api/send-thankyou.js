@@ -125,7 +125,7 @@ module.exports = async function handler(req, res) {
                 subject: subject,
                 html: html,
                 attachments: [{
-                    filename: 'thank-you-' + slug(teamName) + '.png',
+                    filename: 'thank-you-' + slug(teamName) + '.jpg',
                     content: base64
                 }]
             })

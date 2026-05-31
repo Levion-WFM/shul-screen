@@ -141,7 +141,7 @@ module.exports = async function handler(req, res) {
         var b64 = image.replace(/^data:image\/\w+;base64,/, '');
         var slug = String(donorName || 'donor').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
         attachments.push({
-            filename: 'raffle-' + (slug || 'entry') + '.png',
+            filename: 'raffle-' + (slug || 'entry') + '.jpg',
             content: b64
         });
     }
