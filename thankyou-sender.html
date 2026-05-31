@@ -1032,6 +1032,11 @@ document.getElementById('sendAllBtn').addEventListener('click', async function()
     for (var off = 0; off < pendingIndices.length; off += BATCH_SIZE) {
         var slice = pendingIndices.slice(off, off + BATCH_SIZE);
         var items = slice.map(function(idx) {
+            // Render the card on demand — parse leaves dataUrl null to avoid
+            // freezing the tab, and unlike sendRow() the batch path never
+            // rendered before, so imageBase64 went up empty and every item
+            // failed server-side validation.
+            ensureRowDataUrl(idx);
             var row = parsedRows[idx];
             var payload = {
                 to: row.email,
