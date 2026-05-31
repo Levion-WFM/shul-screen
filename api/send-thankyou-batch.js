@@ -1,13 +1,19 @@
-// Batch variant of /api/send-thankyou — accepts up to 30 thank-you sends per
-// request and dispatches them concurrently (5 in flight at a time) against the
-// Resend API. Same per-recipient behavior as the single-send endpoint:
+// Batch variant of /api/send-thankyou — accepts up to 30 items per request
+// and dispatches them concurrently against the Resend API.
+//
+// Per-recipient behavior matches the single-send endpoint:
 //   - validates each item
 //   - dedups against donation_log
 //   - composes the same HTML body + PNG attachment
 //   - logs successful sends to donation_log
+//
 // Adds:
 //   - server-side retry on 429 / 5xx with exponential backoff + jitter
 //   - per-item result so the client can show row-level success/failure
+//   - SPLIT multi-recipient sends into per-recipient Resend calls —
+//     multi-recipient sends were going to spam on Gmail (verified by the
+//     2026-05-29 diagnostic: `to: [a, b]` stayed at `sent`, `to: [a]` reached
+//     `delivered`).
 //
 // Expected POST body (JSON):
 //   {
@@ -16,12 +22,20 @@
 //       ...up to 30
 //     ]
 //   }
+//   `to` may be a single address or a comma-separated list; the server splits.
 //
 // Response:
-//   { results: [ { ok: true, id, alreadySent? } | { ok: false, status?, error } ] }
-//
-// Env vars (same as send-thankyou.js):
-//   RESEND_API_KEY, DATABASE_URL, THANKYOU_FROM
+//   {
+//     results: [
+//       {
+//         ok: true | false,
+//         allRecipientsOk?: bool,
+//         perRecipient?: [ { to, ok, id?, error? } ],
+//         alreadySent?: true,
+//         error?: string
+//       }
+//     ]
+//   }
 
 const { neon } = require('@neondatabase/serverless');
 
@@ -65,8 +79,9 @@ module.exports = async function handler(req, res) {
     // One round-trip to check dedup for every donationKey at once.
     var alreadySent = new Map();
     if (sql) {
-        var keys = items.map(function (it) { return (it && it.donationKey) ? String(it.donationKey).trim() : ''; })
-                       .filter(function (k) { return k.length > 0; });
+        var keys = items
+            .map(function (it) { return (it && it.donationKey) ? String(it.donationKey).trim() : ''; })
+            .filter(function (k) { return k.length > 0; });
         if (keys.length) {
             try {
                 var rows = await sql`SELECT donation_key, sent_at FROM donation_log WHERE donation_key = ANY(${keys})`;
@@ -83,7 +98,7 @@ module.exports = async function handler(req, res) {
         while (true) {
             var i = cursor++;
             if (i >= items.length) return;
-            results[i] = await sendOne(items[i], apiKey, alreadySent, sql);
+            results[i] = await processItem(items[i], apiKey, alreadySent, sql);
         }
     }
 
@@ -94,7 +109,7 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ results: results });
 };
 
-async function sendOne(item, apiKey, alreadySent, sql) {
+async function processItem(item, apiKey, alreadySent, sql) {
     try {
         if (!item || typeof item !== 'object') return { ok: false, error: 'Bad item' };
 
@@ -130,59 +145,35 @@ async function sendOne(item, apiKey, alreadySent, sql) {
 
         var html = buildHtml(greeting, teamName, donorName, amountStr);
         var from = process.env.THANKYOU_FROM || 'BMJ21 Building Campaign <onboarding@resend.dev>';
+        var filename = 'thank-you-' + slug(teamName) + '.png';
 
-        var payload = JSON.stringify({
-            from: from,
-            to: recipients,
-            subject: subject,
-            html: html,
-            attachments: [{
-                filename: 'thank-you-' + slug(teamName) + '.png',
-                content: base64
-            }]
-        });
-
-        // Retry transient failures (rate limit / 5xx).
-        var r, data, lastError = null;
-        for (var attempt = 0; attempt <= RETRY_ATTEMPTS; attempt++) {
-            try {
-                r = await fetch('https://api.resend.com/emails', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + apiKey,
-                        'Content-Type': 'application/json'
-                    },
-                    body: payload
-                });
-                data = await r.json().catch(function () { return {}; });
-                if (r.ok) break;
-                lastError = data;
-                // Non-retryable: client errors that are our fault
-                if (r.status >= 400 && r.status < 500 && r.status !== 429) {
-                    return { ok: false, status: r.status, error: extractErrorMessage(data) };
-                }
-                // Retryable: rate-limit or 5xx
-                if (attempt < RETRY_ATTEMPTS) {
-                    var backoff = Math.pow(2, attempt) * RETRY_BASE_MS + Math.random() * RETRY_BASE_MS;
-                    await sleep(backoff);
-                }
-            } catch (e) {
-                lastError = { message: String(e && e.message || e) };
-                if (attempt < RETRY_ATTEMPTS) {
-                    var backoff = Math.pow(2, attempt) * RETRY_BASE_MS + Math.random() * RETRY_BASE_MS;
-                    await sleep(backoff);
-                } else {
-                    return { ok: false, error: lastError.message };
-                }
-            }
+        // DELIVERABILITY: one Resend call per recipient. Multi-recipient
+        // sends were going to Gmail spam.
+        var perRecipient = [];
+        for (var ri = 0; ri < recipients.length; ri++) {
+            var address = recipients[ri];
+            var payload = JSON.stringify({
+                from: from,
+                to: [address],
+                subject: subject,
+                html: html,
+                attachments: [{ filename: filename, content: base64 }]
+            });
+            var sendResult = await sendToResend(apiKey, payload);
+            perRecipient.push({
+                to: address,
+                ok: sendResult.ok,
+                id: sendResult.id,
+                error: sendResult.error
+            });
         }
 
-        if (!r || !r.ok) {
-            return { ok: false, status: r ? r.status : 0, error: extractErrorMessage(lastError) };
-        }
+        var anyOk = perRecipient.some(function (r) { return r.ok; });
+        var allOk = perRecipient.every(function (r) { return r.ok; });
 
-        // Log only after success.
-        if (sql && donationKey) {
+        // Log to donation_log if at least one recipient succeeded (dedup
+        // is per-donation, not per-recipient).
+        if (anyOk && sql && donationKey) {
             try {
                 await sql`
                     INSERT INTO donation_log (donation_key, team_id, team_name, amount, recipient, sent_at)
@@ -192,10 +183,53 @@ async function sendOne(item, apiKey, alreadySent, sql) {
             } catch (e) { console.error('donation_log insert failed:', e); }
         }
 
-        return { ok: true, id: data.id };
+        if (!anyOk) {
+            var firstErr = perRecipient[0] && perRecipient[0].error;
+            return { ok: false, perRecipient: perRecipient, error: firstErr || 'All recipients failed' };
+        }
+        return { ok: true, allRecipientsOk: allOk, perRecipient: perRecipient };
     } catch (e) {
         return { ok: false, error: String(e && e.message || e) };
     }
+}
+
+async function sendToResend(apiKey, payload) {
+    var r = null;
+    var data = null;
+    var lastError = null;
+    for (var attempt = 0; attempt <= RETRY_ATTEMPTS; attempt++) {
+        try {
+            r = await fetch('https://api.resend.com/emails', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + apiKey,
+                    'Content-Type': 'application/json'
+                },
+                body: payload
+            });
+            data = await r.json().catch(function () { return {}; });
+            if (r.ok) return { ok: true, id: data.id };
+            lastError = data;
+            // Non-retryable: client errors that are our fault
+            if (r.status >= 400 && r.status < 500 && r.status !== 429) {
+                return { ok: false, status: r.status, error: extractErrorMessage(data) };
+            }
+            // Retryable: rate-limit or 5xx
+            if (attempt < RETRY_ATTEMPTS) {
+                var backoff = Math.pow(2, attempt) * RETRY_BASE_MS + Math.random() * RETRY_BASE_MS;
+                await sleep(backoff);
+            }
+        } catch (e) {
+            lastError = { message: String(e && e.message || e) };
+            if (attempt < RETRY_ATTEMPTS) {
+                var backoff = Math.pow(2, attempt) * RETRY_BASE_MS + Math.random() * RETRY_BASE_MS;
+                await sleep(backoff);
+            } else {
+                return { ok: false, error: lastError.message };
+            }
+        }
+    }
+    return { ok: false, status: r ? r.status : 0, error: extractErrorMessage(lastError) };
 }
 
 function buildHtml(greeting, teamName, donorName, amountStr) {
