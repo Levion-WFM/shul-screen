@@ -145,7 +145,7 @@ async function processItem(item, apiKey, alreadySent, sql) {
 
         var html = buildHtml(greeting, teamName, donorName, amountStr);
         var from = process.env.THANKYOU_FROM || 'BMJ21 Building Campaign <onboarding@resend.dev>';
-        var filename = 'thank-you-' + slug(teamName) + '.png';
+        var filename = 'thank-you-' + slug(teamName) + '.jpg';
 
         // DELIVERABILITY: one Resend call per recipient. Multi-recipient
         // sends were going to Gmail spam.

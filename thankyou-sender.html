@@ -495,7 +495,11 @@ function renderThankYouPng(donorName, amount, entries) {
         });
     }
 
-    return canvas.toDataURL('image/png');
+    // JPEG, not PNG: a PNG of this ~1122×1402 card is ~1.9 MB, so batching
+    // several of them blew past Vercel's 4.5 MB request-body limit and the
+    // whole batch 413'd. High-quality JPEG is ~5–8× smaller with no visible
+    // loss for an emailed card.
+    return canvas.toDataURL('image/jpeg', 0.92);
 }
 
 // ============================================================
@@ -745,7 +749,7 @@ function renderRows() {
             var row = parsedRows[i];
             var a = document.createElement('a');
             a.href = row.dataUrl;
-            a.download = 'thank-you-' + slug(row.donorName || row.cardName) + '.png';
+            a.download = 'thank-you-' + slug(row.donorName || row.cardName) + '.jpg';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -1022,21 +1026,36 @@ document.getElementById('sendAllBtn').addEventListener('click', async function()
         return;
     }
 
-    // Batched real send.
-    var BATCH_SIZE = 20;
+    // Batched real send — pack rows into POSTs by *byte budget*, not a fixed
+    // count. Each rendered card is a few hundred KB as JPEG, and Vercel
+    // rejects any function request body over 4.5 MB, so cap each batch well
+    // under that (and at 20 items; the server allows 30). Cards are rendered
+    // here, just in time, so the tab isn't frozen rendering the whole queue.
+    var MAX_BATCH_BYTES = 3.5 * 1024 * 1024;
+    var MAX_BATCH_ITEMS = 20;
     var pendingIndices = [];
     for (var k = 0; k < parsedRows.length; k++) {
         if (parsedRows[k].status === 'pending') pendingIndices.push(k);
     }
 
-    for (var off = 0; off < pendingIndices.length; off += BATCH_SIZE) {
-        var slice = pendingIndices.slice(off, off + BATCH_SIZE);
+    var cursor = 0;
+    while (cursor < pendingIndices.length) {
+        // Fill one batch: render each card now and sum the data-URL sizes.
+        var slice = [];
+        var batchBytes = 0;
+        while (cursor < pendingIndices.length && slice.length < MAX_BATCH_ITEMS) {
+            var bIdx = pendingIndices[cursor];
+            ensureRowDataUrl(bIdx);   // parse defers the render; do it here
+            var sz = (parsedRows[bIdx].dataUrl || '').length;
+            // Always take at least one item — a single oversized card must
+            // not stall the loop — but otherwise stop before busting budget.
+            if (slice.length > 0 && batchBytes + sz > MAX_BATCH_BYTES) break;
+            slice.push(bIdx);
+            batchBytes += sz;
+            cursor++;
+        }
+
         var items = slice.map(function(idx) {
-            // Render the card on demand — parse leaves dataUrl null to avoid
-            // freezing the tab, and unlike sendRow() the batch path never
-            // rendered before, so imageBase64 went up empty and every item
-            // failed server-side validation.
-            ensureRowDataUrl(idx);
             var row = parsedRows[idx];
             var payload = {
                 to: row.email,
