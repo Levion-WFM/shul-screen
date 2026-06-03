@@ -435,14 +435,11 @@
       <p class="label-smallcaps font-bold text-primary/85 text-sm">Total Raised</p>
       <p class="tabular-nums font-bold text-primary text-sm"><span id="campaignRaised">—</span></p>
     </div>
-    <div class="campaign-bar-track">
+    <div class="campaign-bar-track" id="campaignBarTrack">
       <div id="campaignBarFill" class="campaign-bar-fill"></div>
-      <!-- $100K milestone — pinned at where $100,000 sits on the bar. The left
-           default matches CAMPAIGN_GOAL=430000 (100/430); JS resets it from the
-           live goal so the tick always lands on the real $100K point. -->
-      <div id="campaignMarker100k" class="campaign-bar-marker" style="left: 23.3%;">
-        <span class="campaign-bar-marker-label">100K</span>
-      </div>
+      <!-- $100K / $200K / $300K milestone ticks are built in JS (see MILESTONES)
+           and appended here, each positioned via the same CAMPAIGN_GOAL the fill
+           uses so every tick lands on its real dollar point. -->
     </div>
   </div>
 </div>
@@ -1468,10 +1465,23 @@ refreshLoop();
 
         var raisedEl = document.getElementById('campaignRaised');
         var fillEl   = document.getElementById('campaignBarFill');
-        // Pin the $100K milestone marker to its spot on the bar, derived from the
-        // same goal as the fill so the tick stays on the real $100,000 point.
-        var markerEl = document.getElementById('campaignMarker100k');
-        if (markerEl) markerEl.style.left = Math.min(100, 100000 / CAMPAIGN_GOAL * 100) + '%';
+        // Build the "sticky" milestone ticks: fixed markers pinned where each
+        // amount falls on the bar, positioned from the same goal as the fill so
+        // they always land on their real dollar points. Add a number to extend.
+        var trackEl = document.getElementById('campaignBarTrack');
+        var MILESTONES = [100000, 200000, 300000];
+        if (trackEl) {
+            MILESTONES.forEach(function (amt) {
+                var marker = document.createElement('div');
+                marker.className = 'campaign-bar-marker';
+                marker.style.left = Math.min(100, amt / CAMPAIGN_GOAL * 100) + '%';
+                var label = document.createElement('span');
+                label.className = 'campaign-bar-marker-label';
+                label.textContent = (amt / 1000) + 'K';
+                marker.appendChild(label);
+                trackEl.appendChild(marker);
+            });
+        }
         if (raisedEl) raisedEl.textContent = fmtMoney(totalRaised);
         if (fillEl) {
             // Next frame so the width animates up from 0.
