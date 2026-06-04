@@ -286,6 +286,70 @@
             white-space: nowrap;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
         }
+        /* ── Goal-reached celebration ──
+           When total raised meets CAMPAIGN_GOAL, an overlay covers the center
+           ("middle") section: big, semi-transparent goal lettering (e.g. "450K")
+           over looping bursts of fireworks. Self-contained — no external libs —
+           so it runs on the offline Pi kiosk, and every animation uses only
+           transform/opacity to stay light. JS adds .is-celebrating and spawns
+           the firework particles. */
+        .celebrate-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 30;
+            display: none;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        .celebrate-overlay.is-celebrating { display: block; }
+        .celebrate-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            line-height: 0.85;
+            white-space: nowrap;
+        }
+        .celebrate-text .amt {
+            display: block;
+            font-family: "Cormorant Garamond", "Frank Ruhl Libre", serif;
+            font-weight: 900;
+            font-size: clamp(6rem, 24vh, 18rem);
+            color: rgba(255, 224, 136, 0.2);
+            text-shadow: 0 0 50px rgba(233, 195, 73, 0.35);
+            letter-spacing: 0.02em;
+            animation: celebrate-pulse 2.6s ease-in-out infinite;
+        }
+        .celebrate-text .sub {
+            display: block;
+            margin-top: 0.2rem;
+            font-weight: 800;
+            font-size: clamp(0.9rem, 3vh, 2rem);
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            color: rgba(255, 224, 136, 0.3);
+        }
+        @keyframes celebrate-pulse {
+            0%, 100% { opacity: 0.75; transform: scale(1); }
+            50%      { opacity: 1;    transform: scale(1.04); }
+        }
+        .fw-particle {
+            position: absolute;
+            width: 7px;
+            height: 7px;
+            margin: -3.5px 0 0 -3.5px;   /* center the dot on its left/top point */
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 8px currentColor;
+            will-change: transform, opacity;
+            animation: fw-fly 1.2s ease-out forwards;
+        }
+        @keyframes fw-fly {
+            0%   { transform: translate(0, 0) scale(1.1); opacity: 1; }
+            75%  { opacity: 1; }
+            100% { transform: translate(var(--dx, 0), var(--dy, 0)) scale(0.35); opacity: 0; }
+        }
         /* ── Dedications ticker ──
            Horizontal marquee for the "taken" items so they fit on one line.
            The track holds two identical copies of the items (the second is
@@ -409,7 +473,7 @@
 <div id="fliersSection" class="hidden">
 <div id="flierSlots" class="h-full w-full flex items-stretch justify-center gap-3"></div>
 </div>
-<div id="campaignCenter" class="flex-1 min-h-0 flex flex-col gap-3">
+<div id="campaignCenter" class="relative flex-1 min-h-0 flex flex-col gap-3">
   <!-- Currently Raised — paged drum-roll: 7 teams at a time, each showing the
        amount raised and its % of that team's goal. Teams with money in only. -->
   <div id="raisedRoll" class="flex-1 min-h-0 bg-black/85 border-4 border-primary/80 rounded-sm elevated-3d overflow-hidden relative">
@@ -437,9 +501,18 @@
     </div>
     <div class="campaign-bar-track" id="campaignBarTrack">
       <div id="campaignBarFill" class="campaign-bar-fill"></div>
-      <!-- $100K / $200K / $300K milestone ticks are built in JS (see MILESTONES)
-           and appended here, each positioned via the same CAMPAIGN_GOAL the fill
+      <!-- $100K–$400K milestone ticks are built in JS (see MILESTONES) and
+           appended here, each positioned via the same CAMPAIGN_GOAL the fill
            uses so every tick lands on its real dollar point. -->
+    </div>
+  </div>
+  <!-- Goal-reached celebration — covers the middle section with big, semi-
+       transparent goal lettering + fireworks. Hidden until JS adds
+       .is-celebrating (only when total raised meets CAMPAIGN_GOAL). -->
+  <div id="celebrateOverlay" class="celebrate-overlay">
+    <div class="celebrate-text">
+      <span class="amt">450K</span>
+      <span class="sub">Goal Reached</span>
     </div>
   </div>
 </div>
@@ -1430,6 +1503,46 @@ refreshLoop();
         setTimeout(loop, opts.displayMs);
     }
 
+    // ── Goal-reached celebration ──
+    // Reveal the overlay (big semi-transparent "<goal>K" lettering) and loop
+    // gentle bursts of fireworks across the center section. Idempotent. Each
+    // particle uses transform/opacity only and is removed once it fades, so the
+    // effect stays light enough for the Pi kiosk to run it continuously.
+    function startGoalCelebration(goal) {
+        var overlay = document.getElementById('celebrateOverlay');
+        if (!overlay || overlay.classList.contains('is-celebrating')) return;
+        var amtEl = overlay.querySelector('.amt');
+        if (amtEl) amtEl.textContent = (goal / 1000) + 'K';
+        overlay.classList.add('is-celebrating');   // display:block → overlay now has size
+
+        var COLORS = ['#ffe088', '#e9c349', '#ffffff', '#ff8a5c', '#7cd6ff', '#a6ff7c', '#ff8ad8'];
+        function burst() {
+            var w = overlay.clientWidth, h = overlay.clientHeight;
+            if (!w || !h) return;
+            // Random burst center, biased toward the upper-middle of the section.
+            var cx = w * (0.12 + Math.random() * 0.76);
+            var cy = h * (0.12 + Math.random() * 0.55);
+            var n = 18;
+            for (var i = 0; i < n; i++) {
+                var ang = (Math.PI * 2 * i) / n + Math.random() * 0.35;
+                var dist = 55 + Math.random() * 85;
+                var p = document.createElement('span');
+                p.className = 'fw-particle';
+                p.style.left = cx + 'px';
+                p.style.top = cy + 'px';
+                p.style.color = COLORS[(Math.random() * COLORS.length) | 0];
+                p.style.setProperty('--dx', (Math.cos(ang) * dist).toFixed(0) + 'px');
+                // +28 → slight downward gravity so the burst arcs as it fades.
+                p.style.setProperty('--dy', (Math.sin(ang) * dist + 28).toFixed(0) + 'px');
+                p.style.animationDelay = (Math.random() * 0.08).toFixed(2) + 's';
+                overlay.appendChild(p);
+                (function (el) { setTimeout(function () { el.remove(); }, 1400); })(p);
+            }
+        }
+        burst();
+        setInterval(burst, 1100);
+    }
+
     // ── Public starter. Idempotent: the first call wins, so loadScreenData's
     //    live DB data beats the fallback timer below, and later poll-refreshes
     //    are no-ops (the drum keeps its position). When pledges is a non-empty
@@ -1455,11 +1568,11 @@ refreshLoop();
         rows.slice().sort(function (a, b) { return b.amount - a.amount; })
             .forEach(function (r, i) { r.rank = i + 1; });
 
-        // Progress bar: a line that fills toward an ASSUMED goal. No goal/scale
-        // is shown on screen (the final target isn't committed yet), but the
-        // fill needs a denominator — so use a fixed CAMPAIGN_GOAL. Change this
-        // one number if the head person settles on a different final goal.
-        var CAMPAIGN_GOAL = 430000;
+        // Progress bar: a line that fills toward the campaign goal. The bar
+        // itself shows no scale labels; the goal number is only revealed in the
+        // goal-reached celebration below. Change this one number if the final
+        // goal changes.
+        var CAMPAIGN_GOAL = 450000;
         var totalRaised = R.reduce(function (s, r) { return s + r.amount; }, 0);
         var overallPct = totalRaised / CAMPAIGN_GOAL * 100;
 
@@ -1469,7 +1582,7 @@ refreshLoop();
         // amount falls on the bar, positioned from the same goal as the fill so
         // they always land on their real dollar points. Add a number to extend.
         var trackEl = document.getElementById('campaignBarTrack');
-        var MILESTONES = [100000, 200000, 300000];
+        var MILESTONES = [100000, 200000, 300000, 400000];
         if (trackEl) {
             MILESTONES.forEach(function (amt) {
                 var marker = document.createElement('div');
@@ -1489,6 +1602,11 @@ refreshLoop();
                 fillEl.style.width = Math.min(100, overallPct).toFixed(1) + '%';
             });
         }
+
+        // Goal reached → celebrate over the middle section: big semi-transparent
+        // "<goal>K" lettering + looping fireworks. Fires once total raised meets
+        // the goal (i.e. the bar is full).
+        if (totalRaised >= CAMPAIGN_GOAL) startGoalCelebration(CAMPAIGN_GOAL);
 
         // Currently-raised roll: 7 teams per page, rolling through all of them.
         startPagedRoll({
