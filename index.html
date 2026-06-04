@@ -316,7 +316,7 @@
             font-family: "Cormorant Garamond", "Frank Ruhl Libre", serif;
             font-weight: 900;
             font-size: clamp(6rem, 24vh, 18rem);
-            color: rgba(255, 224, 136, 0.2);
+            color: rgba(255, 224, 136, 0.25);
             text-shadow: 0 0 50px rgba(233, 195, 73, 0.35);
             letter-spacing: 0.02em;
             animation: celebrate-pulse 2.6s ease-in-out infinite;
@@ -461,7 +461,7 @@
      a single horizontal flier fills the width and a single vertical fits the
      height without stretching.
      pt-20 reserves vertical space for the logo badge hanging down from the nav. -->
-<div class="col-span-5 flex flex-col min-h-0 gap-2 pt-20">
+<div class="col-span-5 relative flex flex-col min-h-0 gap-2 pt-20">
 <!-- Building Campaign — center modal replacing the prior #fliersSection
      image strip. One paged "Currently Raised" drum-roll: 7 teams at a time
      (teams with money in only), each showing the amount raised and its % of
@@ -473,7 +473,7 @@
 <div id="fliersSection" class="hidden">
 <div id="flierSlots" class="h-full w-full flex items-stretch justify-center gap-3"></div>
 </div>
-<div id="campaignCenter" class="relative flex-1 min-h-0 flex flex-col gap-3">
+<div id="campaignCenter" class="flex-1 min-h-0 flex flex-col gap-3">
   <!-- Currently Raised — paged drum-roll: 7 teams at a time, each showing the
        amount raised and its % of that team's goal. Teams with money in only. -->
   <div id="raisedRoll" class="flex-1 min-h-0 bg-black/85 border-4 border-primary/80 rounded-sm elevated-3d overflow-hidden relative">
@@ -506,15 +506,6 @@
            uses so every tick lands on its real dollar point. -->
     </div>
   </div>
-  <!-- Goal-reached celebration — covers the middle section with big, semi-
-       transparent goal lettering + fireworks. Hidden until JS adds
-       .is-celebrating (only when total raised meets CAMPAIGN_GOAL). -->
-  <div id="celebrateOverlay" class="celebrate-overlay">
-    <div class="celebrate-text">
-      <span class="amt">450K</span>
-      <span class="sub">Goal Reached</span>
-    </div>
-  </div>
 </div>
 <!-- Text Announcements (Mazel Tov / Refuah Shleima / etc.) — bottom strip, max 2. -->
 <div id="communitySlots" class="flex-none flex items-stretch justify-center gap-3 hidden"></div>
@@ -528,6 +519,16 @@
   <span class="label-smallcaps font-bold text-primary/70 text-[11px] tracking-wider shrink-0">Dedications Taken</span>
   <div class="flex-1 min-w-0 overflow-hidden">
     <div id="dedTickerTrack" class="ded-ticker-track"></div>
+  </div>
+</div>
+<!-- Goal-reached celebration — covers the WHOLE middle panel (donations roll,
+     progress bar, and the strips below) with big semi-transparent goal
+     lettering + fireworks. Hidden until JS adds .is-celebrating, which happens
+     only when total raised meets CAMPAIGN_GOAL. -->
+<div id="celebrateOverlay" class="celebrate-overlay">
+  <div class="celebrate-text">
+    <span class="amt">450K</span>
+    <span class="sub">Goal Reached</span>
   </div>
 </div>
 </div>
@@ -1519,9 +1520,9 @@ refreshLoop();
         function burst() {
             var w = overlay.clientWidth, h = overlay.clientHeight;
             if (!w || !h) return;
-            // Random burst center, biased toward the upper-middle of the section.
-            var cx = w * (0.12 + Math.random() * 0.76);
-            var cy = h * (0.12 + Math.random() * 0.55);
+            // Random burst center spread across the whole middle panel.
+            var cx = w * (0.1 + Math.random() * 0.8);
+            var cy = h * (0.1 + Math.random() * 0.78);
             var n = 18;
             for (var i = 0; i < n; i++) {
                 var ang = (Math.PI * 2 * i) / n + Math.random() * 0.35;
