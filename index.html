@@ -229,63 +229,6 @@
             text-transform: uppercase;
             letter-spacing: 0.04em;
         }
-        /* ── Campaign progress bar (bottom of the center column) ──
-           A bare filling line — no goal/scale labels. The fill is total raised
-           as a share of an assumed goal (CAMPAIGN_GOAL in JS). */
-        .campaign-bar-track {
-            position: relative;
-            height: 1.6rem;
-            border-radius: 9999px;
-            background: rgba(0, 0, 0, 0.55);
-            border: 1px solid rgba(233, 195, 73, 0.35);
-            overflow: hidden;
-            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6);
-        }
-        .campaign-bar-fill {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            border-radius: 9999px;
-            background: linear-gradient(90deg, #8b6b00 0%, #e9c349 55%, #ffe088 100%);
-            box-shadow: 0 0 14px rgba(233, 195, 73, 0.55);
-            transition: width 1200ms cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        /* ── $100K milestone marker ──
-           A "sticky" tick pinned at the spot on the bar where $100,000 falls
-           (left % set in JS from the same CAMPAIGN_GOAL the fill uses). It's a
-           fixed line — it does not move with the fill — flagging the milestone
-           we crossed. The dark gold-bordered pill keeps "100K" legible whether
-           the fill has reached it (gold behind) or not (dark behind). */
-        .campaign-bar-marker {
-            position: absolute;
-            top: -1px;
-            bottom: -1px;
-            width: 2px;
-            margin-left: -1px;        /* center the 2px line on the exact point */
-            background: rgba(10, 7, 6, 0.7);
-            box-shadow: 0 0 0 1px rgba(255, 224, 136, 0.5);
-            z-index: 2;               /* sit above the fill */
-            pointer-events: none;
-        }
-        .campaign-bar-marker-label {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            padding: 0.05rem 0.32rem;
-            border-radius: 9999px;
-            background: rgba(10, 7, 6, 0.82);
-            border: 1px solid rgba(233, 195, 73, 0.6);
-            color: #ffe088;
-            font-size: 0.62rem;
-            font-weight: 800;
-            line-height: 1;
-            letter-spacing: 0.06em;
-            white-space: nowrap;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-        }
         /* ── Goal-reached celebration ──
            When total raised meets CAMPAIGN_GOAL, an overlay covers the center
            ("middle") section: big, semi-transparent goal lettering (e.g. "450K")
@@ -349,23 +292,6 @@
             0%   { transform: translate(0, 0) scale(1.4); opacity: 1; }
             75%  { opacity: 1; }
             100% { transform: translate(var(--dx, 0), var(--dy, 0)) scale(0.5); opacity: 0; }
-        }
-        /* ── Dedications ticker ──
-           Horizontal marquee for the "taken" items so they fit on one line.
-           The track holds two identical copies of the items (the second is
-           cloned in JS); sliding it -50% scrolls exactly one copy, so the loop
-           is seamless. Per-item margin (incl. the last) keeps spacing uniform
-           across the wrap point. */
-        .ded-ticker-track {
-            display: inline-flex;
-            align-items: center;
-            white-space: nowrap;
-            will-change: transform;
-            animation: ded-ticker 22s linear infinite;
-        }
-        @keyframes ded-ticker {
-            from { transform: translateX(0); }
-            to   { transform: translateX(-50%); }
         }
     </style>
 </head>
@@ -490,39 +416,11 @@
       <div id="rpageB" class="team-page roll-in-start" style="opacity:0;"></div>
     </div>
   </div>
-
-  <!-- Campaign progress bar — just a filling line, no goal/scale labels. The
-       fill ratio uses an assumed goal (CAMPAIGN_GOAL in JS), so nothing on
-       screen commits to a public final-goal number. -->
-  <div id="campaignBar" class="shrink-0 bg-black/70 border-4 border-primary/60 rounded-sm elevated-3d px-4 py-2">
-    <div class="flex items-baseline justify-between mb-2">
-      <p class="label-smallcaps font-bold text-primary/85 text-sm">Total Raised</p>
-      <p class="tabular-nums font-bold text-primary text-sm"><span id="campaignRaised">—</span></p>
-    </div>
-    <div class="campaign-bar-track" id="campaignBarTrack">
-      <div id="campaignBarFill" class="campaign-bar-fill"></div>
-      <!-- $100K–$400K milestone ticks are built in JS (see MILESTONES) and
-           appended here, each positioned via the same CAMPAIGN_GOAL the fill
-           uses so every tick lands on its real dollar point. -->
-    </div>
-  </div>
 </div>
 <!-- Text Announcements (Mazel Tov / Refuah Shleima / etc.) — bottom strip, max 2. -->
 <div id="communitySlots" class="flex-none flex items-stretch justify-center gap-3 hidden"></div>
-<!-- Dedications taken — compact bottom ticker. The reserved items scroll as a
-     horizontal marquee (label stays fixed) so they all fit on one line. The
-     list is data-driven (data.dedications, managed at /campaign.html); JS fills
-     #dedTickerTrack with two copies of the list so the -50% scroll loops
-     seamlessly. Each item carries mr-11 (incl. the last) for even spacing
-     across the wrap. Hidden when the list is empty. -->
-<div id="dedicationsTaken" class="flex-none flex items-center gap-3 bg-black/60 border border-primary/30 rounded-sm px-3 py-1 overflow-hidden">
-  <span class="label-smallcaps font-bold text-primary/70 text-[11px] tracking-wider shrink-0">Dedications Taken</span>
-  <div class="flex-1 min-w-0 overflow-hidden">
-    <div id="dedTickerTrack" class="ded-ticker-track"></div>
-  </div>
-</div>
-<!-- Goal-reached celebration — covers the WHOLE middle panel (donations roll,
-     progress bar, and the strips below) with big semi-transparent goal
+<!-- Goal-reached celebration — covers the WHOLE middle panel (donations roll
+     and the announcement strip below) with big semi-transparent goal
      lettering + fireworks. Hidden until JS adds .is-celebrating, which happens
      only when total raised meets CAMPAIGN_GOAL. -->
 <div id="celebrateOverlay" class="celebrate-overlay">
@@ -645,37 +543,6 @@
 // ========================================
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-// ── Building Campaign dedications ticker ──
-// Items come from the campaign_dedications table via get-data (data.dedications)
-// and are managed at /campaign.html. The track holds two copies of the list so
-// the CSS marquee (.ded-ticker-track, animating to -50%) loops seamlessly. We
-// only re-render when the list changes, so normal polls don't disturb the
-// running scroll. undefined (table missing / offline) → baked-in fallback;
-// an explicit empty list → hide the strip.
-var FALLBACK_DEDICATIONS = ["Sha'ar Habinyan", "Paroches", "Ner Tamid", "Rav's Shtender", "Amud"];
-function renderDedicationsTicker(list) {
-    var track = document.getElementById('dedTickerTrack');
-    var strip = document.getElementById('dedicationsTaken');
-    if (!track || !strip) return;
-    var items = (list === undefined || list === null) ? FALLBACK_DEDICATIONS : list;
-    items = (items || [])
-        .map(function (s) { return String(s == null ? '' : s).replace(/\s+/g, ' ').trim(); })
-        .filter(function (s) { return s; });
-    var key = JSON.stringify(items);
-    if (key === window.__dedKey) return;   // unchanged — leave the running marquee alone
-    window.__dedKey = key;
-    if (!items.length) { strip.classList.add('hidden'); track.innerHTML = ''; return; }
-    strip.classList.remove('hidden');
-    var one = items.map(function (name) {
-        return '<span class="inline-flex items-center gap-1.5 mr-11 text-secondary text-sm font-semibold whitespace-nowrap">'
-            + esc(name)
-            + '<span class="bg-primary text-on-primary text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">Taken</span></span>';
-    }).join('');
-    track.innerHTML = one + one;   // duplicate for the seamless -50% loop
-}
-// Safety net: show the baked-in list if no data has arrived shortly after load.
-setTimeout(function () { if (window.__dedKey === undefined) renderDedicationsTicker(undefined); }, 4000);
-
 // Parse "7:00" or "7:00 PM" to minutes since midnight
 function parseTimeToMin(t) {
     if (!t) return 0;
@@ -785,9 +652,6 @@ async function loadScreenData() {
     if (window.__startCampaignRolls) {
         window.__startCampaignRolls(data.pledges, data.raised);
     }
-
-    // Building Campaign dedications ticker (bottom strip).
-    renderDedicationsTicker(data.dedications);
 
     // ── Zmanim ──
     if (data.zmanim) {
@@ -1576,44 +1440,14 @@ refreshLoop();
         rows.slice().sort(function (a, b) { return b.amount - a.amount; })
             .forEach(function (r, i) { r.rank = i + 1; });
 
-        // Progress bar: a line that fills toward the campaign goal. The bar
-        // itself shows no scale labels; the goal number is only revealed in the
-        // goal-reached celebration below. Change this one number if the final
-        // goal changes.
+        // Campaign goal — only used to trigger the goal-reached celebration;
+        // nothing on screen shows the goal itself. Change this one number if
+        // the final goal changes.
         var CAMPAIGN_GOAL = 450000;
         var totalRaised = R.reduce(function (s, r) { return s + r.amount; }, 0);
-        var overallPct = totalRaised / CAMPAIGN_GOAL * 100;
-
-        var raisedEl = document.getElementById('campaignRaised');
-        var fillEl   = document.getElementById('campaignBarFill');
-        // Build the "sticky" milestone ticks: fixed markers pinned where each
-        // amount falls on the bar, positioned from the same goal as the fill so
-        // they always land on their real dollar points. Add a number to extend.
-        var trackEl = document.getElementById('campaignBarTrack');
-        var MILESTONES = [100000, 200000, 300000, 400000];
-        if (trackEl) {
-            MILESTONES.forEach(function (amt) {
-                var marker = document.createElement('div');
-                marker.className = 'campaign-bar-marker';
-                marker.style.left = Math.min(100, amt / CAMPAIGN_GOAL * 100) + '%';
-                var label = document.createElement('span');
-                label.className = 'campaign-bar-marker-label';
-                label.textContent = (amt / 1000) + 'K';
-                marker.appendChild(label);
-                trackEl.appendChild(marker);
-            });
-        }
-        if (raisedEl) raisedEl.textContent = fmtMoney(totalRaised);
-        if (fillEl) {
-            // Next frame so the width animates up from 0.
-            requestAnimationFrame(function () {
-                fillEl.style.width = Math.min(100, overallPct).toFixed(1) + '%';
-            });
-        }
 
         // Goal reached → celebrate over the middle section: big semi-transparent
-        // total-raised lettering (e.g. "$475K") + looping fireworks. Fires once
-        // total raised meets the goal (i.e. the bar is full).
+        // total-raised lettering (e.g. "$475K") + looping fireworks.
         if (totalRaised >= CAMPAIGN_GOAL) startGoalCelebration(totalRaised);
 
         // Currently-raised roll: 7 teams per page, rolling through all of them.
