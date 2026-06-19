@@ -134,6 +134,12 @@
     if (z.shkia) lines.push('Shkiya - ' + z.shkia);
     if (shiurMap['פרקי אבות']) lines.push('Pirkei Avos - ' + shiurMap['פרקי אבות']);
     if (z.maariv) lines.push('Mariv - ' + z.maariv);
+    // Optional free-text poster line — appended at the very end.
+    const note = (z.scheduleNote || '').trim();
+    if (note) {
+      lines.push('');
+      lines.push(note);
+    }
     return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
   }
 
