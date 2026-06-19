@@ -56,10 +56,19 @@ function drawRtl(page, font, text, xRight, y, size, options = {}) {
 }
 
 function drawCenteredRtl(page, font, text, centerX, y, size, maxWidth, options = {}) {
+    const minSize = options.minSize || 10;
     let finalSize = size;
     let visual = visualRtl(text);
-    while (maxWidth && finalSize > 10 && textWidth(font, visual, finalSize) > maxWidth) {
+    while (maxWidth && finalSize > minSize && textWidth(font, visual, finalSize) > maxWidth) {
         finalSize -= 1;
+    }
+    // Last resort: if it still overflows at the smallest allowed size, clip with
+    // an ellipsis so the line can never spill past maxWidth (the in-border width).
+    if (maxWidth && options.truncate && textWidth(font, visual, finalSize) > maxWidth) {
+        while (visual.length > 1 && textWidth(font, visual + '…', finalSize) > maxWidth) {
+            visual = visual.slice(0, -1);
+        }
+        visual = visual.replace(/\s+$/, '') + '…';
     }
     drawTextLayer(page, visual, centerX - textWidth(font, visual, finalSize) / 2, y, finalSize, font, options);
     return finalSize;
@@ -177,10 +186,17 @@ async function renderSchedulePdf(payload) {
         if (groupIndex < groups.length - 1) y -= between;
     });
 
+    // Optional free-text line the gabbai enters in the backend (stored via
+    // api/poster-note, surfaced as zmanim.scheduleNote). Centered inside the
+    // cream panel, above the address footer. drawCenteredRtl auto-shrinks to
+    // fit width; the source caps the length so it never bottoms out. maxWidth
+    // matches the headline's in-border width so the line clears the border art.
     const note = (z.scheduleNote || '').trim();
     if (note) {
-        drawCenteredRtl(page, bodyFont, note, width / 2, height * 0.115, 13, width * 0.68, {
+        drawCenteredRtl(page, bodyFont, note, width / 2, height * 0.115, 13, width * 0.66, {
             color: rgb(0.40, 0.44, 0.54),
+            minSize: 8,
+            truncate: true,
         });
     }
 

@@ -229,6 +229,18 @@ module.exports = async function handler(req, res) {
             console.error('screen_data read failed:', err);
         }
 
+        // Optional free-text line printed at the bottom of the poster. Lives in
+        // its own table (api/poster-note) so a full screen_data save can't
+        // clobber it. Non-fatal if the table doesn't exist yet — older
+        // deployments just render no note.
+        let posterNote = '';
+        try {
+            const pnRows = await sql`SELECT note FROM poster_note WHERE id = 1 LIMIT 1`;
+            posterNote = (pnRows[0] && pnRows[0].note) || '';
+        } catch (err) {
+            console.error('poster_note read failed:', err);
+        }
+
         // Shiur time helpers:
         //   halacha shiur  = Shabbos Mincha - 20 min
         //   pirkei avos    = Maariv - 15 min, rounded to nearest 5
@@ -290,6 +302,9 @@ module.exports = async function handler(req, res) {
                 // Kids learning (admin free-text in screen_data.zmanim)
                 pircheiTime: pircheiTime || null,
                 avosUbanimTime: avosUbanimTime || null,
+                // Free-text poster footer line (api/poster-note). The PDF
+                // renderer draws this inside the cream panel above the address.
+                scheduleNote: posterNote || null,
                 // Rav shiurim (driven by admin toggles, time computed from Mincha/Maariv).
                 // Each is null when the toggle is off — frontend uses that to omit the row.
                 shiurim: [
