@@ -296,6 +296,27 @@ tailwind.config = {
         </div>
     </section>
 
+    <!-- Photo Display (rotating) — the center column's fallback when no flier
+         is active. The kiosk rotates through these photos; the moment a flier
+         is added above, the flier takes over the center and these hide. Photos
+         upload through the same Blob pipeline as fliers. -->
+    <section class="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
+        <div class="bg-gray-800/50 px-4 sm:px-6 py-3 flex items-center gap-2 border-b border-gray-800">
+            <span class="material-symbols-outlined text-gold">collections</span>
+            <h2 class="text-base sm:text-lg font-bold text-gold">Photo Display</h2>
+            <span id="photoCount" class="text-xs text-gray-500 ml-auto"></span>
+        </div>
+        <div class="px-4 sm:px-6 pt-3 text-[11px] text-gray-500">
+            Rotating pictures for the center of the screen. They show only when <span class="text-gray-400">no flier</span> is set above — add a flier and it takes over; remove it and these come back. Add as many as you like; they cross-fade every few seconds.
+        </div>
+        <div id="photosContainer" class="p-4 sm:p-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4"></div>
+        <div class="px-4 sm:px-6 pb-4 sm:pb-6">
+            <button id="addPhotoBtn" onclick="addPhoto()" class="text-sm text-gold hover:text-yellow-300 flex items-center gap-1 transition active:scale-95">
+                <span class="material-symbols-outlined text-lg">add_circle</span> Add Photo
+            </button>
+        </div>
+    </section>
+
     <!-- Community Announcements (text, max 2) -->
     <section class="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
         <div class="bg-gray-800/50 px-4 sm:px-6 py-3 flex items-center gap-2 border-b border-gray-800">
@@ -630,6 +651,48 @@ function updateFlierCount() {
     if (!btn) return;
     if (count >= 2) { btn.classList.add('opacity-50', 'pointer-events-none'); }
     else { btn.classList.remove('opacity-50', 'pointer-events-none'); }
+}
+
+// ========================================
+// PHOTO DISPLAY (rotating center-column pictures)
+// ========================================
+// These reuse the flier image pipeline: each card carries the same
+// .ann-img-* element structure so handleImg/removeImg/queueFlierUpload/
+// deleteFlierBlob work unchanged. Cards are intentionally NOT given the
+// .commflier-card class so handleImg skips event-date detection (photos
+// are evergreen — no expiry). No 2-cap: a rotation can hold many pictures.
+function updatePhotoCount() {
+    const count = document.querySelectorAll('#photosContainer > div').length;
+    const countEl = document.getElementById('photoCount');
+    if (countEl) countEl.textContent = count === 0 ? 'none yet' : (count + ' photo' + (count === 1 ? '' : 's'));
+}
+
+function addPhoto(imageUrl, imageData) {
+    const container = document.getElementById('photosContainer');
+    const div = document.createElement('div');
+    div.className = 'photo-card bg-gray-800/50 rounded-lg p-2 sm:p-3 relative';
+    // Blob URL (CDN-served) wins over an embedded data URL on initial render.
+    const renderSrc = imageUrl || imageData || '';
+    const hasImage = renderSrc ? 'true' : 'false';
+    const blobUrlAttr = imageUrl ? imageUrl : '';
+    div.innerHTML = `
+        <button type="button" onclick="this.closest('.photo-card').remove(); updatePhotoCount();" title="Remove this photo" class="absolute top-1 right-1 z-10 text-gray-400 hover:text-red-400 active:text-red-400 bg-gray-900/80 rounded-full p-0.5 transition">
+            <span class="material-symbols-outlined text-lg">cancel</span>
+        </button>
+        <img class="ann-img-preview w-full aspect-square object-contain rounded border border-gray-700 bg-black cursor-pointer ${renderSrc ? '' : 'hidden'}" src="${esc(renderSrc)}" data-has-image="${hasImage}" data-blob-url="${esc(blobUrlAttr)}" onclick="this.parentElement.querySelector('.ann-img-input').click()" title="Click to replace"/>
+        <div class="ann-img-placeholder w-full aspect-square rounded border-2 border-dashed border-gray-600 flex flex-col items-center justify-center bg-gray-800 cursor-pointer hover:border-gold/50 active:border-gold/50 transition ${renderSrc ? 'hidden' : ''}" onclick="this.parentElement.querySelector('.ann-img-input').click()">
+            <span class="material-symbols-outlined text-2xl text-gray-500">add_photo_alternate</span>
+            <p class="text-[10px] text-gray-500 mt-0.5">Upload</p>
+        </div>
+        <input type="file" accept="image/*" class="ann-img-input hidden" onchange="handleImg(event, this.parentElement)"/>`;
+    container.appendChild(div);
+    updatePhotoCount();
+    // When invoked from the "Add Photo" button (no preset image), open the
+    // file picker immediately so it feels like a one-tap upload pad.
+    if (!renderSrc) {
+        const input = div.querySelector('.ann-img-input');
+        if (input) input.click();
+    }
 }
 
 function addFlier(title, desc, imageData, eventDate, eventDateNote, imageUrl) {
@@ -1228,6 +1291,15 @@ async function loadDataInner() {
     legacyFliers.slice(0, 2).forEach(function(f) {
         addFlier(f.title, f.description, f.imageData, f.eventDate, f.eventDateNote, f.imageUrl);
     });
+    // Rotating photo display — evergreen pictures shown when no flier is set.
+    if (Array.isArray(data.photos)) {
+        data.photos.forEach(function(p) {
+            if (!p) return;
+            if (typeof p === 'string') { addPhoto(p, ''); return; }
+            addPhoto(p.imageUrl, p.imageData);
+        });
+    }
+    updatePhotoCount();
     if (data.community) data.community.forEach(function(c) { addCommunity(c.label, c.names, c.sub); });
     if (data.schedule) data.schedule.forEach(function(s) { addScheduleItem(s.label, s.time); });
     if (data.shiurim) data.shiurim.forEach(function(s) { addShiur(s.label, s.time); });
@@ -1352,6 +1424,20 @@ async function saveAll() {
             eventDateNote: eventDateNote || ''
         });
     });
+    // Rotating photo display (center column fallback when no flier is set).
+    // Same image-storage rule as fliers: prefer the Blob URL, fall back to the
+    // base64 src only if the upload hasn't landed yet. Cards with no image are
+    // skipped. No cap — a rotation can hold many pictures.
+    const photos = [];
+    document.querySelectorAll('#photosContainer > div').forEach(function(el) {
+        var imgEl = el.querySelector('.ann-img-preview');
+        if (!imgEl) return;
+        var hasImage = imgEl.dataset.hasImage === 'true';
+        var blobUrl = imgEl.dataset.blobUrl || '';
+        var imgData = (hasImage && !blobUrl && imgEl.src && imgEl.src.startsWith('data:')) ? imgEl.src : '';
+        if (!blobUrl && !imgData) return;
+        photos.push({ imageUrl: blobUrl || '', imageData: imgData });
+    });
     const community = [];
     document.querySelectorAll('#communityContainer > div').forEach(function(el) {
         community.push({ label: el.querySelector('.comm-label').value, names: el.querySelector('.comm-names').value, sub: el.querySelector('.comm-sub').value });
@@ -1407,7 +1493,7 @@ async function saveAll() {
         avosUbanimTime: document.getElementById('zAvosUbanim').value.trim(),
     };
     const data = {
-        sponsors, fliers, community, schedule, shiurim, sederLimud, zmanim,
+        sponsors, fliers, photos, community, schedule, shiurim, sederLimud, zmanim,
         infoBar: { hebrew: document.getElementById('infoHebrew').value, welcome: document.getElementById('infoWelcome').value, reminder: document.getElementById('infoReminder').value },
         zecherNishmas: document.getElementById('zecherNishmas').value.trim(),
         updatedAt: new Date().toISOString()

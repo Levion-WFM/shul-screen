@@ -266,8 +266,16 @@
      headline, then a live countdown of days remaining until the deadline.
      #fliersSection is intentionally retained as a hidden sibling so the
      existing fliers backend code keeps working (just never visible). -->
-<div id="fliersSection" class="hidden">
+<div id="fliersSection" class="hidden flex-1 min-h-0">
 <div id="flierSlots" class="h-full w-full flex items-stretch justify-center gap-3"></div>
+</div>
+<!-- Rotating Photo Display — shows ONLY when no flier is active. The admin
+     curates the photo set from the backend ("Photo Display" section); it
+     travels in data.photos as Blob URLs (same upload pipeline as fliers).
+     Center-column priority: flier (if any) → rotating photos (if any) →
+     campaign panel. A single <img> cross-fades via an opacity transition. -->
+<div id="photosSection" class="hidden flex-1 min-h-0 flex items-center justify-center overflow-hidden">
+<img id="rotatingPhoto" class="max-h-full max-w-full object-contain elevated-3d border-4 border-primary/60 rounded-sm transition-opacity duration-700 ease-in-out" src="" alt=""/>
 </div>
 <div id="campaignCenter" class="flex-1 min-h-0 flex flex-col">
   <div class="flex-1 min-h-0 bg-black/85 border-4 border-primary/80 rounded-sm elevated-3d overflow-hidden relative flex flex-col items-center justify-center text-center gap-6 px-6">
@@ -406,6 +414,38 @@
 // DATA LAYER
 // ========================================
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── Rotating photo display ──
+// Cross-fades through a list of image URLs in #rotatingPhoto. Driven by
+// loadScreenData() whenever there are photos and no flier. The timer is held
+// at module scope so each data refresh (every 5 min) can stop the old loop
+// before starting a new one — otherwise stacked intervals would fight over
+// the same <img>.
+var _photoRotationTimer = null;
+function stopPhotoRotation() {
+    if (_photoRotationTimer) { clearInterval(_photoRotationTimer); _photoRotationTimer = null; }
+}
+function startPhotoRotation(urls) {
+    stopPhotoRotation();
+    var img = document.getElementById('rotatingPhoto');
+    if (!img || !urls || !urls.length) return;
+    var idx = 0;
+    img.style.opacity = '1';
+    img.src = urls[0];
+    // A single photo has nothing to rotate to — just display it.
+    if (urls.length === 1) return;
+    _photoRotationTimer = setInterval(function() {
+        idx = (idx + 1) % urls.length;
+        var next = urls[idx];
+        // Fade out, swap source once invisible, fade back in. The 700ms here
+        // matches the duration-700 transition on the <img> element.
+        img.style.opacity = '0';
+        setTimeout(function() {
+            img.src = next;
+            img.style.opacity = '1';
+        }, 700);
+    }, 8000); // 8s per photo
+}
 
 // Parse "7:00" or "7:00 PM" to minutes since midnight
 function parseTimeToMin(t) {
@@ -861,6 +901,44 @@ async function loadScreenData() {
             fHtml += '</div>';
         });
         flierSlots.innerHTML = fHtml;
+    }
+
+    // ── Rotating Photo Display ──
+    // Curated photos that rotate in the center column, but ONLY when no flier
+    // is active. Priority: a flier (if present) owns the center; otherwise
+    // these photos rotate; otherwise the campaign panel shows. The admin
+    // adds/removes photos from the backend's "Photo Display" section and they
+    // arrive in data.photos as Blob URLs (with a legacy base64 fallback).
+    var photosSection = document.getElementById('photosSection');
+    var campaignCenter = document.getElementById('campaignCenter');
+    var photos = [];
+    if (Array.isArray(data.photos)) {
+        photos = data.photos.map(function(p) {
+            if (!p) return '';
+            if (typeof p === 'string') {
+                return (p.indexOf('http') === 0 || p.startsWith('data:')) ? p : '';
+            }
+            if (typeof p.imageUrl === 'string' && p.imageUrl.indexOf('http') === 0) return p.imageUrl;
+            if (typeof p.imageData === 'string' && p.imageData.length > 10 && p.imageData.startsWith('data:')) return p.imageData;
+            return '';
+        }).filter(Boolean);
+    }
+
+    if (fliers.length > 0) {
+        // A flier is up — it owns the center column. Hide photos + campaign.
+        photosSection.classList.add('hidden');
+        campaignCenter.classList.add('hidden');
+        stopPhotoRotation();
+    } else if (photos.length > 0) {
+        // No flier, but the admin has photos — rotate them, hide the campaign.
+        photosSection.classList.remove('hidden');
+        campaignCenter.classList.add('hidden');
+        startPhotoRotation(photos);
+    } else {
+        // Nothing to show in the photo slot — fall back to the campaign panel.
+        photosSection.classList.add('hidden');
+        campaignCenter.classList.remove('hidden');
+        stopPhotoRotation();
     }
 
     // ── Text Announcements (max 2, horizontal, each on black bg with own gold rim) ──
