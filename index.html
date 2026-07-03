@@ -228,8 +228,12 @@
 <div id="photosSection" class="hidden flex-1 min-h-0 flex items-center justify-center overflow-hidden">
 <img id="rotatingPhoto" class="max-h-full max-w-full object-contain elevated-3d border-4 border-primary/60 rounded-sm transition-opacity duration-700 ease-in-out" src="" alt=""/>
 </div>
-<!-- Text Announcements (Mazel Tov / Refuah Shleima / etc.) — bottom strip, max 2. -->
-<div id="communitySlots" class="flex-none flex items-stretch justify-center gap-3 hidden"></div>
+<!-- Text Announcements (Mazel Tov / Refuah Shleima / etc.) — bottom strip, max 2.
+     mt-auto pins this strip to the bottom of the center column even when both
+     flex-1 siblings above (#fliersSection / #photosSection) are hidden — i.e.
+     when there's no flier and no photos. Without it the strip floats up to the
+     top of the empty column (the regression this fixes). -->
+<div id="communitySlots" class="flex-none mt-auto flex items-stretch justify-center gap-3 hidden"></div>
 </div>
 <!-- Right Column: Shabbat Zmanim & Sponsor -->
 <div class="col-span-3 flex flex-col gap-4 min-h-0">
