@@ -237,8 +237,30 @@
 </div>
 <!-- Right Column: Shabbat Zmanim & Sponsor -->
 <div class="col-span-3 flex flex-col gap-4 min-h-0">
+<!-- Yom Tov season plate — during Yomim Noraim/Succos the shabbos_zmanim table has
+     no regular-Shabbos rows (every Shabbos is Yom Tov); the full chag schedule is a
+     flier in the center panel. This gold plate stands in for the Shabbos card and
+     points there. Toggled by applyYomTovMode() below on a date window, so it
+     disappears by itself after the season — nobody has to remember to turn it off. -->
+<div id="yomtovCard" class="brass-plaque hidden flex-col flex-1 min-h-0 rounded-sm relative overflow-hidden">
+<div class="absolute top-2 left-2 w-1 h-1 rounded-full bg-black/20 shadow-inner"></div>
+<div class="absolute top-2 right-2 w-1 h-1 rounded-full bg-black/20 shadow-inner"></div>
+<div class="absolute bottom-2 left-2 w-1 h-1 rounded-full bg-black/20 shadow-inner"></div>
+<div class="absolute bottom-2 right-2 w-1 h-1 rounded-full bg-black/20 shadow-inner"></div>
+<div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none"></div>
+<div class="relative z-10 flex-1 min-h-0 flex flex-col items-center justify-center text-center px-6 gap-6" dir="rtl">
+<div>
+<h2 class="font-headline text-on-primary font-bold text-5xl leading-tight tracking-wide drop-shadow-sm">ימים נוראים</h2>
+<h2 class="font-headline text-on-primary font-bold text-5xl leading-tight tracking-wide drop-shadow-sm">וסוכות</h2>
+<p class="font-headline text-on-primary/80 font-bold text-3xl mt-2">תשפ&quot;ז</p>
+</div>
+<div class="h-px bg-on-primary/30 w-3/4 mx-auto"></div>
+<p class="text-on-primary font-bold text-2xl leading-relaxed">כל זמני התפילות לחגים<br/>מופיעים בלוח שבמרכז המסך&nbsp;◄</p>
+<p id="yomtovGreeting" class="font-headline text-on-primary/90 font-bold text-2xl"></p>
+</div>
+</div>
 <!-- Shabbat Zmanim — inline design (label on right, time on left) to match Weekly Schedule -->
-<div class="bg-surface-container-high elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 min-h-0 rounded-sm overflow-hidden">
+<div id="shabbosCard" class="bg-surface-container-high elevated-3d border-t-4 gold-border-3d flex flex-col flex-1 min-h-0 rounded-sm overflow-hidden">
 <!-- Header: "שבת [Parsha]" — parsha lives in the header now, no bottom band -->
 <div class="text-center py-1.5 border-b border-white/10 bg-black/40 shrink-0">
 <h2 class="text-primary font-headline text-2xl tracking-[0.2em] font-bold leading-none" dir="rtl">
@@ -977,6 +999,39 @@ async function refreshLoop() {
     setTimeout(refreshLoop, 5 * 60 * 1000);
 }
 refreshLoop();
+
+// ── Yom Tov season mode (Yomim Noraim + Succos 5787) ──
+// Swaps the Shabbos card for the gold season plate through isru chag Simchas
+// Torah, then auto-reverts. Date-window driven (not data-driven) because the
+// season includes a regular Shabbos (Shuva) that should ALSO defer to the
+// center-panel schedule. Re-checked hourly so the long-running kiosk flips
+// back on its own. NOTE: reload shabbos_zmanim (zmanim-editor.html) before
+// Shabbos Bereishis Oct 10 — the table's last row is 2026-09-05.
+(function startYomTovMode() {
+    var YOMTOV_MODE_END = '2026-10-05'; // last day the plate shows (isru chag)
+    function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+    function apply() {
+        var shabbosCard = document.getElementById('shabbosCard');
+        var yomtovCard = document.getElementById('yomtovCard');
+        if (!shabbosCard || !yomtovCard) return;
+        var d = new Date();
+        var todayStr = d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+        var on = todayStr <= YOMTOV_MODE_END;
+        shabbosCard.classList.toggle('hidden', on);
+        yomtovCard.classList.toggle('hidden', !on);
+        yomtovCard.classList.toggle('flex', on);
+        // Season-appropriate greeting: through Rosh Hashanah / until Yom Kippur / Succos.
+        var greetEl = document.getElementById('yomtovGreeting');
+        if (greetEl) {
+            greetEl.textContent =
+                todayStr <= '2026-09-13' ? 'כתיבה וחתימה טובה' :
+                todayStr <= '2026-09-21' ? 'גמר חתימה טובה' :
+                'א גוט יום טוב';
+        }
+    }
+    apply();
+    setInterval(apply, 60 * 60 * 1000);
+})();
 
 // ── Precision wall clock ──
 // Used for time-sensitive religious decisions (sof zman tefillah, candle lighting,
