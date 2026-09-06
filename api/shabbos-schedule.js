@@ -86,8 +86,22 @@ module.exports = async function handler(req, res) {
 
         try {
             // Upsert each row. Times are free-form strings ("7:13", "6:51 AM", etc.) — we don't try to parse.
+            // Rows with NO content are skipped, not upserted: backend.html's Save
+            // always POSTs the upcoming Saturday's form, and when the season has no
+            // regular Shabbos (form blank because shabbos_zmanim has no row to
+            // prefill) the all-null insert trips the table's NOT NULL parsha
+            // constraint — a 500 on every save. parsha itself coalesces to '' so a
+            // partial row (times without a parsha) can't hit the same constraint.
+            const contentFields = [
+                'parsha', 'candle_lighting', 'mincha_a', 'plag_hamincha',
+                'mincha_erev_shabbos', 'shacharit', 'mincha_shabbos', 'maariv',
+                'shkia_friday', 'shkia_shabbos', 'sof_zman_krias_shema',
+                'halacha_shiur', 'pirkei_avos'
+            ];
             let written = 0;
+            let skipped = 0;
             for (const r of incoming) {
+                if (!contentFields.some(f => emptyToNull(r[f]) !== null)) { skipped++; continue; }
                 await sql`
                     INSERT INTO shabbos_zmanim (
                         shabbos_date, parsha, candle_lighting, mincha_a, plag_hamincha,
@@ -97,7 +111,7 @@ module.exports = async function handler(req, res) {
                     )
                     VALUES (
                         ${r.shabbos_date}::date,
-                        ${emptyToNull(r.parsha)},
+                        ${emptyToNull(r.parsha) || ''},
                         ${emptyToNull(r.candle_lighting)},
                         ${emptyToNull(r.mincha_a)},
                         ${emptyToNull(r.plag_hamincha)},
@@ -145,7 +159,7 @@ module.exports = async function handler(req, res) {
                 }
             }
 
-            return res.json({ success: true, written, deleted });
+            return res.json({ success: true, written, skipped, deleted });
         } catch (err) {
             console.error('shabbos-schedule POST error:', err);
             return res.status(500).json({ error: 'Save failed', details: err.message });

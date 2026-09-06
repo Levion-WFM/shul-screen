@@ -418,6 +418,13 @@ function upcomingShabbosIso() {
 // Saturday. Keeps admin edits scoped to one week — next week's row isn't touched,
 // so the kiosk naturally rolls over after Sat→Sun midnight.
 async function saveShabbosZmanimRow(row) {
+    // Nothing filled in = nothing to write. During Yom Tov season the table has
+    // no upcoming-Shabbos row so the form loads blank; POSTing that empty row
+    // used to 500 on the DB's NOT NULL parsha and turned every Save red.
+    const hasContent = Object.keys(row).some(function(k) {
+        return k !== 'shabbos_date' && String(row[k] || '').trim() !== '';
+    });
+    if (!hasContent) return;
     const token = document.getElementById('adminToken').value;
     const headers = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = 'Bearer ' + token;
