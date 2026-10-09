@@ -59,6 +59,15 @@ module.exports = async function handler(req, res) {
             }
         } catch (e) { console.error('shabbos_zmanim error:', e.message); }
 
+        // ── Weekly shiur toggles (auto-expire) ──
+        // The backend stores the Shabbos date a toggle was switched on for, not a
+        // plain boolean, so each toggle turns itself off at the Sat→Sun rollover.
+        // Resolve to a boolean here so the kiosk and backend just see on/off.
+        // A legacy `true` (saved before this change) counts as off.
+        if (!data.zmanim) data.zmanim = {};
+        data.zmanim.shabbosShiurMincha = data.zmanim.shabbosShiurMincha === shabbosStr;
+        data.zmanim.shabbosShiurMaariv = data.zmanim.shabbosShiurMaariv === shabbosStr;
+
         // ── Daily Zmanim (today + tomorrow for end-of-day countdown rollover) ──
         try {
             var dailyRows = await sql`

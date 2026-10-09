@@ -112,23 +112,23 @@ tailwind.config = {
                 <div><label class="block text-xs text-gray-500 mb-1">Halacha Shiur (override)</label><input id="zHalachaShiur" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Auto if blank"/></div>
                 <div><label class="block text-xs text-gray-500 mb-1">Mincha (Sat)</label><input id="zMinchaSaturday" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Auto"/></div>
                 <div><label class="block text-xs text-gray-500 mb-1">Shkia (Sat)</label><input id="zShkiaShabbos" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="7:46"/></div>
-                <div><label class="block text-xs text-gray-500 mb-1">Pirkei Avos (override)</label><input id="zPirkeiAvos" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Auto if blank"/></div>
+                <div><label class="block text-xs text-gray-500 mb-1">Mishlei (override)</label><input id="zPirkeiAvos" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Auto if blank"/></div>
                 <div><label class="block text-xs text-gray-500 mb-1">Havdalah / Maariv</label><input id="zHavdalah" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="Auto"/></div>
             </div>
-            <p class="text-xs text-gold font-semibold mt-4 mb-2">שיעורי שבת (auto-calculated, toggle to show/hide)</p>
+            <p class="text-xs text-gold font-semibold mt-4 mb-2">שיעורי שבת (toggle to show — הלכה and משלי switch off automatically after this Shabbos)</p>
             <div class="space-y-2">
                 <label class="flex items-center gap-3 bg-gray-800/50 rounded-lg p-3 cursor-pointer hover:bg-gray-800/70 transition">
                     <input type="checkbox" id="shabbosShiurMinchaToggle" class="w-5 h-5 accent-yellow-500 rounded shrink-0"/>
                     <div>
                         <p class="text-sm text-gray-200 font-medium">שיעור הלכה</p>
-                        <p class="text-[11px] text-gray-500">20 min before Shabbat Mincha — time auto-calculated</p>
+                        <p class="text-[11px] text-gray-500">20 min before Shabbat Mincha — time auto-calculated, this week only</p>
                     </div>
                 </label>
                 <label class="flex items-center gap-3 bg-gray-800/50 rounded-lg p-3 cursor-pointer hover:bg-gray-800/70 transition">
                     <input type="checkbox" id="shabbosShiurMaarivToggle" class="w-5 h-5 accent-yellow-500 rounded shrink-0"/>
                     <div>
-                        <p class="text-sm text-gray-200 font-medium">פרקי אבות</p>
-                        <p class="text-[11px] text-gray-500">~15 min before Maariv, rounded to nearest 5 — time auto-calculated</p>
+                        <p class="text-sm text-gray-200 font-medium">משלי</p>
+                        <p class="text-[11px] text-gray-500">~15 min before Maariv, rounded to nearest 5 — time auto-calculated, this week only</p>
                     </div>
                 </label>
                 <label class="flex items-center gap-3 bg-gray-800/50 rounded-lg p-3 cursor-pointer hover:bg-gray-800/70 transition">
@@ -1062,7 +1062,7 @@ async function refreshWeeklyScheduleCache() {
 //   Halacha shiur from the Rav Shlita - 6:40   (toggle-gated)
 //   Mincha - 7:00
 //   Shkiya - 7:46
-//   Pirkei Avos - 8:30                          (toggle-gated)
+//   Mishlei - 8:30                              (toggle-gated)
 //   Mariv - 8:46
 //
 // Reads in-memory admin inputs first so any un-saved override is
@@ -1119,7 +1119,7 @@ function copyZmanimAsText() {
     var byLabel = {};
     (zRemote.shiurim || []).forEach(function(s) { byLabel[s.label] = s.time; });
     var halachaTime = halachaInput || byLabel['שיעור הלכה'] || null;
-    var pirkeiAvosTime = pirkeiAvosInput || byLabel['פרקי אבות'] || null;
+    var pirkeiAvosTime = pirkeiAvosInput || byLabel['משלי'] || null;
 
     // ── Layout ──
     // Header (2 lines: shul name + parsha)
@@ -1152,7 +1152,7 @@ function copyZmanimAsText() {
     if (shiurMinchaOn && halachaTime) lines.push('Halacha shiur from the Rav Shlita: ' + halachaTime);
     if (minchaSat) lines.push('Mincha: ' + minchaSat);
     if (shkiaShabbos) lines.push('Shkiya: ' + shkiaShabbos);
-    if (shiurMaarivOn && pirkeiAvosTime) lines.push('Pirkei Avos: ' + pirkeiAvosTime);
+    if (shiurMaarivOn && pirkeiAvosTime) lines.push('Mishlei: ' + pirkeiAvosTime);
     if (havdalah) lines.push('Mariv: ' + havdalah);
 
     // Optional free-text poster line — appended at the very end of the SMS.
@@ -1336,8 +1336,11 @@ async function loadDataInner() {
         document.getElementById('zMinchaSaturday').value = z.minchaSaturday || '';
         document.getElementById('zHavdalah').value = z.havdalah || '';
         // Daily zmanim are now auto-populated from DB — no manual fields
-        document.getElementById('shabbosShiurMinchaToggle').checked = !!z.shabbosShiurMincha;
-        document.getElementById('shabbosShiurMaarivToggle').checked = !!z.shabbosShiurMaariv;
+        // get-data resolves these weekly toggles to booleans; the date check covers
+        // the localStorage fallback, which holds the raw saved Shabbos date.
+        var thisShabbos = upcomingShabbosIso();
+        document.getElementById('shabbosShiurMinchaToggle').checked = z.shabbosShiurMincha === true || z.shabbosShiurMincha === thisShabbos;
+        document.getElementById('shabbosShiurMaarivToggle').checked = z.shabbosShiurMaariv === true || z.shabbosShiurMaariv === thisShabbos;
         document.getElementById('shabbosShiurChumashToggle').checked = !!z.shabbosShiurChumash;
         document.getElementById('zPirchei').value = z.pircheiTime || '';
         document.getElementById('zAvosUbanim').value = z.avosUbanimTime || '';
@@ -1493,8 +1496,10 @@ async function saveAll() {
         // hebrewDate is always overwritten from hebrew_dates on read; keep for back-compat.
         hebrewDate: document.getElementById('zHebrewDate').value,
         // Toggles + children's times have no dedicated DB table — live in screen_data.
-        shabbosShiurMincha: document.getElementById('shabbosShiurMinchaToggle').checked,
-        shabbosShiurMaariv: document.getElementById('shabbosShiurMaarivToggle').checked,
+        // Halacha + Mishlei toggles store the Shabbos they're on for, so they
+        // switch themselves off after that week (resolved in api/get-data.js).
+        shabbosShiurMincha: document.getElementById('shabbosShiurMinchaToggle').checked ? upcomingShabbosIso() : false,
+        shabbosShiurMaariv: document.getElementById('shabbosShiurMaarivToggle').checked ? upcomingShabbosIso() : false,
         shabbosShiurChumash: document.getElementById('shabbosShiurChumashToggle').checked,
         pircheiTime: document.getElementById('zPirchei').value.trim(),
         avosUbanimTime: document.getElementById('zAvosUbanim').value.trim(),

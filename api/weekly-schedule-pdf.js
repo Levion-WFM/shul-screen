@@ -111,7 +111,7 @@ function buildRows(z) {
         shiurMap['שיעור הלכה'] ? { label: 'שיעור הלכה', time: shiurMap['שיעור הלכה'] } : null,
         { label: 'מנחה', time: z.minchaShabbos },
         { label: 'שקיעה', time: z.shkia },
-        shiurMap['פרקי אבות'] ? { label: 'פרקי אבות', time: shiurMap['פרקי אבות'] } : null,
+        shiurMap['משלי'] ? { label: 'משלי', time: shiurMap['משלי'] } : null,
         { label: 'מעריב', time: z.maariv },
     ].filter(Boolean);
 

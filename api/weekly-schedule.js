@@ -243,7 +243,7 @@ module.exports = async function handler(req, res) {
 
         // Shiur time helpers:
         //   halacha shiur  = Shabbos Mincha - 20 min
-        //   pirkei avos    = Maariv - 15 min, rounded to nearest 5
+        //   mishlei        = Maariv - 15 min, rounded to nearest 5
         // Matches the admin copy: "20 min before Mincha" / "~15 min before Maariv
         // rounded to nearest 5". Pull the source times from shabbosRow.
         function minusMinutes(timeStr, deltaMin, roundToNearest = null) {
@@ -255,20 +255,22 @@ module.exports = async function handler(req, res) {
         }
         const minchaShabbosRaw = shabbosRow ? (shabbosRow.mincha_shabbos || null) : null;
         const maarivRaw = shabbosRow ? (shabbosRow.maariv || null) : null;
-        // Halacha Shiur + Pirkei Avos resolution:
-        //   1. shabbos_zmanim.halacha_shiur / pirkei_avos (manual override)
-        //   2. when manifest toggle ON: computed from
-        //      mincha_shabbos − 20m / maariv − 15m (round 5)
-        //   3. else null — row is omitted, kiosk + SMS skip the line.
-        // Operator confirmed: shiurim must remain toggle-gated. The
-        // override columns let the gabbai post a non-standard time
-        // without flipping the toggle.
+        // Halacha Shiur + Mishlei resolution (same rule as the kiosk + SMS):
+        //   - toggle OFF → null; row is omitted everywhere.
+        //   - toggle ON  → shabbos_zmanim.halacha_shiur / pirkei_avos when
+        //     filled, else computed from mincha_shabbos − 20m / maariv − 15m (round 5).
+        // Toggles hold the Shabbos date they were switched on for, so they
+        // expire on their own after that week (see api/get-data.js).
+        const halachaOn = manifestZmanim.shabbosShiurMincha === shabbosStr;
+        const mishleiOn = manifestZmanim.shabbosShiurMaariv === shabbosStr;
         const halachaManual = pick(shabbosRow && shabbosRow.halacha_shiur);
-        const pirkeiManual = pick(shabbosRow && shabbosRow.pirkei_avos);
-        const halachaShiurTime = halachaManual
-            || (manifestZmanim.shabbosShiurMincha ? minusMinutes(minchaShabbosRaw, 20) : null);
-        const pirkeiAvosTime = pirkeiManual
-            || (manifestZmanim.shabbosShiurMaariv ? minusMinutes(maarivRaw, 15, 5) : null);
+        const mishleiManual = pick(shabbosRow && shabbosRow.pirkei_avos);
+        const halachaShiurTime = halachaOn
+            ? clockNoAmPm(halachaManual || minusMinutes(minchaShabbosRaw, 20))
+            : null;
+        const mishleiTime = mishleiOn
+            ? clockNoAmPm(mishleiManual || minusMinutes(maarivRaw, 15, 5))
+            : null;
 
         // Kids learning times (entered as free text in the admin, e.g. "4:30 PM").
         const pircheiTime = clockNoAmPm((manifestZmanim.pircheiTime || '').trim());
@@ -312,9 +314,9 @@ module.exports = async function handler(req, res) {
                         label: 'שיעור הלכה',
                         time: halachaShiurTime
                     },
-                    pirkeiAvosTime && {
-                        label: 'פרקי אבות',
-                        time: pirkeiAvosTime
+                    mishleiTime && {
+                        label: 'משלי',
+                        time: mishleiTime
                     }
                 ].filter(Boolean)
             },

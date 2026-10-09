@@ -103,7 +103,7 @@ tailwind.config = {
                         <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Halacha Shiur</th>
                         <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Mincha (Sat)</th>
                         <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Shkia (Sat)</th>
-                        <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Pirkei Avos</th>
+                        <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Mishlei</th>
                         <th class="text-left px-3 py-2 border-b border-gray-700 col-time">Maariv</th>
                         <th class="text-center px-2 py-2 border-b border-gray-700 w-10"></th>
                     </tr>
@@ -459,11 +459,12 @@ const HEADER_RULES = [
     { field: 'shkia_friday', hints: ['shkia fri', 'shkia friday', 'sunset fri', 'שקיעה ערב', 'שקיעה ו'] },
     { field: 'shkia_shabbos', hints: ['shkia sat', 'shkia shabbos', 'shkia shabbat', 'sunset sat', 'sunset shabbos', 'שקיעה שבת', 'שקיעה'] },
     // Sof Z"man Krias Shema — gabbai-entered free text (e.g. "8:54/9:30").
-    { field: 'sof_zman_krias_shema', hints: ['sof zman', 'krias shema', 'shema', 'סוף זמן', 'קריאת שמע', 'ק"ש'] },
+    { field: 'sof_zman_krias_shema', hints: ['sof zman', 'sof zk', 'krias shema', 'shema', 'shma', 'סוף זמן', 'קריאת שמע', 'ק"ש'] },
     // Optional shiur overrides — when blank the API computes from
     // mincha_shabbos − 20m / maariv − 15m as before.
     { field: 'halacha_shiur', hints: ['halacha shiur', 'shiur halacha', 'rav halacha', 'שיעור הלכה'] },
-    { field: 'pirkei_avos',  hints: ['pirkei avos', 'pirkei avot', 'avos', 'avot', 'פרקי אבות'] },
+    // Column is still named pirkei_avos in the DB; the shiur is now Mishlei.
+    { field: 'pirkei_avos',  hints: ['mishlei', 'משלי', 'pirkei avos', 'pirkei avot', 'avos', 'avot', 'פרקי אבות'] },
     { field: 'shacharit', hints: ['shacharit', 'shacharis', 'שחרית'] },
     { field: 'maariv', hints: ['maariv', 'havdalah', 'מעריב', 'הבדלה'] },
     // Saturday mincha last — includes the bare "מנחה" fallback so it can grab whatever's left.

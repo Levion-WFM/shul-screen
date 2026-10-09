@@ -324,7 +324,7 @@
 <span id="z-shiur-mincha" class="text-primary font-headline font-bold text-2xl text-3d-light shrink-0">—</span>
 </div>
 <div class="flex justify-between items-baseline gap-2 min-w-0 hidden" id="z-shiur-maariv-wrap">
-<span class="text-base font-bold text-secondary truncate" dir="rtl">פרקי אבות</span>
+<span class="text-base font-bold text-secondary truncate" dir="rtl">משלי</span>
 <span id="z-shiur-maariv" class="text-primary font-headline font-bold text-2xl text-3d-light shrink-0">—</span>
 </div>
 <div class="flex justify-between items-baseline gap-2 min-w-0 hidden" id="z-shiur-chumash-wrap">
@@ -517,9 +517,11 @@ async function loadScreenData() {
             'z-sunset': z.sunset,
             'z-parshat': z.parshat
         };
+        // Blank fields reset to "—" so a week with no shabbos_zmanim row can't keep
+        // showing last week's times on this long-running page.
         for (var id in zmMap) {
             var el = document.getElementById(id);
-            if (el && zmMap[id]) el.textContent = zmMap[id];
+            if (el) el.textContent = zmMap[id] || '—';
         }
         // Plag HaMincha — show row only when shabbos_zmanim has a value. Same
         // pattern as the optional shkiyah rows below.
@@ -538,12 +540,13 @@ async function loadScreenData() {
         // When A is absent (winter / pre-Chazon-onward), keep the single-value layout.
         var minchaFridayEl = document.getElementById('z-mincha-friday');
         var minchaFridayLabelEl = document.getElementById('z-mincha-friday-label');
-        if (minchaFridayEl && z.minchaFriday) {
-            if (z.minchaFridayA) {
+        if (minchaFridayEl) {
+            if (z.minchaFriday && z.minchaFridayA) {
                 minchaFridayEl.textContent = z.minchaFridayA + ' / ' + z.minchaFriday;
                 if (minchaFridayLabelEl) minchaFridayLabelEl.textContent = 'מנחה א / מנחה ב';
             } else {
-                minchaFridayEl.textContent = z.minchaFriday;
+                minchaFridayEl.textContent = z.minchaFriday || '—';
+                if (minchaFridayLabelEl) minchaFridayLabelEl.textContent = 'מנחה וקבלת שבת';
             }
         }
         // Shabbos shiur before mincha (20 min before)
@@ -558,7 +561,7 @@ async function loadScreenData() {
             }
         }
 
-        // Shabbos shiur before maariv (~15 min, rounded to nearest 5)
+        // Mishlei — shiur before maariv (~15 min, rounded to nearest 5)
         var shiurMaarivWrap = document.getElementById('z-shiur-maariv-wrap');
         var shiurMaarivEl = document.getElementById('z-shiur-maariv');
         if (shiurMaarivWrap && shiurMaarivEl) {
