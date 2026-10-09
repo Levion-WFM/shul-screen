@@ -139,10 +139,10 @@ tailwind.config = {
                     </div>
                 </label>
             </div>
-            <p class="text-xs text-gold font-semibold mt-4 mb-2">לימוד ילדים <span class="text-gray-500 font-normal">(leave blank to hide)</span></p>
+            <p class="text-xs text-gold font-semibold mt-4 mb-2">לימוד ילדים <span class="text-gray-500 font-normal">(toggle to show; stays on until you turn it off)</span></p>
             <div class="grid grid-cols-2 gap-3">
-                <div><label class="block text-xs text-gray-500 mb-1">פרחי / Pirchei</label><input id="zPirchei" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. 4:30 PM"/></div>
-                <div><label class="block text-xs text-gray-500 mb-1">אבות ובנים / Avos uBanim</label><input id="zAvosUbanim" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. 7:45 PM"/></div>
+                <div><label class="flex items-center gap-2 text-xs text-gray-500 mb-1 cursor-pointer"><input type="checkbox" id="showPircheiToggle" class="w-4 h-4 accent-yellow-500 rounded shrink-0"/>פרחי / Pirchei</label><input id="zPirchei" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. 4:30 PM"/></div>
+                <div><label class="flex items-center gap-2 text-xs text-gray-500 mb-1 cursor-pointer"><input type="checkbox" id="showAvosUbanimToggle" class="w-4 h-4 accent-yellow-500 rounded shrink-0"/>אבות ובנים / Avos uBanim</label><input id="zAvosUbanim" type="text" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2.5 text-sm focus:border-gold focus:outline-none" placeholder="e.g. 7:45 PM"/></div>
             </div>
             <div class="bg-green-900/30 border border-green-800/50 rounded-lg p-3 mt-3 flex items-start gap-2">
                 <span class="material-symbols-outlined text-green-400 text-lg mt-0.5">auto_awesome</span>
@@ -1344,6 +1344,8 @@ async function loadDataInner() {
         document.getElementById('shabbosShiurChumashToggle').checked = !!z.shabbosShiurChumash;
         document.getElementById('zPirchei').value = z.pircheiTime || '';
         document.getElementById('zAvosUbanim').value = z.avosUbanimTime || '';
+        document.getElementById('showPircheiToggle').checked = z.showPirchei === true;
+        document.getElementById('showAvosUbanimToggle').checked = z.showAvosUbanim === true;
     }
     // Restore admin token from localStorage
     var savedToken = localStorage.getItem('shulAdminToken');
@@ -1503,6 +1505,9 @@ async function saveAll() {
         shabbosShiurChumash: document.getElementById('shabbosShiurChumashToggle').checked,
         pircheiTime: document.getElementById('zPirchei').value.trim(),
         avosUbanimTime: document.getElementById('zAvosUbanim').value.trim(),
+        // Plain on/off (unlike the weekly Halacha/Mishlei toggles above).
+        showPirchei: document.getElementById('showPircheiToggle').checked,
+        showAvosUbanim: document.getElementById('showAvosUbanimToggle').checked,
     };
     const data = {
         sponsors, fliers, photos, community, schedule, shiurim, sederLimud, zmanim,

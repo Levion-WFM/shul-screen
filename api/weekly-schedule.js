@@ -273,8 +273,11 @@ module.exports = async function handler(req, res) {
             : null;
 
         // Kids learning times (entered as free text in the admin, e.g. "4:30 PM").
-        const pircheiTime = clockNoAmPm((manifestZmanim.pircheiTime || '').trim());
-        const avosUbanimTime = clockNoAmPm((manifestZmanim.avosUbanimTime || '').trim());
+        // Each is gated by its backend toggle (showPirchei / showAvosUbanim), same as the kiosk.
+        const pircheiTime = manifestZmanim.showPirchei === true
+            ? clockNoAmPm((manifestZmanim.pircheiTime || '').trim()) : null;
+        const avosUbanimTime = manifestZmanim.showAvosUbanim === true
+            ? clockNoAmPm((manifestZmanim.avosUbanimTime || '').trim()) : null;
 
         return res.json({
             ok: true,

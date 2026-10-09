@@ -583,19 +583,21 @@ async function loadScreenData() {
             else shiurChumashWrap.classList.add('hidden');
         }
 
-        // Pirchei + Avos uBanim — children's learning. Rows always visible; empty time
-        // renders as "—" placeholder so the layout shows even before admin fills them in.
+        // Pirchei + Avos uBanim — children's learning. Each row shows only when its
+        // backend toggle is on and a time is filled in.
         var pircheiWrap = document.getElementById('z-pirchei-wrap');
         var pircheiEl = document.getElementById('z-pirchei');
         if (pircheiWrap && pircheiEl) {
+            var showPirchei = z.showPirchei === true && !!z.pircheiTime;
             pircheiEl.textContent = z.pircheiTime || '—';
-            pircheiWrap.classList.remove('hidden');
+            pircheiWrap.classList.toggle('hidden', !showPirchei);
         }
         var avosWrap = document.getElementById('z-avosubanim-wrap');
         var avosEl = document.getElementById('z-avosubanim');
         if (avosWrap && avosEl) {
+            var showAvos = z.showAvosUbanim === true && !!z.avosUbanimTime;
             avosEl.textContent = z.avosUbanimTime || '—';
-            avosWrap.classList.remove('hidden');
+            avosWrap.classList.toggle('hidden', !showAvos);
         }
 
         // Shkiyah — sun-set reference times for Friday and Saturday. Data comes
