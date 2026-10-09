@@ -418,9 +418,10 @@ function parseTimeToMin(t) {
     if (!isPM && !isAM && h < 6) h += 12;
     return h * 60 + m;
 }
-// Minutes to "H:MM" display
+// Minutes to "H:MM" display — 12-hour, no AM/PM, matching the Shabbos card.
+// (parseTimeToMin reads a bare "5:45" as 17:45, which used to print "17:25".)
 function minToTime(mins) {
-    var h = Math.floor(mins / 60);
+    var h = Math.floor(mins / 60) % 12 || 12;
     var m = mins % 60;
     return h + ':' + (m < 10 ? '0' : '') + m;
 }
