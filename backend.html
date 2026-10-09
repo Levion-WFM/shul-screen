@@ -1053,7 +1053,6 @@ async function refreshWeeklyScheduleCache() {
 //   (Hadlakas Neiros - 7:27)
 //
 //   Mincha 1 - 6:36
-//   Plag Hamincha 6:56                  ← no dash before time
 //   Mincha 2 - 7:30
 //   Shkiya - 7:45
 //
@@ -1073,7 +1072,6 @@ function copyZmanimAsText() {
     var parshatHebrew = document.getElementById('zParshat').value.trim();
     var candle = document.getElementById('zCandleLighting').value.trim();
     var minchaFridayA = document.getElementById('zMinchaFridayA').value.trim();
-    var plagInput = document.getElementById('zPlag').value.trim();
     var minchaFriday = document.getElementById('zMinchaFriday').value.trim();
     var shkiaFridayInput = document.getElementById('zShkiaFriday').value.trim();
     var shacharit = document.getElementById('zShacharit').value.trim();
@@ -1104,9 +1102,6 @@ function copyZmanimAsText() {
     var shkiaFriday = shkiaFridayInput || zRemote.shkiaFriday || null;
     var shkiaShabbos = shkiaShabbosInput || zRemote.shkia || null;
 
-    // Plag: gabbai input wins, then daily_zmanim plag.
-    var plag = plagInput || zRemote.plag || null;
-
     // Sof Z"K Shma: gabbai free-text input wins, else combine MGA/GRA from daily.
     var sofZmanShema = sofZmanShemaInput || zRemote.sofZmanKriasShema || (
         (zRemote.shemaMa && zRemote.shemaGra)
@@ -1126,7 +1121,7 @@ function copyZmanimAsText() {
     //   blank
     // Candles single line in parens
     //   blank
-    // Erev Shabbos block (4 lines: Mincha 1, Plag, Mincha 2, Shkiya)
+    // Erev Shabbos block (Mincha 1, Mincha 2, Shkiya — Plag left off the SMS)
     //   blank
     // Shabbos day block (Shachris through Mariv, shiurim toggle-gated)
     //
@@ -1140,7 +1135,6 @@ function copyZmanimAsText() {
     if (candle) lines.push('Hadlakas Neiros: ' + candle);
     lines.push('');
     if (minchaFridayA) lines.push('Mincha 1: ' + minchaFridayA);
-    if (plag) lines.push('Plag Hamincha: ' + plag);
     if (minchaFriday) {
         var fridayMinchaLabel = minchaFridayA ? 'Mincha 2' : 'Mincha';
         lines.push(fridayMinchaLabel + ': ' + minchaFriday);

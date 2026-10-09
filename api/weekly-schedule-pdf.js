@@ -91,7 +91,7 @@ function buildRows(z) {
     const fridayRows = [
         { label: 'הדלקת נרות', time: z.candles },
         minchaA ? { label: 'מנחה א׳', time: minchaA } : null,
-        { label: 'פלג המנחה', time: z.plag },
+        // Plag HaMincha intentionally left off the poster (still on the kiosk).
         minchaA
             ? { label: 'מנחה ב׳', time: minchaB || '—' }
             : { label: 'מנחה', time: minchaB || '—' },
