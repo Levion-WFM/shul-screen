@@ -595,8 +595,10 @@ async function loadScreenData() {
         var avosWrap = document.getElementById('z-avosubanim-wrap');
         var avosEl = document.getElementById('z-avosubanim');
         if (avosWrap && avosEl) {
-            var showAvos = z.showAvosUbanim === true && !!z.avosUbanimTime;
-            avosEl.textContent = z.avosUbanimTime || '—';
+            // Admin override if typed, else auto (Shabbos tzeis 72 + 30, rounded up to 5).
+            var avosTime = z.avosUbanimTime || z.avosUbanimAuto || '';
+            var showAvos = z.showAvosUbanim === true && !!avosTime;
+            avosEl.textContent = avosTime || '—';
             avosWrap.classList.toggle('hidden', !showAvos);
         }
 

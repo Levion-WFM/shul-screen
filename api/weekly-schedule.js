@@ -142,7 +142,7 @@ module.exports = async function handler(req, res) {
         try {
             const rows = await sql`
                 SELECT civil_date, sunrise, shema_ma, shema_gra, plag, sunset,
-                       parsha_hebrew, parsha_english, candle_lighting
+                       parsha_hebrew, parsha_english, candle_lighting, tzes72fix
                 FROM daily_zmanim
                 WHERE civil_date IN (${targetDate}::date, ${targetDate}::date - INTERVAL '1 day')
             `;
@@ -276,8 +276,12 @@ module.exports = async function handler(req, res) {
         // Each is gated by its backend toggle (showPirchei / showAvosUbanim), same as the kiosk.
         const pircheiTime = manifestZmanim.showPirchei === true
             ? clockNoAmPm((manifestZmanim.pircheiTime || '').trim()) : null;
+        // Avos uBanim: admin override if typed, else Shabbos tzeis (72 min) + 30,
+        // rounded UP to the next 5 (tzeis 6:03 → 6:33 → 6:35).
+        const tzeis72 = parseClockToMin(dailyRow && dailyRow.tzes72fix);
+        const avosUbanimAuto = tzeis72 != null ? fmtHMM(Math.ceil((tzeis72 + 30) / 5) * 5) : null;
         const avosUbanimTime = manifestZmanim.showAvosUbanim === true
-            ? clockNoAmPm((manifestZmanim.avosUbanimTime || '').trim()) : null;
+            ? (clockNoAmPm((manifestZmanim.avosUbanimTime || '').trim()) || avosUbanimAuto) : null;
 
         return res.json({
             ok: true,
@@ -307,6 +311,9 @@ module.exports = async function handler(req, res) {
                 // Kids learning (admin free-text in screen_data.zmanim)
                 pircheiTime: pircheiTime || null,
                 avosUbanimTime: avosUbanimTime || null,
+                // Ungated auto time, so the admin's Copy-as-Text can use it the
+                // moment the toggle is ticked (before Save).
+                avosUbanimAuto: avosUbanimAuto || null,
                 // Free-text poster footer line (api/poster-note). The PDF
                 // renderer draws this inside the cream panel above the address.
                 scheduleNote: posterNote || null,

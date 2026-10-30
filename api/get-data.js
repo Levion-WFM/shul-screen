@@ -95,6 +95,21 @@ module.exports = async function handler(req, res) {
             });
         } catch (e) { console.error('daily_zmanim error:', e.message); }
 
+        // ── Avos uBanim auto time ──
+        // Shabbos tzeis (72 min) + 30, rounded UP to the next 5 (6:03 → 6:33 → 6:35).
+        // Separate key from avosUbanimTime (the admin override) so a backend save
+        // never turns the computed value into a sticky override.
+        try {
+            var tzRows = await sql`SELECT tzes72fix FROM daily_zmanim WHERE civil_date = ${shabbosStr} LIMIT 1`;
+            var m = tzRows.length && /^(\d{1,2}):(\d{2})\s*(AM|PM)?/i.exec(String(tzRows[0].tzes72fix || '').trim());
+            if (m) {
+                var hr = parseInt(m[1], 10) % 12 + (/pm/i.test(m[3] || 'PM') ? 12 : 0);
+                var avosMin = Math.ceil((hr * 60 + parseInt(m[2], 10) + 30) / 5) * 5;
+                var ah = Math.floor(avosMin / 60) % 12 || 12;
+                data.zmanim.avosUbanimAuto = ah + ':' + String(avosMin % 60).padStart(2, '0');
+            }
+        } catch (e) { console.error('avos ubanim tzeis error:', e.message); }
+
         // ── Hebrew Date (today + tomorrow for shkiyah switching) ──
         try {
             var hebrewRows = await sql`
