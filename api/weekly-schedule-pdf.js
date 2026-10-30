@@ -124,12 +124,17 @@ function buildRows(z) {
 
 function drawRow(page, fonts, row, y, metrics) {
     const time = clockText(row.time) || '—';
-    const timeWidth = textWidth(fonts.time, time, metrics.rowSize);
-    drawTextLayer(page, time, metrics.rowLeft, y, metrics.rowSize, fonts.time);
-
     const labelVisual = visualRtl(row.label);
     const labelWidth = textWidth(fonts.body, labelVisual, metrics.rowSize);
     const labelLeft = metrics.rowRight - labelWidth;
+
+    // Shrink a long time (e.g. MGA/GRA "9:22/10:03") so it can't run into its label.
+    const maxTimeWidth = labelLeft - 18 - metrics.rowLeft;
+    let timeSize = metrics.rowSize;
+    while (timeSize > 14 && textWidth(fonts.time, time, timeSize) > maxTimeWidth) timeSize -= 1;
+    const timeWidth = textWidth(fonts.time, time, timeSize);
+    drawTextLayer(page, time, metrics.rowLeft, y, timeSize, fonts.time);
+
     drawDots(page, metrics.rowLeft + timeWidth + 12, labelLeft - 14, y + metrics.rowSize * 0.20);
     drawTextLayer(page, labelVisual, labelLeft, y, metrics.rowSize, fonts.body);
 }
@@ -174,9 +179,17 @@ async function renderSchedulePdf(payload) {
     const bottomY = height * 0.130;
     const groupHeights = groups.map(rows => rows.length * metrics.lineHeight);
     const used = groupHeights.reduce((a, b) => a + b, 0);
-    const between = groups.length > 1 ? Math.max(16, (topY - bottomY - used) / (groups.length - 1)) : 0;
+    // Gap between groups fills the panel, but is capped so a short week doesn't
+    // open a huge hole between Friday and Shabbos; any leftover space is split
+    // above and below so the block stays centered in the panel.
+    const maxBetween = metrics.lineHeight * 1.5;
+    const between = groups.length > 1
+        ? Math.min(maxBetween, Math.max(16, (topY - bottomY - used) / (groups.length - 1)))
+        : 0;
+    const blockHeight = used + between * (groups.length - 1);
+    const slack = Math.max(0, (topY - bottomY) - blockHeight);
 
-    let y = topY;
+    let y = topY - slack / 2;
     const fonts = { body: bodyFont, time: timeFont };
     groups.forEach((rows, groupIndex) => {
         rows.forEach(row => {
