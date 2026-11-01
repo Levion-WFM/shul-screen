@@ -276,10 +276,13 @@ module.exports = async function handler(req, res) {
         // Each is gated by its backend toggle (showPirchei / showAvosUbanim), same as the kiosk.
         const pircheiTime = manifestZmanim.showPirchei === true
             ? clockNoAmPm((manifestZmanim.pircheiTime || '').trim()) : null;
-        // Avos uBanim: admin override if typed, else Shabbos tzeis (72 min) + 30,
-        // rounded UP to the next 5 (tzeis 6:03 → 6:33 → 6:35).
+        // Avos uBanim: admin override if typed, else 6:30, unless Shabbos tzeis
+        // (72 min) is after 6:00: then tzeis + 30, rounded to the nearest 5
+        // (6:01 → 6:31 → 6:30; 6:10 → 6:40). Same rule as api/get-data.js.
         const tzeis72 = parseClockToMin(dailyRow && dailyRow.tzes72fix);
-        const avosUbanimAuto = tzeis72 != null ? fmtHMM(Math.ceil((tzeis72 + 30) / 5) * 5) : null;
+        const avosUbanimAuto = tzeis72 != null
+            ? fmtHMM(Math.max(18 * 60 + 30, Math.round((tzeis72 + 30) / 5) * 5))
+            : null;
         const avosUbanimTime = manifestZmanim.showAvosUbanim === true
             ? (clockNoAmPm((manifestZmanim.avosUbanimTime || '').trim()) || avosUbanimAuto) : null;
 

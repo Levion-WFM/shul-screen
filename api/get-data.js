@@ -96,7 +96,8 @@ module.exports = async function handler(req, res) {
         } catch (e) { console.error('daily_zmanim error:', e.message); }
 
         // ── Avos uBanim auto time ──
-        // Shabbos tzeis (72 min) + 30, rounded UP to the next 5 (6:03 → 6:33 → 6:35).
+        // 6:30, unless Shabbos tzeis (72 min) is after 6:00: then tzeis + 30, rounded
+        // to the nearest 5 (6:01 → 6:31 → 6:30; 6:10 → 6:40). Same rule as api/weekly-schedule.js.
         // Separate key from avosUbanimTime (the admin override) so a backend save
         // never turns the computed value into a sticky override.
         try {
@@ -104,7 +105,7 @@ module.exports = async function handler(req, res) {
             var m = tzRows.length && /^(\d{1,2}):(\d{2})\s*(AM|PM)?/i.exec(String(tzRows[0].tzes72fix || '').trim());
             if (m) {
                 var hr = parseInt(m[1], 10) % 12 + (/pm/i.test(m[3] || 'PM') ? 12 : 0);
-                var avosMin = Math.ceil((hr * 60 + parseInt(m[2], 10) + 30) / 5) * 5;
+                var avosMin = Math.max(18 * 60 + 30, Math.round((hr * 60 + parseInt(m[2], 10) + 30) / 5) * 5);
                 var ah = Math.floor(avosMin / 60) % 12 || 12;
                 data.zmanim.avosUbanimAuto = ah + ':' + String(avosMin % 60).padStart(2, '0');
             }
