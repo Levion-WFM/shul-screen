@@ -1,4 +1,5 @@
 const { neon } = require('@neondatabase/serverless');
+const { shabbosSpecial } = require('../lib/shabbos-special');
 
 module.exports = async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -131,6 +132,12 @@ module.exports = async function handler(req, res) {
             }
         } catch (e) { console.error('friday seder error:', e.message); }
         data.zmanim.showSederLimud = data.zmanim.showSederLimud !== false;
+
+        // ── Special Shabbos name (מברכים, שקלים, נחמו…) for the header ──
+        // Own key, never folded into parshat, so a backend save can't make it sticky.
+        try {
+            data.zmanim.shabbosSpecial = shabbosSpecial(shabbosStr, data.zmanim.parshat);
+        } catch (e) { console.error('shabbos special error:', e.message); }
 
         // ── Hebrew Date (today + tomorrow for shkiyah switching) ──
         try {

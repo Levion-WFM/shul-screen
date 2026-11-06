@@ -522,7 +522,8 @@ async function loadScreenData() {
             'z-sunrise': z.sunrise,
             'z-shema': z.shema,
             'z-sunset': z.sunset,
-            'z-parshat': z.parshat
+            // Special Shabbos (מברכים, שקלים, נחמו…) after a dash: "חיי שרה - מברכים"
+            'z-parshat': z.parshat ? z.parshat + (z.shabbosSpecial ? ' - ' + z.shabbosSpecial : '') : ''
         };
         // Blank fields reset to "—" so a week with no shabbos_zmanim row can't keep
         // showing last week's times on this long-running page.

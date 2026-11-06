@@ -74,8 +74,9 @@ function drawCenteredRtl(page, font, text, centerX, y, size, maxWidth, options =
     return finalSize;
 }
 
-function drawHeadline(page, font, parshaName, width, height) {
-    drawCenteredRtl(page, font, formatParshaTitle(parshaName), width / 2, height * 0.681, 42, width * 0.66);
+function drawHeadline(page, font, parshaName, width, height, special) {
+    const title = formatParshaTitle(parshaName) + (special ? ' - ' + special : '');
+    drawCenteredRtl(page, font, title, width / 2, height * 0.681, 42, width * 0.66);
 }
 
 function drawDots(page, x1, x2, y) {
@@ -157,7 +158,7 @@ async function renderSchedulePdf(payload) {
     const { width, height } = page.getSize();
 
     const parshaName = normalizeHebrewWording(z.parashaDb || z.parashaHebrew || '');
-    drawHeadline(page, titleFont, parshaName, width, height);
+    drawHeadline(page, titleFont, parshaName, width, height, z.shabbosSpecial);
 
     const { fridayRows, shabbosRows, kidsRows } = buildRows(z);
     const totalRows = fridayRows.length + shabbosRows.length + kidsRows.length;

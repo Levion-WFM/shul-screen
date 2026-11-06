@@ -1,4 +1,5 @@
 const { neon } = require('@neondatabase/serverless');
+const { shabbosSpecial } = require('../lib/shabbos-special');
 
 // Zmanim payload for the printable weekly schedule poster.
 //
@@ -314,6 +315,8 @@ module.exports = async function handler(req, res) {
                 parashaDb,
                 parashaHebrew,
                 parashaEnglish,
+                // Special Shabbos name (מברכים, שקלים, נחמו…) for the poster title.
+                shabbosSpecial: shabbosSpecial(targetDate, parashaDb || parashaHebrew || parashaEnglish),
                 candles,
                 minchaErevShabbosA: clockNoAmPm(pick(shabbosRow && shabbosRow.mincha_a)),
                 minchaErevShabbos: pick(shabbosRow && shabbosRow.mincha_erev_shabbos),
