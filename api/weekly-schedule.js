@@ -286,6 +286,25 @@ module.exports = async function handler(req, res) {
         const avosUbanimTime = manifestZmanim.showAvosUbanim === true
             ? (clockNoAmPm((manifestZmanim.avosUbanimTime || '').trim()) || avosUbanimAuto) : null;
 
+        // Friday night Seder Limud: candles + 2½ hours, rounded leaning toward the
+        // hour (within 12 min → hour, within 8 min of :30 → half hour, else :15/:45).
+        // Winter only — Fridays when New York is on standard time (EST), from the
+        // November clock change to the March one. Same rule as api/get-data.js.
+        // Toggle defaults ON; only an explicit `false` hides it.
+        let fridaySederAuto = null;
+        const friDate = new Date(new Date(targetDate + 'T12:00:00Z').getTime() - 86400000);
+        const friTz = new Intl.DateTimeFormat('en-US', { timeZone: KIOSK_TZ, timeZoneName: 'short' })
+            .formatToParts(friDate).find(p => p.type === 'timeZoneName');
+        let candleMin = parseClockToMin(candles);
+        if (candleMin != null && candleMin < 12 * 60) candleMin += 12 * 60; // bare "4:31" is PM
+        if (friTz && friTz.value === 'EST' && candleMin != null) {
+            const t = candleMin + 150;
+            const mm = t % 60, base = t - mm;
+            fridaySederAuto = fmtHMM(mm <= 12 ? base : mm >= 48 ? base + 60
+                : (mm >= 22 && mm <= 38) ? base + 30 : mm < 22 ? base + 15 : base + 45);
+        }
+        const fridaySederTime = manifestZmanim.showSederLimud !== false ? fridaySederAuto : null;
+
         return res.json({
             ok: true,
             date: targetDate,
@@ -317,6 +336,10 @@ module.exports = async function handler(req, res) {
                 // Ungated auto time, so the admin's Copy-as-Text can use it the
                 // moment the toggle is ticked (before Save).
                 avosUbanimAuto: avosUbanimAuto || null,
+                // Friday night Seder Limud (toggle-gated) + the ungated winter-only
+                // auto time for the admin's Copy-as-Text before Save.
+                fridaySederTime: fridaySederTime || null,
+                fridaySederAuto: fridaySederAuto || null,
                 // Free-text poster footer line (api/poster-note). The PDF
                 // renderer draws this inside the cream panel above the address.
                 scheduleNote: posterNote || null,

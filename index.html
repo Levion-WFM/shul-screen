@@ -292,6 +292,12 @@
 <span id="z-mincha-friday-label" class="text-lg font-bold text-secondary truncate" dir="rtl">מנחה וקבלת שבת</span>
 <span id="z-mincha-friday" class="text-primary font-headline font-bold text-4xl text-3d-light shrink-0">—</span>
 </div>
+<!-- Friday night Seder Limud — candles + 2½ hrs, winter only (computed in get-data).
+     Same weight as plag: a learning time, not a davening time. -->
+<div class="flex justify-between items-baseline gap-2 min-w-0 hidden" id="z-seder-limud-wrap">
+<span class="text-base font-bold text-secondary/80 truncate" dir="rtl">סדר לימוד</span>
+<span id="z-seder-limud" class="text-primary/90 font-headline font-bold text-3xl text-3d-light shrink-0">—</span>
+</div>
 <div class="flex justify-between items-baseline gap-2 min-w-0">
 <span class="text-lg font-bold text-secondary truncate" dir="rtl">שחרית</span>
 <span id="z-shacharit" class="text-primary font-headline font-bold text-4xl text-3d-light shrink-0">—</span>
@@ -549,6 +555,15 @@ async function loadScreenData() {
                 minchaFridayEl.textContent = z.minchaFriday || '—';
                 if (minchaFridayLabelEl) minchaFridayLabelEl.textContent = 'מנחה וקבלת שבת';
             }
+        }
+        // Friday night Seder Limud — get-data only sends a time in winter (EST weeks);
+        // the toggle defaults on (get-data resolves it to a boolean).
+        var sederWrap = document.getElementById('z-seder-limud-wrap');
+        var sederEl = document.getElementById('z-seder-limud');
+        if (sederWrap && sederEl) {
+            var showSeder = z.showSederLimud !== false && !!z.fridaySederTime;
+            sederEl.textContent = z.fridaySederTime || '—';
+            sederWrap.classList.toggle('hidden', !showSeder);
         }
         // Shabbos shiur before mincha (20 min before)
         var shiurMinchaWrap = document.getElementById('z-shiur-mincha-wrap');

@@ -138,6 +138,13 @@ tailwind.config = {
                         <p class="text-[11px] text-gray-500">אחר הקידוש (fixed text, no auto-calculated time)</p>
                     </div>
                 </label>
+                <label class="flex items-center gap-3 bg-gray-800/50 rounded-lg p-3 cursor-pointer hover:bg-gray-800/70 transition">
+                    <input type="checkbox" id="showSederLimudToggle" checked class="w-5 h-5 accent-yellow-500 rounded shrink-0"/>
+                    <div>
+                        <p class="text-sm text-gray-200 font-medium">סדר לימוד – ליל שבת</p>
+                        <p class="text-[11px] text-gray-500">Candles + 2½ hrs, rounded toward the hour — winter (standard time) only. On by default; untick to hide.</p>
+                    </div>
+                </label>
             </div>
             <p class="text-xs text-gold font-semibold mt-4 mb-2">לימוד ילדים <span class="text-gray-500 font-normal">(toggle to show; stays on until you turn it off)</span></p>
             <div class="grid grid-cols-2 gap-3">
@@ -1085,6 +1092,7 @@ function copyZmanimAsText() {
     var shiurMaarivOn = document.getElementById('shabbosShiurMaarivToggle').checked;
     var avosOn = document.getElementById('showAvosUbanimToggle').checked;
     var avosInput = document.getElementById('zAvosUbanim').value.trim();
+    var sederOn = document.getElementById('showSederLimudToggle').checked;
 
     var zRemote = weeklyScheduleCache || {};
 
@@ -1142,6 +1150,9 @@ function copyZmanimAsText() {
         lines.push(fridayMinchaLabel + ': ' + minchaFriday);
     }
     if (shkiaFriday) lines.push('Shkiya: ' + shkiaFriday);
+    // Friday night Seder Limud — winter-only auto time from the API (null in summer).
+    var sederTime = zRemote.fridaySederAuto || null;
+    if (sederOn && sederTime) lines.push('Seder Limud: ' + sederTime);
     lines.push('');
     if (shacharit) lines.push('Shachris: ' + shacharit);
     if (sofZmanShema) lines.push('Sof Z"K Shma: ' + sofZmanShema);
@@ -1349,6 +1360,8 @@ async function loadDataInner() {
         document.getElementById('zAvosUbanim').value = z.avosUbanimTime || '';
         document.getElementById('showPircheiToggle').checked = z.showPirchei === true;
         document.getElementById('showAvosUbanimToggle').checked = z.showAvosUbanim === true;
+        // Defaults ON: only an explicit false (admin unticked + saved) turns it off.
+        document.getElementById('showSederLimudToggle').checked = z.showSederLimud !== false;
     }
     // Restore admin token from localStorage
     var savedToken = localStorage.getItem('shulAdminToken');
@@ -1506,6 +1519,7 @@ async function saveAll() {
         shabbosShiurMincha: document.getElementById('shabbosShiurMinchaToggle').checked ? upcomingShabbosIso() : false,
         shabbosShiurMaariv: document.getElementById('shabbosShiurMaarivToggle').checked ? upcomingShabbosIso() : false,
         shabbosShiurChumash: document.getElementById('shabbosShiurChumashToggle').checked,
+        showSederLimud: document.getElementById('showSederLimudToggle').checked,
         pircheiTime: document.getElementById('zPirchei').value.trim(),
         avosUbanimTime: document.getElementById('zAvosUbanim').value.trim(),
         // Plain on/off (unlike the weekly Halacha/Mishlei toggles above).

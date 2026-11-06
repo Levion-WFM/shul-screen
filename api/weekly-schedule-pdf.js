@@ -96,6 +96,9 @@ function buildRows(z) {
             ? { label: 'מנחה ב׳', time: minchaB || '—' }
             : { label: 'מנחה', time: minchaB || '—' },
         { label: 'שקיעה', time: z.shkiaFriday || z.shkia },
+        // Friday night Seder Limud (winter only, toggle-gated in api/weekly-schedule),
+        // set off from shkiya by a small break.
+        z.fridaySederTime ? { label: 'סדר לימוד', time: z.fridaySederTime, smallGap: true } : null,
     ].filter(Boolean);
 
     const shiurMap = {};
@@ -177,7 +180,11 @@ async function renderSchedulePdf(payload) {
     // line spacing (the cream panel has empty room above the address footer).
     const topY = height * 0.610;
     const bottomY = height * 0.130;
-    const groupHeights = groups.map(rows => rows.length * metrics.lineHeight);
+    // A row flagged smallGap gets a little extra space above it (a "small break"
+    // inside its group, much smaller than the gap between groups).
+    const smallGap = metrics.lineHeight * 0.4;
+    const groupHeights = groups.map(rows =>
+        rows.length * metrics.lineHeight + rows.filter(r => r.smallGap).length * smallGap);
     const used = groupHeights.reduce((a, b) => a + b, 0);
     // Gap between groups fills the panel, but is capped so a short week doesn't
     // open a huge hole between Friday and Shabbos; any leftover space is split
@@ -193,6 +200,7 @@ async function renderSchedulePdf(payload) {
     const fonts = { body: bodyFont, time: timeFont };
     groups.forEach((rows, groupIndex) => {
         rows.forEach(row => {
+            if (row.smallGap) y -= smallGap;
             drawRow(page, fonts, row, y, metrics);
             y -= metrics.lineHeight;
         });

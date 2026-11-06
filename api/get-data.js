@@ -111,6 +111,27 @@ module.exports = async function handler(req, res) {
             }
         } catch (e) { console.error('avos ubanim tzeis error:', e.message); }
 
+        // ── Friday night Seder Limud ──
+        // Candle lighting + 2½ hours, rounded leaning toward the hour (within 12 min
+        // → hour, within 8 min of :30 → half hour, else :15/:45). Winter only: shown
+        // just on Fridays when New York is on standard time (EST), i.e. from the
+        // November clock change until the March one. Same rule as api/weekly-schedule.js.
+        // Toggle defaults ON — only an explicit `false` hides it.
+        try {
+            var friDate = new Date(new Date(shabbosStr + 'T12:00:00Z').getTime() - 86400000);
+            var friTz = new Intl.DateTimeFormat('en-US', { timeZone: KIOSK_TZ, timeZoneName: 'short' })
+                .formatToParts(friDate).find(function (p) { return p.type === 'timeZoneName'; });
+            var cm = /^(\d{1,2}):(\d{2})/.exec(String(data.zmanim.candleLighting || '').trim());
+            if (friTz && friTz.value === 'EST' && cm) {
+                var sederRaw = (parseInt(cm[1], 10) % 12 + 12) * 60 + parseInt(cm[2], 10) + 150;
+                var sederMm = sederRaw % 60, sederBase = sederRaw - sederMm;
+                var sederMin = sederMm <= 12 ? sederBase : sederMm >= 48 ? sederBase + 60
+                    : (sederMm >= 22 && sederMm <= 38) ? sederBase + 30 : sederMm < 22 ? sederBase + 15 : sederBase + 45;
+                data.zmanim.fridaySederTime = (Math.floor(sederMin / 60) % 12 || 12) + ':' + String(sederMin % 60).padStart(2, '0');
+            }
+        } catch (e) { console.error('friday seder error:', e.message); }
+        data.zmanim.showSederLimud = data.zmanim.showSederLimud !== false;
+
         // ── Hebrew Date (today + tomorrow for shkiyah switching) ──
         try {
             var hebrewRows = await sql`
