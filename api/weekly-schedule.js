@@ -287,7 +287,7 @@ module.exports = async function handler(req, res) {
         const avosUbanimTime = manifestZmanim.showAvosUbanim === true
             ? (clockNoAmPm((manifestZmanim.avosUbanimTime || '').trim()) || avosUbanimAuto) : null;
 
-        // Friday night Seder Limud: candles + 2½ hours, rounded leaning toward the
+        // Friday night Seder Limud: candles + 3½ hours, rounded leaning toward the
         // hour (within 12 min → hour, within 8 min of :30 → half hour, else :15/:45).
         // Winter only — Fridays when New York is on standard time (EST), from the
         // November clock change to the March one. Same rule as api/get-data.js.
@@ -299,7 +299,7 @@ module.exports = async function handler(req, res) {
         let candleMin = parseClockToMin(candles);
         if (candleMin != null && candleMin < 12 * 60) candleMin += 12 * 60; // bare "4:31" is PM
         if (friTz && friTz.value === 'EST' && candleMin != null) {
-            const t = candleMin + 150;
+            const t = candleMin + 210;
             const mm = t % 60, base = t - mm;
             fridaySederAuto = fmtHMM(mm <= 12 ? base : mm >= 48 ? base + 60
                 : (mm >= 22 && mm <= 38) ? base + 30 : mm < 22 ? base + 15 : base + 45);
